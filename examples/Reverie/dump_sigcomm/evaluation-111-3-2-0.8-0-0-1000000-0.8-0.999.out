@@ -1,0 +1,43 @@
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+config finished
+maxRtt=17280 maxBdp=54000 minRtt=8640
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.8 TCPLOAD 0 oversubRatio 4
+Finished installation of applications from leaf-0
+Finished installation of applications from leaf-1
+Finished installation of applications from leaf-2
+Finished installation of applications from leaf-3
+Finished installation of applications from leaf-4
+Finished installation of applications from leaf-5
+Finished installation of applications from leaf-6
+Finished installation of applications from leaf-7
+Finished installation of applications from leaf-8
+Finished installation of applications from leaf-9
+Finished installation of applications from leaf-10
+Finished installation of applications from leaf-11
+Finished installation of applications from leaf-12
+Finished installation of applications from leaf-13
+Finished installation of applications from leaf-14
+Finished installation of applications from leaf-15
+apps finished
+Command 'build/examples/Reverie/ns3.39-reverie-evaluation-sigcomm2023-debug --powertcp=true --bufferalgIngress=111 --bufferalgEgress=111 --rdmacc=3 --rdmaload=0.8 --rdmarequestSize=0 --rdmaqueryRequestRate=2 --tcpload=0 --tcpcc=2 --enableEcn=true --tcpqueryRequestRate=2 --tcprequestSize=1000000 --egressLossyShare=0.8 --bufferModel=reverie --gamma=0.999 --START_TIME=1 --END_TIME=4 --FLOW_LAUNCH_END_TIME=3 --buffersize=2560000.0 --fctOutFile=/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/dump_sigcomm/evaluation-111-3-2-0.8-0-0-1000000-0.8-0.999.fct --torOutFile=/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/dump_sigcomm/evaluation-111-3-2-0.8-0-0-1000000-0.8-0.999.tor --alphasFile=/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/alphas --pfcOutFile=/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/dump_sigcomm/evaluation-111-3-2-0.8-0-0-1000000-0.8-0.999.pfc' died with <Signals.SIGTERM: 15>.
