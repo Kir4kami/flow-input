@@ -498,7 +498,6 @@ void incast_tcp (int incastLeaf, double requestRate, uint32_t requestSize, struc
                 txLeaf = 0;
             }
             for (uint32_t txServer = 0; txServer < fan; txServer++) {
-
                 uint16_t port = PORT_START[incastLeaf * SERVER_COUNT + incastServer]++;
                 if (port >= UINT16_MAX - 1) {
                     port = 4444;

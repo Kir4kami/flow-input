@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "random": "cpp",
+        "cmath": "cpp",
+        "fstream": "cpp"
     }
 }
