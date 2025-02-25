@@ -116,7 +116,7 @@ uint32_t PORT_START[512] = {4444};
  * Runtime varibles
  ***********************************************/
 std::ifstream topof, flowf, tracef;
-
+std::ifstream flowInput;
 NodeContainer n;
 NetDeviceContainer switchToSwitchInterfaces;
 std::map< uint32_t, std::map< uint32_t, std::vector<Ptr<QbbNetDevice>> > > switchToSwitch;
@@ -399,10 +399,7 @@ void incast_rdma (int fromLeafId, double requestRate, uint32_t requestSize, stru
 
             uint32_t query = 0;
             uint32_t flowSize = double(requestSize) / double(fan);
-
-
             for (int r = 0; r < fan; r++) {
-
                 uint32_t fromServerIndex = SERVER_COUNT * leaftarget + r ; //rand_range(0, SERVER_COUNT);
 
                 if (DestportNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
@@ -419,7 +416,10 @@ void incast_rdma (int fromLeafId, double requestRate, uint32_t requestSize, stru
 
                 RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime()-MicroSeconds(1));
                 ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
-                // std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<  std::endl;
+                std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<
+                        " fromportNumber " << portNumder[fromServerIndex][destServerIndex] <<
+                        " destportNumder " << DestportNumder[fromServerIndex][destServerIndex] <<
+                        " time " << startTime << " flowsize " << flowSize << std::endl;
                 appCon.Start(Seconds(startTime));
             }
             startTime += poission_gen_interval (requestRate);
@@ -429,55 +429,91 @@ void incast_rdma (int fromLeafId, double requestRate, uint32_t requestSize, stru
     }
 }
 
-
-void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTable,
-                           long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
-{
-    for (int i = 0; i < SERVER_COUNT; i++)
-    {
-        int fromServerIndex = fromLeafId * SERVER_COUNT + i;
-
-        double startTime = START_TIME + poission_gen_interval (requestRate);
-        while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
-        {
-
-            int destServerIndex = fromServerIndex;
-            // while (destServerIndex >= fromLeafId * SERVER_COUNT && destServerIndex < fromLeafId * SERVER_COUNT + SERVER_COUNT && destServerIndex == fromServerIndex)
-            // {
-            //     destServerIndex = rand_range ((fromLeafId+1) * SERVER_COUNT, (fromLeafId+2) * SERVER_COUNT); // Permutation demand matrix
-            // }
-            // Permutation demand matrix
-            int targetLeaf = fromLeafId + 1;
-            if (targetLeaf == LEAF_COUNT) {
-                targetLeaf = 0;
-            }
-            destServerIndex = targetLeaf*SERVER_COUNT + rand_range(0,SERVER_COUNT);
-
-            if (DestportNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
-                DestportNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-
-            if (portNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
-                portNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-
-
-            uint16_t dport = DestportNumder[fromServerIndex][destServerIndex]++; //uint16_t (rand_range (PORT_START, PORT_END));
-            uint16_t sport = portNumder[fromServerIndex][destServerIndex]++;
-
-            uint64_t flowSize = gen_random_cdf (cdfTable);
-            while (flowSize == 0)
-                flowSize = gen_random_cdf (cdfTable);
-            flowCount += 1;
-            RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime());
-            ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
-            // std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<  std::endl;
-            appCon.Start(Seconds(startTime));
-
-            startTime += poission_gen_interval (requestRate);
-        }
-    }
-    std::cout << "Finished installation of applications from leaf-" << fromLeafId << std::endl;
+struct FlowInfo {
+    std::string type;
+    int src_node;
+    int src_port;
+    int dst_node;
+    int dst_port;
+    int priority;
+    uint64_t msg_len;
+};
+void readFlowInfo(std::string fileName, std::vector<FlowInfo> &flowInfo) {
 }
+void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTable,
+                           long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
+    // for (int i = 0; i < SERVER_COUNT; i++){
+    //     int fromServerIndex = fromLeafId * SERVER_COUNT + i;
+    //     double startTime = START_TIME + poission_gen_interval (requestRate);
+    //     while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME){
+    //         int destServerIndex = fromServerIndex;
+    //         // while (destServerIndex >= fromLeafId * SERVER_COUNT && destServerIndex < fromLeafId * SERVER_COUNT + SERVER_COUNT && destServerIndex == fromServerIndex)
+    //         // {
+    //         //     destServerIndex = rand_range ((fromLeafId+1) * SERVER_COUNT, (fromLeafId+2) * SERVER_COUNT); // Permutation demand matrix
+    //         // }
+    //         // Permutation demand matrix
+    //         int targetLeaf = fromLeafId + 1;
+    //         if (targetLeaf == LEAF_COUNT) {
+    //             targetLeaf = 0;
+    //         }
+    //         destServerIndex = targetLeaf*SERVER_COUNT + rand_range(0,SERVER_COUNT);
+    //         if (DestportNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
+    //             DestportNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
+    //         if (portNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
+    //             portNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
+    //         uint16_t dport = DestportNumder[fromServerIndex][destServerIndex]++; //uint16_t (rand_range (PORT_START, PORT_END));
+    //         uint16_t sport = portNumder[fromServerIndex][destServerIndex]++;
+    //         uint64_t flowSize = gen_random_cdf (cdfTable);
+    //         while (flowSize == 0)
+    //             flowSize = gen_random_cdf (cdfTable);
 
+    std::cout<<"Reading flow info"<< std::endl;
+    std::string line;
+    double startTime = START_TIME;
+    while (std::getline(flowInput, line)) {
+        //cout<<"line:"<<line<<endl;
+        if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
+        std::stringstream ss(line);
+        std::string  type_str;
+        if (line.find("phase")!=string::npos){//phase
+            double phase;
+            ss >> type_str >> phase;
+            startTime += phase/1e6;
+            continue;//to be changed
+        }
+        FlowInfo flow;
+        ss >> type_str >> flow.type;
+        ss >> type_str >> flow.src_node;
+        ss >> type_str >> flow.src_port;
+        ss >> type_str >> flow.dst_node;
+        ss >> type_str >> flow.dst_port;
+        ss >> type_str >> flow.priority;
+        ss >> type_str >> flow.msg_len;
+        flowCount += 1;
+        RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+            flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+            global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+        ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+        appCon.Start(Seconds(startTime));//to be changed
+        
+        std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
+                    " fromportNumber " << flow.src_port <<
+                    " destportNumder " << flow.dst_port <<
+                    " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
+    }
+    flowInput.close();
+            //RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime());
+            //ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
+            // std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<
+            //             " fromportNumber " << portNumder[fromServerIndex][destServerIndex] <<
+            //             " destportNumder " << DestportNumder[fromServerIndex][destServerIndex] <<
+            //             " time " << startTime << " flowsize " << flowSize << std::endl;
+            //appCon.Start(Seconds(startTime));
+            //startTime += poission_gen_interval (requestRate);
+    //  }
+    
+    //std::cout << "Finished installation of applications from leaf-" << fromLeafId << std::endl;
+}
 
 void incast_tcp (int incastLeaf, double requestRate, uint32_t requestSize, struct cdf_table *cdfTable,
                                   long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
@@ -635,10 +671,8 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 
 /******************************************************************************************************************************************************************************************************/
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
     std::ifstream conf;
-
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
     uint32_t SPINE_COUNT = 2;
@@ -660,9 +694,8 @@ int main(int argc, char *argv[])
     std::string confFile = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/config-workload.txt";
     std::string cdfFileName = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/websearch.txt";
     //std::string cdfFileName = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/workloads/websearch.csv";
-
+    std::string flowInputFileName= "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/flowinputtest.txt";
     unsigned randomSeed = 1;
-
 
     CommandLine cmd;
     cmd.AddValue("conf", "config file path", confFile);
@@ -740,8 +773,6 @@ int main(int argc, char *argv[])
     std::string pfcOutFile = "./pfc.txt";
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
-
-
     cmd.Parse (argc, argv);
 
     flowEnd = FLOW_LAUNCH_END_TIME;
@@ -799,8 +830,7 @@ int main(int argc, char *argv[])
     LEAF_SERVER_CAPACITY = LEAF_SERVER_CAPACITY * GIGA;
 
     conf.open(confFile.c_str());
-    while (!conf.eof())
-    {
+    while (!conf.eof()){
         std::string key;
         conf >> key;
 
@@ -975,9 +1005,12 @@ int main(int argc, char *argv[])
         fflush(stdout);
     }
     conf.close();
-
     std::cout << "config finished" << std::endl;
 
+    flowInput.open(flowInputFileName.c_str());
+    if (!flowInput.is_open())
+        std::cout << "unable to open flowInputFile!" << std::endl;
+    
     has_win = rdmaWindowCheck;
     var_win = rdmaVarWin;
 
@@ -1058,8 +1091,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-
-
     NS_LOG_INFO("Create nodes.");
 
     Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue(true));
@@ -1384,13 +1415,14 @@ int main(int argc, char *argv[])
     long totalFlowSize = 0;
     double requestRate = rdmaload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
 
-    for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
-    {
-        workload_rdma(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-        if (rdmaqueryRequestRate > 0 && rdmarequestSize > 0){
-            incast_rdma(fromLeafId, rdmaqueryRequestRate, rdmarequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-        }
-    }
+    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
+    // {
+    //     workload_rdma(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     if (rdmaqueryRequestRate > 0 && rdmarequestSize > 0){
+    //         incast_rdma(fromLeafId, rdmaqueryRequestRate, rdmarequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     }
+    // }
+    workload_rdma( 0, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
 
     /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
     Config::SetDefault ("ns3::TcpSocket::ConnTimeout", TimeValue (MilliSeconds (10))); // syn retry interval
@@ -1417,14 +1449,14 @@ int main(int argc, char *argv[])
         Config::SetDefault ("ns3::TcpSocketBase::UseEcn", StringValue ("On"));
     }
 
-    requestRate = tcpload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
-    for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
-    {
-        workload_tcp(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-        if (tcpqueryRequestRate > 0 && tcprequestSize > 0) {
-            incast_tcp(fromLeafId, tcpqueryRequestRate, tcprequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-        }
-    }
+    // requestRate = tcpload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
+    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
+    // {
+    //     workload_tcp(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     if (tcpqueryRequestRate > 0 && tcprequestSize > 0) {
+    //         incast_tcp(fromLeafId, tcpqueryRequestRate, tcprequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     }
+    // }
 std::cout << "apps finished" << std::endl;
     topof.close();
     tracef.close();

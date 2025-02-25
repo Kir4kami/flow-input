@@ -8,7 +8,7 @@
             "name": "(gdb) Launch from scratch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/${relativeFileDirname}/ns3-dev-${fileBasenameNoExtension}-${input:buildType}",
+            "program": "${workspaceFolder}/build/${relativeFileDirname}/ns3.39-${fileBasenameNoExtension}-${input:buildType}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
