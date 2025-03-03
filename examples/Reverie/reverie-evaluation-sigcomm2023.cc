@@ -438,7 +438,12 @@ struct FlowInfo {
     int priority;
     uint64_t msg_len;
 };
-void readFlowInfo(std::string fileName, std::vector<FlowInfo> &flowInfo) {
+vector<ApplicationContainer> apps;
+
+void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
+
+    apps[16].Start(Seconds(2));
+    cout<<apps.size()<<Simulator::Now().GetSeconds()<<endl;
 }
 void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTable,
                            long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
@@ -470,8 +475,8 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
     std::cout<<"Reading flow info"<< std::endl;
     std::string line;
     double startTime = START_TIME;
+    int batch = 0;
     while (std::getline(flowInput, line)) {
-        //cout<<"line:"<<line<<endl;
         if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
         std::stringstream ss(line);
         std::string  type_str;
@@ -479,6 +484,7 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
             double phase;
             ss >> type_str >> phase;
             startTime += phase/1e6;
+            batch ++;
             continue;//to be changed
         }
         FlowInfo flow;
@@ -494,8 +500,9 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
         ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-        appCon.Start(Seconds(startTime));//to be changed
-        
+        if(batch <= 1)
+            appCon.Start(Seconds(startTime));//to be changed
+        apps.emplace_back(appCon);
         std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<
@@ -511,9 +518,10 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
             //appCon.Start(Seconds(startTime));
             //startTime += poission_gen_interval (requestRate);
     //  }
-    
     //std::cout << "Finished installation of applications from leaf-" << fromLeafId << std::endl;
 }
+
+
 
 void incast_tcp (int incastLeaf, double requestRate, uint32_t requestSize, struct cdf_table *cdfTable,
                                   long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
@@ -1259,6 +1267,7 @@ int main(int argc, char *argv[]){
             node->AggregateObject (rdma);
             rdma->Init();
             rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (qp_finish, fctOutput));
+            rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (flowinput_cb, fctOutput));
         }
     }
 
@@ -1472,4 +1481,5 @@ std::cout << "apps finished" << std::endl;
     Simulator::Run();
     Simulator::Destroy();
     NS_LOG_INFO("Done.");
+    std::cout<<"Done"<<std::endl;
 }

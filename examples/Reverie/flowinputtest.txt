@@ -16,7 +16,7 @@ Type rdma_send  src_node 48  	src_port 0  	dst_node 52  	dst_port 0  priority 0 
 Type rdma_send  src_node 52  	src_port 0  	dst_node 48  	dst_port 0  priority 0  msg_len 16777216
 Type rdma_send  src_node 56  	src_port 0  	dst_node 60  	dst_port 0  priority 0  msg_len 16777216
 Type rdma_send  src_node 60  	src_port 0  	dst_node 56  	dst_port 0  priority 0  msg_len 16777216
-phase 3000
+phase 300000
 Type rdma_send  src_node 0  	src_port 0  	dst_node 8  	dst_port 0  priority 0  msg_len 8388608
 Type rdma_send  src_node 4  	src_port 0  	dst_node 12  	dst_port 0  priority 0  msg_len 8388608
 Type rdma_send  src_node 8  	src_port 0  	dst_node 0  	dst_port 0  Priority 0  msg_len 8388608
