@@ -43,12 +43,14 @@
 #include "ns3/cn-header.h"
 #include "ns3/ppp-header.h"
 #include "ns3/udp-header.h"
+#include "ns3/tcp-header.h"
 #include "ns3/seq-ts-header.h"
 #include "ns3/pointer.h"
 #include "ns3/custom-header.h"
 #include "ns3/rdma-tag.h"
 #include "ns3/interface-tag.h"
 #include "ns3/unsched-tag.h"
+#include "flow-acc.h"
 
 #include <iostream>
 
@@ -58,6 +60,13 @@ namespace ns3 {
 
 uint32_t RdmaEgressQueue::ack_q_idx = 3;
 uint32_t RdmaEgressQueue::tcpip_q_idx = 1;
+
+//计算接收端口流量速率的变量
+uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
+bool isFirstOpen = true;
+std::map<std::string, FlowStat> flowStats; //flowid,size字节数,存储流的统计信息
+
+
 // RdmaEgressQueue
 TypeId RdmaEgressQueue::GetTypeId (void)
 {
@@ -503,7 +512,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 
 	CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
 	ch.getInt = 1; // parse INT header
-	packet->PeekHeader(ch);
+	packet->PeekHeader(ch);//查看但不移除数据包中的头部信息
 	if (ch.l3Prot == 0xFE) { // PFC
 		if (!m_qbbEnabled) return;
 		unsigned qIndex = ch.pfc.qIndex;
@@ -521,8 +530,9 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		} else { // NIC
 			int ret;
 			Ptr<Packet> cp = packet->Copy();
-			PppHeader ph; cp->RemoveHeader(ph);
-			Ipv4Header ih;
+			
+			PppHeader ph; cp->RemoveHeader(ph);//（可以得到源、目的端口）
+ 			Ipv4Header ih;//(这里可以得到源、目的地址ipv4地址)
 			cp->RemoveHeader(ih);
 			if (ih.GetProtocol() == 0x06) {
 				m_snifferTrace (packet);
@@ -530,7 +540,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				m_phyRxEndTrace (packet);
 				Ptr<Packet> originalPacket = packet->Copy ();
 				uint16_t prot = 0;
-				ProcessHeader (packet, prot);
+				ProcessHeader (packet, prot);//PPP（Point-to-Point Protocol）协议号转换为以太网协议号
 
 				if (!m_promiscCallback.IsNull ())
 				{
@@ -542,12 +552,171 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			}
 			else {
 				// send to RdmaHw
+				if(((ch.dip >> 8) & 0xffff)==m_node->GetId()){//接收端才进行计算
+				std::ofstream flowstatsFile;
+				// 根据是否是第一次打开文件来选择文件打开模式
+        		std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
+
+				flowstatsFile.open("flow_stats.txt", mode);
+				
+				if (!flowstatsFile.is_open()) {
+        			throw std::runtime_error("Unable to open file for writing flow statistics.");
+    			}
+				GenerateFlowId(cp,ch,flowstatsFile);
+				
+				// 如果是第一次打开，设置标志为false，后续追加
+            	isFirstOpen = false;
+				flowstatsFile.close();
+				}
 				ret = m_rdmaReceiveCb(packet, ch);
 			}
 			// TODO we may based on the ret do something
 		}
 	}
 	return;
+}
+
+//生成flowid和获取数据包大小
+void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile)
+{
+	uint8_t protocol = header.l3Prot; // 获取协议号
+    uint32_t srcIp = header.sip; // 获取源IP地址
+    uint32_t dstIp = header.dip; // 获取目标IP地址
+	//将IP转换成ID
+	uint32_t srcId = ((srcIp >> 8) & 0xffff);
+	uint32_t dstId = ((dstIp >> 8) & 0xffff);
+    uint16_t srcPort = 0; // 源端口号
+    uint16_t dstPort = 0; // 目标端口号
+	//获取数据包大小
+	uint16_t packetSize = 0;
+	// 根据协议类型处理传输层头部
+    if (protocol == 0x11) // UDP协议号为17
+    {
+        srcPort = header.udp.sport; // 获取源端口号
+        dstPort = header.udp.dport; // 获取目标端口号
+		packetSize = cp->GetSize();
+		//packetSize = header.udp.payload_size;
+		//packetSize = header.m_payloadSize;
+    }
+    else
+    {
+        NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
+        return ; // 返回默认值表示不支持的协议
+    }
+    /*Ipv4Header ipv4Header; // IPv4头部对象
+    Ptr<Packet> payload = packet->Copy(); // 复制数据包以避免修改原始数据包
+    payload->RemoveHeader(ipv4Header); // 移除IPv4头部
+
+    uint8_t protocol = ipv4Header.GetProtocol(); // 获取协议号
+    uint32_t srcIp = ipv4Header.GetSource().Get(); // 获取源IP地址
+    uint32_t dstIp = ipv4Header.GetDestination().Get(); // 获取目标IP地址
+    uint16_t srcPort = 0; // 源端口号
+    uint16_t dstPort = 0; // 目标端口号
+
+    // 根据协议类型处理传输层头部
+    if (protocol == 0x12) // UDP协议号为17
+    {
+        UdpHeader udpHeader;
+        payload->RemoveHeader(udpHeader); // 移除UDP头部
+        srcPort = udpHeader.GetSourcePort(); // 获取源端口号
+        dstPort = udpHeader.GetDestinationPort(); // 获取目标端口号
+    }
+    else if (protocol == 0x06) // TCP协议号为6
+    {
+        TcpHeader tcpHeader;
+        payload->RemoveHeader(tcpHeader); // 移除TCP头部
+        srcPort = tcpHeader.GetSourcePort(); // 获取源端口号
+        dstPort = tcpHeader.GetDestinationPort(); // 获取目标端口号
+    }
+    else
+    {
+        NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
+        return ; // 返回默认值表示不支持的协议
+    }*/
+
+    // 将所有信息组合成一个字符串
+    std::ostringstream oss;
+    oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
+
+    // 使用哈希函数将组合后的字符串转换为唯一整数ID
+    /*std::hash<std::string> hasher;
+    uint32_t flowid = static_cast<uint32_t>(hasher(oss.str()));*/
+	std::string flowid = oss.str();
+    
+	//计算速率
+	onPacketReceived(flowid, packetSize,flowstatsFile);
+}
+
+void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
+    uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+    
+    // 检查该流是否存在
+    auto it = flowStats.find(flowid);
+    
+    if (it == flowStats.end()){
+        // 流不存在，创建新流
+        FlowStat newStat = { packetSize, currentTime };
+        flowStats[flowid] = newStat;
+    }
+	calculateRate(flowid,packetSize,flowstatsFile);
+}
+
+// 计算速率并输出
+void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
+    uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
+    
+    // 遍历所有流，计算速率
+    for (auto& entry : flowStats) {
+        string flow_id = entry.first;
+        FlowStat& stat = entry.second;
+        
+        // 判断是否超过监测周期
+        if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
+            // 计算速率（单位：字节/纳秒）
+            double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
+            cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << endl;
+            flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
+			if(stat.rate.size() >= stat.size){
+				stat.rate.erase(stat.rate.begin());
+				// 获取最小值和最大值
+    			auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
+    			auto minIt = result.first;
+    			auto maxIt = result.second;
+				if(std::fabs(*maxIt - *minIt)  == 0){
+					stat.steadyStateReached = true;//流进入稳态
+					//cout<<"进入稳态"<<endl;
+					//判断系统稳态
+					bool allSteadyStateReached = true;
+    				for (auto& entry_SteadyState : flowStats) {				
+						    if (!entry_SteadyState.second.steadyStateReached) {
+            				allSte
+							adyStateReached = false;
+            				break;  // 一旦发现一个流未进入稳态，直接跳出循环
+        				}
+    				}
+					if (allSteadyStateReached) {
+        				cout << "All flows have reached steady state." << endl;
+        				// 在这里可以执行进一步操作，比如标记系统进入稳态
+        				// 例如，触发一些事件或改变状态等
+    				}
+				}
+				
+			}
+			stat.rate.push_back(rate);
+
+            // 清空流的统计信息
+            stat.byteCount = 0;
+            stat.timestamp = currentTime;
+
+			//stat.byteCount +=packetSize;
+        }
+		if(flow_id == flowid){
+
+			stat.byteCount +=packetSize;
+
+		}
+    }
+	
 }
 
 Address
@@ -691,4 +860,5 @@ void QbbNetDevice::UpdateNextAvail(Time t) {
 		m_nextSend = Simulator::Schedule(delta, &QbbNetDevice::DequeueAndTransmit, this);
 	}
 }
-} // namespace ns3
+} 
+// namespace ns3

@@ -31,6 +31,10 @@
 #include "ns3/rdma-queue-pair.h"
 #include <vector>
 #include<map>
+#include<string>
+#include <sstream>
+#include <fstream>
+#include <filesystem>//判断文件时是否存在
 // #include <ns3/rdma.h>
 // #define ENABLE_QP 1
 
@@ -83,6 +87,14 @@ public:
 
   QbbNetDevice ();
   virtual ~QbbNetDevice ();
+
+  //计算接收端流量速率
+  //生成flowid和获取数据包大小
+  void GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile);
+  //接收到数据包时的初始化
+  void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  // 计算速率并输出
+  void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
 
   /**
    * Receive a packet from a connected PointToPointChannel.

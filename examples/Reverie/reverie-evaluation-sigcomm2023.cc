@@ -451,24 +451,152 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             ss >> type_str >> flow.priority;
             ss >> type_str >> flow.msg_len;
             flowCount += 1;
-            flowInfos[batch].emplace_back(flow);
-            if(batch == 0){
-                RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-                flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-                global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-                ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-                appCon.Start(Seconds(startTime));//to be changed
-                //apps.emplace_back(appCon);
-                std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-                    " fromportNumber " << flow.src_port <<
-                    " destportNumder " << flow.dst_port <<
-                    " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
-            }
+            RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime());
+            ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
+            // std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<  std::endl;
+            appCon.Start(Seconds(startTime));
+
+            break;//这条语句只让安装执行一次
+
+            startTime += poission_gen_interval (requestRate);
         }
-        flowInput.close();
+        break;//这条语句只让安装执行一次
+    }
+    std::cout << "Finished installation of applications from leaf-" << fromLeafId << std::endl;
+}
+
+
+void incast_tcp (int incastLeaf, double requestRate, uint32_t requestSize, struct cdf_table *cdfTable,
+                                  long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
+{
+    int fan = SERVER_COUNT;
+    uint64_t flowSize = double(requestSize) / double(fan);
+
+    uint32_t prior = 1; // hardcoded for tcp
+
+    for (int incastServer = 0; incastServer < SERVER_COUNT; incastServer++)
+    {
+        double startTime = START_TIME + poission_gen_interval (requestRate);
+        while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
+        {
+            // Permutation demand matrix
+            int txLeaf = incastLeaf + 1;
+            if (txLeaf == LEAF_COUNT) {
+                txLeaf = 0;
+            }
+            for (uint32_t txServer = 0; txServer < fan; txServer++) {
+
+                uint16_t port = PORT_START[incastLeaf * SERVER_COUNT + incastServer]++;
+                if (port >= UINT16_MAX - 1) {
+                    port = 4444;
+                    PORT_START[incastLeaf * SERVER_COUNT + incastServer] = 4444;
+                }
+                Time startApp = (NanoSeconds (150) + MilliSeconds(rand_range(50, 500)));
+                Ptr<Node> rxNode = n.Get (incastLeaf*SERVER_COUNT + incastServer);
+                Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
+                Ipv4InterfaceAddress rxInterface = ipv4->GetAddress (1, 0);
+                Ipv4Address rxAddress = rxInterface.GetLocal ();
+
+                InetSocketAddress ad (rxAddress, port);
+                Address sinkAddress(ad);
+                Ptr<BulkSendApplication> bulksend = CreateObject<BulkSendApplication>();
+                bulksend->SetAttribute("Protocol", TypeIdValue(TcpSocketFactory::GetTypeId()));
+                bulksend->SetAttribute ("SendSize", UintegerValue (flowSize));
+                bulksend->SetAttribute ("MaxBytes", UintegerValue(flowSize));
+                bulksend->SetAttribute("FlowId", UintegerValue(flowCount++));
+                bulksend->SetAttribute("priorityCustom", UintegerValue(prior));
+                bulksend->SetAttribute("Remote", AddressValue(sinkAddress));
+                bulksend->SetAttribute("InitialCwnd", UintegerValue (flowSize / packet_payload_size + 1));
+                bulksend->SetAttribute("priority", UintegerValue(prior));
+                bulksend->SetAttribute("sendAt", TimeValue(Seconds (startTime)));
+                bulksend->SetStartTime (startApp);
+                bulksend->SetStopTime (Seconds (END_TIME));
+                n.Get (txLeaf*SERVER_COUNT + txServer)->AddApplication(bulksend);
+
+                PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), port));
+                ApplicationContainer sinkApp = sink.Install (n.Get(incastLeaf*SERVER_COUNT + incastServer));
+                sinkApp.Get(0)->SetAttribute("TotalQueryBytes", UintegerValue(flowSize));
+                sinkApp.Get(0)->SetAttribute("recvAt", TimeValue(Seconds(startTime)));
+                sinkApp.Get(0)->SetAttribute("priority", UintegerValue(1)); // ack packets are prioritized
+                sinkApp.Get(0)->SetAttribute("priorityCustom", UintegerValue(1)); // ack packets are prioritized
+                sinkApp.Get(0)->SetAttribute("senderPriority", UintegerValue(prior));
+                sinkApp.Get(0)->SetAttribute("flowId", UintegerValue(flowCount));
+                flowCount += 1;
+                sinkApp.Start (startApp);
+                sinkApp.Stop (Seconds (END_TIME));
+                sinkApp.Get(0)->TraceConnectWithoutContext("FlowFinish", MakeBoundCallback(&TraceMsgFinish, fctOutput));
+            }
+            startTime += poission_gen_interval (requestRate);
+        }
     }
 }
-//written by Kira END
+
+void workload_tcp (int txLeaf, double requestRate, struct cdf_table *cdfTable,
+                           long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
+{
+    uint64_t flowSize;
+    uint32_t prior = 1; // hardcoded for tcp
+
+    for (int txServer = 0; txServer < SERVER_COUNT; txServer++)
+    {
+        double startTime = START_TIME + poission_gen_interval (requestRate);
+        while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
+        {
+            // Permutation demand matrix
+            int rxLeaf = txLeaf + 1;
+            if (rxLeaf == LEAF_COUNT) {
+                rxLeaf = 0;
+            }
+
+            uint32_t rxServer = rand_range(0, SERVER_COUNT);
+
+            uint16_t port = PORT_START[rxLeaf * SERVER_COUNT + rxServer]++;
+            if (port >= UINT16_MAX - 1) {
+                port = 4444;
+                PORT_START[rxLeaf * SERVER_COUNT + rxServer] = 4444;
+            }
+
+            uint64_t flowSize = gen_random_cdf (cdfTable);
+            while (flowSize == 0) {
+                flowSize = gen_random_cdf (cdfTable);
+            }
+
+            Ptr<Node> rxNode = n.Get (rxLeaf*SERVER_COUNT + rxServer);
+            Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
+            Ipv4InterfaceAddress rxInterface = ipv4->GetAddress (1, 0);
+            Ipv4Address rxAddress = rxInterface.GetLocal ();
+
+            InetSocketAddress ad (rxAddress, port);
+            Address sinkAddress(ad);
+            Ptr<BulkSendApplication> bulksend = CreateObject<BulkSendApplication>();
+            bulksend->SetAttribute("Protocol", TypeIdValue(TcpSocketFactory::GetTypeId()));
+            bulksend->SetAttribute ("SendSize", UintegerValue (flowSize));
+            bulksend->SetAttribute ("MaxBytes", UintegerValue(flowSize));
+            bulksend->SetAttribute("FlowId", UintegerValue(flowCount++));
+            bulksend->SetAttribute("priorityCustom", UintegerValue(prior));
+            bulksend->SetAttribute("Remote", AddressValue(sinkAddress));
+            bulksend->SetAttribute("InitialCwnd", UintegerValue (maxBdp/packet_payload_size + 1));
+            bulksend->SetAttribute("priority", UintegerValue(prior));
+            bulksend->SetStartTime (Seconds(startTime));
+            bulksend->SetStopTime (Seconds (END_TIME));
+            n.Get (txLeaf*SERVER_COUNT + txServer)->AddApplication(bulksend);
+
+            PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), port));
+            ApplicationContainer sinkApp = sink.Install (n.Get(rxLeaf*SERVER_COUNT + rxServer));
+            sinkApp.Get(0)->SetAttribute("TotalQueryBytes", UintegerValue(flowSize));
+            sinkApp.Get(0)->SetAttribute("priority", UintegerValue(0)); // ack packets are prioritized
+            sinkApp.Get(0)->SetAttribute("priorityCustom", UintegerValue(0)); // ack packets are prioritized
+            sinkApp.Get(0)->SetAttribute("flowId", UintegerValue(flowCount));
+            sinkApp.Get(0)->SetAttribute("senderPriority", UintegerValue(prior));
+            flowCount += 1;
+            sinkApp.Start (Seconds(startTime));
+            sinkApp.Stop (Seconds (END_TIME));
+            sinkApp.Get(0)->TraceConnectWithoutContext("FlowFinish", MakeBoundCallback(&TraceMsgFinish, fctOutput));
+            startTime += poission_gen_interval (requestRate);
+        }
+    }
+}
+
 
 uint32_t flowEnd = 0;
 void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
@@ -516,6 +644,8 @@ int main(int argc, char *argv[]){
 
     std::string confFile = "examples/Reverie/config-workload.txt";
     std::string cdfFileName = "examples/Reverie/websearch.txt";
+    //std::string cdfFileName = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/workloads/websearch.csv";
+
     unsigned randomSeed = 1;
 
     CommandLine cmd;
@@ -577,7 +707,7 @@ int main(int argc, char *argv[]){
     double gamma = 0.99;
     cmd.AddValue("gamma","gamma parameter value for Reverie", gamma);
 
-    std::string alphasFile = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/examples/Reverie/alphas"; // On lakewood
+    std::string alphasFile = "examples/Reverie/alphas"; // On lakewood
     cmd.AddValue ("alphasFile", "alpha values file (should be exactly nPrior lines)", alphasFile);
 
     cmd.AddValue("incast", "incast", incast);
@@ -1219,7 +1349,17 @@ int main(int argc, char *argv[]){
         PORT_START[i] = 4444;
 
     long flowCount = 1;
-    workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    long totalFlowSize = 0;
+    double requestRate = rdmaload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
+
+    for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
+    {
+        workload_rdma(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+        //break;//这条语句只让安装执行一次
+        if (rdmaqueryRequestRate > 0 && rdmarequestSize > 0){
+            incast_rdma(fromLeafId, rdmaqueryRequestRate, rdmarequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+        }
+    }
 
     /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
     Config::SetDefault ("ns3::TcpSocket::ConnTimeout", TimeValue (MilliSeconds (10))); // syn retry interval
