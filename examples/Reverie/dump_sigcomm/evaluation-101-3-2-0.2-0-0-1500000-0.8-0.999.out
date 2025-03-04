@@ -1,6 +1,5 @@
 [0/2] Re-checking globbed directories...
-[1/2] Building CXX object examples/Reverie/CMakeFiles/reverie-evaluation-sigcomm2023.dir/reverie-evaluation-sigcomm2023.cc.o
-[2/2] Linking CXX executable /home/kira/ns3-datacenter/simulator/ns-3.39/build/examples/Reverie/ns3.39-reverie-evaluation-sigcomm2023-debug
+ninja: no work to do.
 config finished
 maxRtt=17280 maxBdp=54000 minRtt=8640
 total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
@@ -25,69 +24,104 @@ total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLoss
 total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
 SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
 Reading flow info
- from 0 to 4 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 4 to 0 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 8 to 12 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 12 to 8 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 16 to 20 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 20 to 16 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 24 to 28 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 28 to 24 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 32 to 36 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 36 to 32 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 40 to 44 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 44 to 40 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 48 to 52 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 52 to 48 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 56 to 60 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 60 to 56 fromportNumber 0 destportNumder 0 time 1.003 flowsize 16777216
- from 0 to 8 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 4 to 12 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 8 to 0 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 12 to 4 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 16 to 24 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 20 to 28 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 24 to 16 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 28 to 20 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 32 to 40 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 36 to 44 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 40 to 32 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 44 to 36 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 48 to 56 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 52 to 60 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 56 to 48 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
- from 60 to 52 fromportNumber 0 destportNumder 0 time 1.303 flowsize 8388608
+ from 0 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 4 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 8 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 12 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 16 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 20 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 24 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 28 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 32 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 36 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 40 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 44 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 48 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 52 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 56 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+ from 60 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
 apps finished
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-320.00331333
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
-321.00962
+batch 0 flow 1 0.00961939
+batch 0 flow 2 0.00961939
+batch 0 flow 3 0.00961939
+batch 0 flow 4 0.00961939
+batch 0 flow 5 0.00961939
+batch 0 flow 6 0.00961939
+batch 0 flow 7 0.00961939
+batch 0 flow 8 0.00961939
+batch 0 flow 9 0.00961939
+batch 0 flow 10 0.00961939
+batch 0 flow 11 0.00961939
+batch 0 flow 12 0.00961939
+batch 0 flow 13 0.00961939
+batch 0 flow 14 0.00961939
+batch 0 flow 15 0.00961939
+batch 0 flow 16 0.00961939
+complete batch
+ from 0 to 8 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 4 to 12 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 8 to 0 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 12 to 4 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 16 to 24 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 20 to 28 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 24 to 16 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 28 to 20 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 32 to 40 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 36 to 44 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 40 to 32 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 44 to 36 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 48 to 56 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 52 to 60 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 56 to 48 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+ from 60 to 52 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+batch 1 flow 1 0.0225522
+batch 1 flow 2 0.0225522
+batch 1 flow 3 0.0225522
+batch 1 flow 4 0.0225522
+batch 1 flow 5 0.0225522
+batch 1 flow 6 0.0225522
+batch 1 flow 7 0.0225522
+batch 1 flow 8 0.0225522
+batch 1 flow 9 0.0225522
+batch 1 flow 10 0.0225522
+batch 1 flow 11 0.0225522
+batch 1 flow 12 0.0225522
+batch 1 flow 13 0.0225522
+batch 1 flow 14 0.0225522
+batch 1 flow 15 0.0225522
+batch 1 flow 16 0.0225522
+complete batch
+ from 0 to 16 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 4 to 20 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 8 to 24 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 12 to 28 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 16 to 0 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 20 to 4 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 24 to 8 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 28 to 12 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 32 to 48 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 36 to 52 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 40 to 56 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 44 to 60 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 48 to 32 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 52 to 36 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 56 to 40 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+ from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0225522 flowsize 4194304
+batch 2 flow 1 0.0467481
+batch 2 flow 2 0.0467481
+batch 2 flow 3 0.0467501
+batch 2 flow 4 0.046797
+batch 2 flow 5 0.046797
+batch 2 flow 6 0.0481578
+batch 2 flow 7 0.0483404
+batch 2 flow 8 0.04842
+batch 2 flow 9 0.0484278
+batch 2 flow 10 0.0484278
+batch 2 flow 11 0.048436
+batch 2 flow 12 0.048436
+batch 2 flow 13 0.0484496
+batch 2 flow 14 0.0499064
+batch 2 flow 15 0.0500816
+batch 2 flow 16 0.0501892
+complete batch
 Done
