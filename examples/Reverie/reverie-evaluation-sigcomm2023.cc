@@ -386,33 +386,25 @@ uint32_t FAN = 5;
 //     for (int i = 0; i < SERVER_COUNT; i++)
 //     {
 //         int fromServerIndexX = fromLeafId * SERVER_COUNT + i;
-
 //         double startTime = START_TIME + poission_gen_interval (requestRate);
 //         while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
 //         {
 //             int leaftarget = fromLeafId + 1;
 //             if (leaftarget >=LEAF_COUNT)
 //                 leaftarget = 0;
-
 //             int destServerIndex = fromServerIndexX;
-
 //             uint32_t query = 0;
 //             uint32_t flowSize = double(requestSize) / double(fan);
 //             for (int r = 0; r < fan; r++) {
 //                 uint32_t fromServerIndex = SERVER_COUNT * leaftarget + r ; //rand_range(0, SERVER_COUNT);
-
 //                 if (DestportNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
 //                     DestportNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-
 //                 if (portNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
 //                     portNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-
 //                 uint16_t dport = DestportNumder[fromServerIndex][destServerIndex]++;
 //                 uint16_t sport = portNumder[fromServerIndex][destServerIndex]++;
-
 //                 query += flowSize;
 //                 flowCount++;
-
 //                 RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime()-MicroSeconds(1));
 //                 ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
 //                 std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<
@@ -441,10 +433,9 @@ u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
 vector<vector<FlowInfo>> flowInfos;
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-    
+
     flowCom++;
     std::cout<<"phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-
     if(flowCom>=flowInfos[BatchCur].size()){
         BatchCur++;
         flowCom=0;
@@ -677,7 +668,6 @@ int main(int argc, char *argv[]){
 
     std::string confFile = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/config-workload.txt";
     std::string cdfFileName = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/websearch.txt";
-    //std::string cdfFileName = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/workloads/websearch.csv";
     std::string flowInputFileName= "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/flowinputtest.txt";
     unsigned randomSeed = 1;
 
@@ -686,13 +676,10 @@ int main(int argc, char *argv[]){
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
     cmd.AddValue ("randomSeed", "Random seed, 0 for random generated", randomSeed);
-
-
     cmd.AddValue ("START_TIME", "sim start time", START_TIME);
     cmd.AddValue ("END_TIME", "sim end time", END_TIME);
     cmd.AddValue ("FLOW_LAUNCH_END_TIME", "flow launch process end time", FLOW_LAUNCH_END_TIME);
     cmd.AddValue ("cdfFileName", "File name for flow distribution", cdfFileName);
-
     uint32_t tcprequestSize = 4000000;
     cmd.AddValue ("tcprequestSize", "Query Size in Bytes", tcprequestSize);
     double tcpqueryRequestRate = 0;
@@ -1050,7 +1037,6 @@ int main(int argc, char *argv[]){
         }
         else
             node_type[sid] = 2;
-
     }
 
     for (uint32_t i = 0; i < node_num; i++) {
@@ -1118,12 +1104,10 @@ int main(int argc, char *argv[]){
         // std::cout << src << " " << dst << " " << n.GetN() << std::endl;
         Ptr<Node> snode = n.Get(src), dnode = n.Get(dst);
 
-
         qbb.SetDeviceAttribute("DataRate", StringValue(data_rate));
         qbb.SetChannelAttribute("Delay", StringValue(link_delay));
 
-        if (error_rate > 0)
-        {
+        if (error_rate > 0){
             Ptr<RateErrorModel> rem = CreateObject<RateErrorModel>();
             Ptr<UniformRandomVariable> uv = CreateObject<UniformRandomVariable>();
             rem->SetRandomVariable(uv);
@@ -1132,8 +1116,7 @@ int main(int argc, char *argv[]){
             rem->SetAttribute("ErrorUnit", StringValue("ERROR_UNIT_PACKET"));
             qbb.SetDeviceAttribute("ReceiveErrorModel", PointerValue(rem));
         }
-        else
-        {
+        else{
             qbb.SetDeviceAttribute("ReceiveErrorModel", PointerValue(rem));
         }
 
@@ -1198,8 +1181,6 @@ int main(int argc, char *argv[]){
     }
 
     nic_rate = get_nic_rate(n);
-
-
 
 #if ENABLE_QP
     //
@@ -1451,7 +1432,6 @@ std::cout << "apps finished" << std::endl;
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     // AsciiTraceHelper ascii;
     // qbb.EnableAsciiAll (ascii.CreateFileStream ("eval.tr"));
-    // std::cout << "Running Simulation.\n";
     NS_LOG_INFO("Run Simulation.");
     Simulator::Stop(Seconds(END_TIME));
     Simulator::Run();
