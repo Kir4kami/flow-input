@@ -71,6 +71,8 @@ double flowMinTime = 1.79769e+308;	//整个系统最小流完成时间
 
 
 // RdmaEgressQueue
+//使用 TypeId 机制来查询 RdmaEgressQueue 的类型信息
+//监听 RdmaEgressQueue 中数据包的入队 (Enqueue) 和出队 (Dequeue) 事
 TypeId RdmaEgressQueue::GetTypeId (void)
 {
 	static TypeId tid = TypeId ("ns3::RdmaEgressQueue")
@@ -90,13 +92,14 @@ RdmaEgressQueue::RdmaEgressQueue() {
 	m_ackQ->SetAttribute("MaxSize", QueueSizeValue (QueueSize (BYTES, 0xffffffff))); // queue limit is on a higher level, not here
 }
 
+// RDMA 出队
 Ptr<Packet> RdmaEgressQueue::DequeueQindex(int qIndex) {
 
 	NS_ASSERT_MSG(qIndex != -2, "qIndex -2 appeared in DequeueQindex. This is not intended. Aborting!");
 	if (qIndex == -1) { // high prio
 		Ptr<Packet> p = m_ackQ->Dequeue();
 		m_qlast = -1;
-		m_traceRdmaDequeue(p, 0);
+		m_traceRdmaDequeue(p, 0);//出队
 		UnSchedTag tag;
 		bool found = p->PeekPacketTag(tag);
 		uint32_t unsched = tag.GetValue();
@@ -114,6 +117,8 @@ Ptr<Packet> RdmaEgressQueue::DequeueQindex(int qIndex) {
 	}
 	return 0;
 }
+
+//在 RDMA 出队过程中选择下一个队列索引 (qIndex)
 int RdmaEgressQueue::GetNextQindex(bool paused[]) {
 	bool found = false;
 	uint32_t qIndex;
@@ -169,23 +174,28 @@ int RdmaEgressQueue::GetNextQindex(bool paused[]) {
 	return res;
 }
 
+//获取最近使用的队列
 int RdmaEgressQueue::GetLastQueue() {
 	return m_qlast;
 }
 
+//获取指定队列的剩余字节数
 uint32_t RdmaEgressQueue::GetNBytes(uint32_t qIndex) {
 	NS_ASSERT_MSG(qIndex < m_qpGrp->GetN(), "RdmaEgressQueue::GetNBytes: qIndex >= m_qpGrp->GetN()");
 	return m_qpGrp->Get(qIndex)->GetBytesLeft();
 }
 
+//获取 RDMA 流的数量
 uint32_t RdmaEgressQueue::GetFlowCount(void) {
 	return m_qpGrp->GetN();
 }
 
+//获取特定的 QP
 Ptr<RdmaQueuePair> RdmaEgressQueue::GetQp(uint32_t i) {
 	return m_qpGrp->Get(i);
 }
 
+//恢复指定队列的状态（超时重传或队列复位）
 void RdmaEgressQueue::RecoverQueue(uint32_t i) {
 	NS_ASSERT_MSG(i < m_qpGrp->GetN(), "RdmaEgressQueue::RecoverQueue: qIndex >= m_qpGrp->GetN()");
 	m_qpGrp->Get(i)->snd_nxt = m_qpGrp->Get(i)->snd_una;
@@ -282,6 +292,7 @@ QbbNetDevice::DoDispose()
 	PointToPointNetDevice::DoDispose();
 }
 
+//获取数据速率
 DataRate QbbNetDevice::GetDataRate() {
 	return m_bps;
 }
@@ -310,7 +321,7 @@ QbbNetDevice::TransmitStart(Ptr<Packet> p)
 	bool result = m_channel->TransmitStart(p, this, txTime);
 	if (result == false)
 	{
-		m_phyTxDropTrace(p);
+		m_phyTxDropTrace(p);//丢包
 	}
 	return result;
 }
@@ -324,9 +335,10 @@ QbbNetDevice::TransmitComplete(void)
 	NS_ASSERT_MSG(m_currentPkt != 0, "QbbNetDevice::TransmitComplete(): m_currentPkt zero");
 	m_phyTxEndTrace(m_currentPkt);
 	m_currentPkt = 0;
-	DequeueAndTransmit();//
+	DequeueAndTransmit();//传输下一个数据包
 }
 
+//从队列中取出数据包并发送，确保设备可以持续传输数据
 void
 QbbNetDevice::DequeueAndTransmit(void)
 {
@@ -343,8 +355,8 @@ QbbNetDevice::DequeueAndTransmit(void)
 				p = m_rdmaEQ->DequeueQindex(qIndex);
 				m_traceDequeue(p, 0);
 				TransmitStart(p);
-				numTxBytes += p->GetSize();
-				totalBytesSent += p->GetSize();
+				numTxBytes += p->GetSize(); //当前发送窗口的数据量
+				totalBytesSent += p->GetSize(); //总发送量
 				return;
 			}
 			else if (qIndex == -2) {
@@ -375,7 +387,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 			TransmitStart(p);
 
 			// update for the next avail time
-			m_rdmaPktSent(lastQp, p, m_tInterframeGap);
+			m_rdmaPktSent(lastQp, p, m_tInterframeGap);//通知 QP 该数据包已发送，并设置下次可用时间 (m_tInterframeGap)
 			totalBytesSent += p->GetSize();
 		} else { // no packet to send
 			NS_LOG_INFO("PAUSE prohibits send at node " << m_node->GetId());
@@ -435,6 +447,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 	return;
 }
 
+//恢复在指定队列 qIndex 上暂停的传输
 void
 QbbNetDevice::Resume(unsigned qIndex)
 {
@@ -452,6 +465,8 @@ QbbNetDevice::SetReceiveCallback (NetDevice::ReceiveCallback cb)
 	m_rxCallback = cb;
 }
 
+//从包 p 中移除 PPP头。
+//提取 PPP 协议号，并使用 PppToEther() 将其转换为以太网协议号
 bool
 QbbNetDevice::ProcessHeader (Ptr<Packet> p, uint16_t& param)
 {
@@ -664,7 +679,7 @@ void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std:
 	calculateRate(flowid,packetSize,flowstatsFile);
 }
 
-// 计算速率并输出
+// 计算每条流速率并输出
 void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
     //判断系统稳态的变量
@@ -785,10 +800,11 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
         steadyStateStartTime = currentTime;
         inSteadyState = true;
         cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
+		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间
 		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
 		calculateMintime();
-		cout << "最小流完成时间: " << flowMinTime <<endl;
+		//cout << "最小流完成时间: " << flowMinTime <<endl;
 		
     }
 
@@ -815,10 +831,11 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 }
 
 //计算剩余流量大小除以已测量的速度均值，获取最小时间
+//每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
 void QbbNetDevice::calculateMintime(){
 	uint32_t qIndex;
 	uint32_t fcount = m_rdmaEQ->m_qpGrp->GetN();
-		for (qIndex = 1; qIndex <= fcount; qIndex++) {
+		for (qIndex = 0; qIndex < fcount; qIndex++) {
 			uint32_t idx = qIndex ;
 			Ptr<RdmaQueuePair> qp = m_rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
 
@@ -846,6 +863,7 @@ void QbbNetDevice::calculateMintime(){
 
 }
 
+//获取当前 NetDevice 所连接的远端设备的地址
 Address
 QbbNetDevice::GetRemote (void) const
 {
@@ -864,6 +882,7 @@ QbbNetDevice::GetRemote (void) const
 	return Address ();
 }
 
+//发送数据包到 dest 地址，并使用 protocolNumber 指定协议类型
 bool QbbNetDevice::Send(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber)
 {
 	NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
@@ -958,6 +977,10 @@ void QbbNetDevice::RdmaEnqueueHighPrioQ(Ptr<Packet> p) {
 	m_rdmaEQ->EnqueueHighPrioQ(p);
 }
 
+//在网络设备停止工作或链路失效时进行清理工作。它的主要目标包括：
+/*清除队列中的所有数据包（防止内存泄漏或残留数据）。
+通知相关模块（例如驱动程序、RDMA 硬件或交换机）链路已经断开。
+将设备状态设置为链路断开（m_linkUp = false）。*/
 void QbbNetDevice::TakeDown() {
 	// TODO: delete packets in the queue, set link down
 	if (m_node->GetNodeType() == 0) {
@@ -980,6 +1003,7 @@ void QbbNetDevice::TakeDown() {
 	m_linkUp = false;
 }
 
+//更新设备的下一次可用发送时间
 void QbbNetDevice::UpdateNextAvail(Time t) {
 	if (!m_nextSend.IsExpired() && t < Time(m_nextSend.GetTs())) {
 		Simulator::Cancel(m_nextSend);

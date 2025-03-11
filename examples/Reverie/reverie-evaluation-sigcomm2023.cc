@@ -645,7 +645,7 @@ int main(int argc, char *argv[]){
     std::string confFile = "examples/Reverie/config-workload.txt";
     std::string cdfFileName = "examples/Reverie/websearch.txt";
     //std::string cdfFileName = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/workloads/websearch.csv";
-
+    std::string flowInputFileName= "/home/flow-input/examples/Reverie/flowinputtest.txt";
     unsigned randomSeed = 1;
 
     CommandLine cmd;
