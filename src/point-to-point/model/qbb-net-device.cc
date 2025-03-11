@@ -65,6 +65,9 @@ uint32_t RdmaEgressQueue::tcpip_q_idx = 1;
 uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
 bool isFirstOpen = true;
 std::map<std::string, FlowStat> flowStats; //flowid,size字节数,存储流的统计信息
+uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
+bool inSteadyState = false;         // 标识系统是否处于稳态
+double flowMinTime = 1.79769e+308;	//整个系统最小流完成时间
 
 
 // RdmaEgressQueue
@@ -321,7 +324,7 @@ QbbNetDevice::TransmitComplete(void)
 	NS_ASSERT_MSG(m_currentPkt != 0, "QbbNetDevice::TransmitComplete(): m_currentPkt zero");
 	m_phyTxEndTrace(m_currentPkt);
 	m_currentPkt = 0;
-	DequeueAndTransmit();
+	DequeueAndTransmit();//
 }
 
 void
@@ -664,59 +667,183 @@ void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std:
 // 计算速率并输出
 void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
-    
-    // 遍历所有流，计算速率
+    //判断系统稳态的变量
+	bool allSteadyStateReached = true;
+
+    // 遍历所有流，找出与flowid对应的流，计算速率
     for (auto& entry : flowStats) {
         string flow_id = entry.first;
         FlowStat& stat = entry.second;
-        
+
         // 判断是否超过监测周期
-        if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
-            // 计算速率（单位：字节/纳秒）
-            double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
-            cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << endl;
-            flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
+		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
+			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
+				// 计算速率（单位：字节/纳秒）
+				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
+				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
+				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
+				stat.ifnewpacket =false;
+				if(stat.rate.size() >= stat.size){
+					stat.rate.erase(stat.rate.begin());
+					// 获取最小值和最大值
+					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
+					auto minIt = result.first;
+					auto maxIt = result.second;
+					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
+						stat.steadyStateReached = true;//流进入稳态
+						//cout<<"进入稳态"<<endl;
+						
+					}else {
+						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+					}
+					
+				}
+				stat.rate.push_back(rate);
+				// 清空流的统计信息
+				stat.byteCount = 0;
+				stat.timestamp = currentTime;
+				//stat.byteCount +=packetSize;
+			}
+			/*// 计算速率（单位：字节/纳秒）
+			double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
+			cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
+			flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
+			stat.ifnewpacket =false;
 			if(stat.rate.size() >= stat.size){
 				stat.rate.erase(stat.rate.begin());
 				// 获取最小值和最大值
-    			auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-    			auto minIt = result.first;
-    			auto maxIt = result.second;
-				if(std::fabs(*maxIt - *minIt)  == 0){
+				auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
+				auto minIt = result.first;
+				auto maxIt = result.second;
+				if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
 					stat.steadyStateReached = true;//流进入稳态
 					//cout<<"进入稳态"<<endl;
-					//判断系统稳态
-					bool allSteadyStateReached = true;
-    				for (auto& entry_SteadyState : flowStats) {				
-						    if (!entry_SteadyState.second.steadyStateReached) {
-            				allSte
-							adyStateReached = false;
-            				break;  // 一旦发现一个流未进入稳态，直接跳出循环
-        				}
-    				}
-					if (allSteadyStateReached) {
-        				cout << "All flows have reached steady state." << endl;
-        				// 在这里可以执行进一步操作，比如标记系统进入稳态
-        				// 例如，触发一些事件或改变状态等
-    				}
+					
+				}else {
+					stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+					allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
 				}
 				
 			}
 			stat.rate.push_back(rate);
+			// 清空流的统计信息
+			stat.byteCount = 0;
+			stat.timestamp = currentTime;
+			//stat.byteCount +=packetSize;*/
+		}
+		if(flow_id == flowid){		
+			stat.ifnewpacket	= true;
+			stat.byteCount +=packetSize;
+		}
+		/*if(flow_id == flowid){//（应该还得加一个变量，判断在这个周期内，这个流有没有新数据包进入,有进入再更新）
 
-            // 清空流的统计信息
-            stat.byteCount = 0;
-            stat.timestamp = currentTime;
+			// 判断是否超过监测周期
+			if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
+				// 计算速率（单位：字节/纳秒）
+				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
+				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
+				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
+				if(stat.rate.size() >= stat.size){
+					stat.rate.erase(stat.rate.begin());
+					// 获取最小值和最大值
+					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
+					auto minIt = result.first;
+					auto maxIt = result.second;
+					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
+						stat.steadyStateReached = true;//流进入稳态
+						//cout<<"进入稳态"<<endl;
+						
+					}else {
+						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+					}
+					
+				}
+				stat.rate.push_back(rate);
 
-			//stat.byteCount +=packetSize;
-        }
-		if(flow_id == flowid){
+				// 清空流的统计信息
+				stat.byteCount = 0;
+				stat.timestamp = currentTime;
 
+				//stat.byteCount +=packetSize;
+			}
+			
 			stat.byteCount +=packetSize;
 
+    	}*/
+	}
+
+	for (auto& entry_SteadyState : flowStats) {				
+		if (!entry_SteadyState.second.steadyStateReached) {
+			allSteadyStateReached = false;
+			break;  // 一旦发现一个流未进入稳态，直接跳出循环
 		}
+	}
+	// 判断系统是否刚刚进入稳态
+    if (allSteadyStateReached && !inSteadyState) {
+        steadyStateStartTime = currentTime;
+        inSteadyState = true;
+        cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
+		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间
+		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
+		calculateMintime();
+		cout << "最小流完成时间: " << flowMinTime <<endl;
+		
     }
-	
+
+    // 判断系统是否退出稳态
+    if (!allSteadyStateReached && inSteadyState) {
+        uint64_t steadyStateExitTime = currentTime;
+        uint64_t duration = steadyStateExitTime - steadyStateStartTime;
+        cout << "System exited steady state at time: " << steadyStateExitTime << " ns" << endl;
+        cout << "Steady state duration: " << duration / 1e9 << " s" << endl;
+        flowstatsFile << "System exited steady state at time: " << steadyStateExitTime << " ns, duration: " << duration / 1e9 << " s" << std::endl;
+        inSteadyState = false;
+    }
+	/*for (auto& entry_SteadyState : flowStats) {				
+		if (!entry_SteadyState.second.steadyStateReached) {
+			allSteadyStateReached = false;
+			break;  // 一旦发现一个流未进入稳态，直接跳出循环
+			}
+		}
+	if (allSteadyStateReached) {
+		cout << "All flows have reached steady state." << endl;
+		// 在这里可以执行进一步操作，比如标记系统进入稳态
+		// 例如，触发一些事件或改变状态等
+	}*/
+}
+
+//计算剩余流量大小除以已测量的速度均值，获取最小时间
+void QbbNetDevice::calculateMintime(){
+	uint32_t qIndex;
+	uint32_t fcount = m_rdmaEQ->m_qpGrp->GetN();
+		for (qIndex = 1; qIndex <= fcount; qIndex++) {
+			uint32_t idx = qIndex ;
+			Ptr<RdmaQueuePair> qp = m_rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
+
+			//获取flowid
+			uint32_t srcIp = qp->sip.Get(); // 获取源IP地址
+			uint32_t dstIp = qp->dip.Get(); // 获取目标IP地址
+			//将IP转换成ID
+			uint32_t srcId = ((srcIp >> 8) & 0xffff);
+			uint32_t dstId = ((dstIp >> 8) & 0xffff);
+			uint16_t srcPort = qp->sport; // 源端口号
+			uint16_t dstPort = qp->dport; // 目标端口号
+			std::ostringstream oss;
+    		oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
+			std::string flowid = oss.str();
+
+			map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
+			if(iter!=flowStats.end()){
+				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
+    			double avg = sum / iter->second.rate.size();
+				double time = static_cast<double>(qp->GetBytesLeft())*8 / avg;
+				if(time < flowMinTime)
+					flowMinTime =time;
+			}
+		}
+
 }
 
 Address

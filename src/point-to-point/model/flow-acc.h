@@ -12,6 +12,7 @@ struct FlowStat {
     uint64_t byteCount;    // 累计的字节数
     uint64_t timestamp;    // 数据包到达的时间戳（单位：毫秒）
     std::vector<double> rate;   //用来存储速率的队列
+    bool ifnewpacket = true; //新的周期内是否有新数据包进入
     int size = 10;//队列大小(判断是否进入稳态)
     bool steadyStateReached = false; //是否进入稳态的标志位
 };
