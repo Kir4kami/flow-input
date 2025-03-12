@@ -23,6 +23,7 @@
 #include <ns3/rdma-driver.h>
 #include <ns3/switch-node.h>
 #include <ns3/sim-setting.h>
+#include "ns3/mpi-interface.h"
 
 #include <cmath>
 #include <fstream>
@@ -202,7 +203,6 @@ uint32_t ip_to_node_id(Ipv4Address ip) {
     return (ip.Get() >> 8) & 0xffff;
 }
 
-
 void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start, bool incast, uint32_t prior )
 {
     double fct, standalone_fct, slowdown;
@@ -379,46 +379,7 @@ int get_target_leaf(int leafCount) {
 
 uint32_t FAN = 5;
 
-// void incast_rdma (int fromLeafId, double requestRate, uint32_t requestSize, struct cdf_table *cdfTable,
-//                                     long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
-// {
-//     uint32_t fan = SERVER_COUNT;
-//     for (int i = 0; i < SERVER_COUNT; i++)
-//     {
-//         int fromServerIndexX = fromLeafId * SERVER_COUNT + i;
-//         double startTime = START_TIME + poission_gen_interval (requestRate);
-//         while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
-//         {
-//             int leaftarget = fromLeafId + 1;
-//             if (leaftarget >=LEAF_COUNT)
-//                 leaftarget = 0;
-//             int destServerIndex = fromServerIndexX;
-//             uint32_t query = 0;
-//             uint32_t flowSize = double(requestSize) / double(fan);
-//             for (int r = 0; r < fan; r++) {
-//                 uint32_t fromServerIndex = SERVER_COUNT * leaftarget + r ; //rand_range(0, SERVER_COUNT);
-//                 if (DestportNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
-//                     DestportNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-//                 if (portNumder[fromServerIndex][destServerIndex] == UINT16_MAX - 1)
-//                     portNumder[fromServerIndex][destServerIndex] = rand_range(10000, 11000);
-//                 uint16_t dport = DestportNumder[fromServerIndex][destServerIndex]++;
-//                 uint16_t sport = portNumder[fromServerIndex][destServerIndex]++;
-//                 query += flowSize;
-//                 flowCount++;
-//                 RdmaClientHelper clientHelper(3, serverAddress[fromServerIndex], serverAddress[destServerIndex], sport, dport, flowSize, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(fromServerIndex)][n.Get(destServerIndex)]) : 0, global_t == 1 ? maxRtt : pairRtt[fromServerIndex][destServerIndex], Simulator::GetMaximumSimulationTime()-MicroSeconds(1));
-//                 ApplicationContainer appCon = clientHelper.Install(n.Get(fromServerIndex));
-//                 std::cout << " from " << fromServerIndex << " to " << destServerIndex <<  " fromLeadId " << fromLeafId << " serverCount " << SERVER_COUNT << " leafCount " << LEAF_COUNT <<
-//                         " fromportNumber " << portNumder[fromServerIndex][destServerIndex] <<
-//                         " destportNumder " << DestportNumder[fromServerIndex][destServerIndex] <<
-//                         " time " << startTime << " flowsize " << flowSize << std::endl;
-//                 appCon.Start(Seconds(startTime));
-//             }
-//             startTime += poission_gen_interval (requestRate);
-//             // break;
-//         }
-//         // break;
-//     }
-// }
+//written by Kira
 
 struct FlowInfo {
     std::string type;
@@ -429,13 +390,13 @@ struct FlowInfo {
     int priority;
     uint64_t msg_len;
 };
+u_int16_t systemId=0;
 u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
 vector<vector<FlowInfo>> flowInfos;
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-
     flowCom++;
-    std::cout<<"phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+    std::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
     if(flowCom>=flowInfos[BatchCur].size()){
         BatchCur++;
         flowCom=0;
@@ -448,8 +409,8 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Simulator::Now());//to be changed
-            std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
+            appCon.Start(Seconds(0));//to be changed
+            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<
                     " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
@@ -493,7 +454,7 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
             appCon.Start(Seconds(startTime));//to be changed
             //apps.emplace_back(appCon);
-            std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
+            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<
                     " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
@@ -501,128 +462,9 @@ void workload_rdma (int fromLeafId, double requestRate, struct cdf_table *cdfTab
     }
     flowInput.close();
 }
-
-// void incast_tcp (int incastLeaf, double requestRate, uint32_t requestSize, struct cdf_table *cdfTable,
-//                                   long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
-// {
-//     int fan = SERVER_COUNT;
-//     uint64_t flowSize = double(requestSize) / double(fan);
-//     uint32_t prior = 1; // hardcoded for tcp
-//     for (int incastServer = 0; incastServer < SERVER_COUNT; incastServer++)
-//     {
-//         double startTime = START_TIME + poission_gen_interval (requestRate);
-//         while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
-//         {
-//             // Permutation demand matrix
-//             int txLeaf = incastLeaf + 1;
-//             if (txLeaf == LEAF_COUNT) {
-//                 txLeaf = 0;
-//             }
-//             for (uint32_t txServer = 0; txServer < fan; txServer++) {
-//                 uint16_t port = PORT_START[incastLeaf * SERVER_COUNT + incastServer]++;
-//                 if (port >= UINT16_MAX - 1) {
-//                     port = 4444;
-//                     PORT_START[incastLeaf * SERVER_COUNT + incastServer] = 4444;
-//                 }
-//                 Time startApp = (NanoSeconds (150) + MilliSeconds(rand_range(50, 500)));
-//                 Ptr<Node> rxNode = n.Get (incastLeaf*SERVER_COUNT + incastServer);
-//                 Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
-//                 Ipv4InterfaceAddress rxInterface = ipv4->GetAddress (1, 0);
-//                 Ipv4Address rxAddress = rxInterface.GetLocal ();
-//                 InetSocketAddress ad (rxAddress, port);
-//                 Address sinkAddress(ad);
-//                 Ptr<BulkSendApplication> bulksend = CreateObject<BulkSendApplication>();
-//                 bulksend->SetAttribute("Protocol", TypeIdValue(TcpSocketFactory::GetTypeId()));
-//                 bulksend->SetAttribute ("SendSize", UintegerValue (flowSize));
-//                 bulksend->SetAttribute ("MaxBytes", UintegerValue(flowSize));
-//                 bulksend->SetAttribute("FlowId", UintegerValue(flowCount++));
-//                 bulksend->SetAttribute("priorityCustom", UintegerValue(prior));
-//                 bulksend->SetAttribute("Remote", AddressValue(sinkAddress));
-//                 bulksend->SetAttribute("InitialCwnd", UintegerValue (flowSize / packet_payload_size + 1));
-//                 bulksend->SetAttribute("priority", UintegerValue(prior));
-//                 bulksend->SetAttribute("sendAt", TimeValue(Seconds (startTime)));
-//                 bulksend->SetStartTime (startApp);
-//                 bulksend->SetStopTime (Seconds (END_TIME));
-//                 n.Get (txLeaf*SERVER_COUNT + txServer)->AddApplication(bulksend);
-//                 PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), port));
-//                 ApplicationContainer sinkApp = sink.Install (n.Get(incastLeaf*SERVER_COUNT + incastServer));
-//                 sinkApp.Get(0)->SetAttribute("TotalQueryBytes", UintegerValue(flowSize));
-//                 sinkApp.Get(0)->SetAttribute("recvAt", TimeValue(Seconds(startTime)));
-//                 sinkApp.Get(0)->SetAttribute("priority", UintegerValue(1)); // ack packets are prioritized
-//                 sinkApp.Get(0)->SetAttribute("priorityCustom", UintegerValue(1)); // ack packets are prioritized
-//                 sinkApp.Get(0)->SetAttribute("senderPriority", UintegerValue(prior));
-//                 sinkApp.Get(0)->SetAttribute("flowId", UintegerValue(flowCount));
-//                 flowCount += 1;
-//                 sinkApp.Start (startApp);
-//                 sinkApp.Stop (Seconds (END_TIME));
-//                 sinkApp.Get(0)->TraceConnectWithoutContext("FlowFinish", MakeBoundCallback(&TraceMsgFinish, fctOutput));
-//             }
-//             startTime += poission_gen_interval (requestRate);
-//         }
-//     }
-// }
-
-// void workload_tcp (int txLeaf, double requestRate, struct cdf_table *cdfTable,
-//                            long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME)
-// {
-//     uint64_t flowSize;
-//     uint32_t prior = 1; // hardcoded for tcp
-//     for (int txServer = 0; txServer < SERVER_COUNT; txServer++)
-//     {
-//         double startTime = START_TIME + poission_gen_interval (requestRate);
-//         while (startTime < FLOW_LAUNCH_END_TIME && startTime > START_TIME)
-//         {
-//             // Permutation demand matrix
-//             int rxLeaf = txLeaf + 1;
-//             if (rxLeaf == LEAF_COUNT) {
-//                 rxLeaf = 0;
-//             }
-//             uint32_t rxServer = rand_range(0, SERVER_COUNT);
-//             uint16_t port = PORT_START[rxLeaf * SERVER_COUNT + rxServer]++;
-//             if (port >= UINT16_MAX - 1) {
-//                 port = 4444;
-//                 PORT_START[rxLeaf * SERVER_COUNT + rxServer] = 4444;
-//             }
-//             uint64_t flowSize = gen_random_cdf (cdfTable);
-//             while (flowSize == 0) {
-//                 flowSize = gen_random_cdf (cdfTable);
-//             }
-//             Ptr<Node> rxNode = n.Get (rxLeaf*SERVER_COUNT + rxServer);
-//             Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
-//             Ipv4InterfaceAddress rxInterface = ipv4->GetAddress (1, 0);
-//             Ipv4Address rxAddress = rxInterface.GetLocal ();
-//             InetSocketAddress ad (rxAddress, port);
-//             Address sinkAddress(ad);
-//             Ptr<BulkSendApplication> bulksend = CreateObject<BulkSendApplication>();
-//             bulksend->SetAttribute("Protocol", TypeIdValue(TcpSocketFactory::GetTypeId()));
-//             bulksend->SetAttribute ("SendSize", UintegerValue (flowSize));
-//             bulksend->SetAttribute ("MaxBytes", UintegerValue(flowSize));
-//             bulksend->SetAttribute("FlowId", UintegerValue(flowCount++));
-//             bulksend->SetAttribute("priorityCustom", UintegerValue(prior));
-//             bulksend->SetAttribute("Remote", AddressValue(sinkAddress));
-//             bulksend->SetAttribute("InitialCwnd", UintegerValue (maxBdp/packet_payload_size + 1));
-//             bulksend->SetAttribute("priority", UintegerValue(prior));
-//             bulksend->SetStartTime (Seconds(startTime));
-//             bulksend->SetStopTime (Seconds (END_TIME));
-//             n.Get (txLeaf*SERVER_COUNT + txServer)->AddApplication(bulksend);
-//             PacketSinkHelper sink ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address::GetAny (), port));
-//             ApplicationContainer sinkApp = sink.Install (n.Get(rxLeaf*SERVER_COUNT + rxServer));
-//             sinkApp.Get(0)->SetAttribute("TotalQueryBytes", UintegerValue(flowSize));
-//             sinkApp.Get(0)->SetAttribute("priority", UintegerValue(0)); // ack packets are prioritized
-//             sinkApp.Get(0)->SetAttribute("priorityCustom", UintegerValue(0)); // ack packets are prioritized
-//             sinkApp.Get(0)->SetAttribute("flowId", UintegerValue(flowCount));
-//             sinkApp.Get(0)->SetAttribute("senderPriority", UintegerValue(prior));
-//             flowCount += 1;
-//             sinkApp.Start (Seconds(startTime));
-//             sinkApp.Stop (Seconds (END_TIME));
-//             sinkApp.Get(0)->TraceConnectWithoutContext("FlowFinish", MakeBoundCallback(&TraceMsgFinish, fctOutput));
-//             startTime += poission_gen_interval (requestRate);
-//         }
-//     }
-// }
+//written by Kira End
 
 uint32_t flowEnd = 0;
-
 void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
     for (uint32_t i = 0; i < switches.GetN(); i++) {
         if (switches.Get(i)->GetNodeType()) { // switch
@@ -642,11 +484,11 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
     if (Simulator::Now().GetSeconds() < flowEnd)
         Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
 }
-
-
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
+    MpiInterface::Enable(&argc, &argv);
+    systemId = MpiInterface::GetSystemId();
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -666,9 +508,9 @@ int main(int argc, char *argv[]){
     bool powertcp = false;
     bool thetapowertcp = false;
 
-    std::string confFile = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/config-workload.txt";
-    std::string cdfFileName = "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/websearch.txt";
-    std::string flowInputFileName= "/home/kira/ns3-datacenter/simulator/ns-3.39/examples/Reverie/flowinputtest.txt";
+    std::string confFile = "examples/Reverie/config-workload.txt";
+    std::string cdfFileName = "examples/Reverie/websearch.txt";
+    std::string flowInputFileName= "examples/Reverie/flowinputtest.txt";
     unsigned randomSeed = 1;
 
     CommandLine cmd;
@@ -1380,14 +1222,6 @@ int main(int argc, char *argv[]){
     long flowCount = 1;
     long totalFlowSize = 0;
     double requestRate = rdmaload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
-
-    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
-    // {
-    //     workload_rdma(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-    //     if (rdmaqueryRequestRate > 0 && rdmarequestSize > 0){
-    //         incast_rdma(fromLeafId, rdmaqueryRequestRate, rdmarequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-    //     }
-    // }
     workload_rdma( 0, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
 
     /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
@@ -1414,15 +1248,6 @@ int main(int argc, char *argv[]){
         Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpDctcp::GetTypeId()));
         Config::SetDefault ("ns3::TcpSocketBase::UseEcn", StringValue ("On"));
     }
-
-    // requestRate = tcpload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
-    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
-    // {
-    //     workload_tcp(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-    //     if (tcpqueryRequestRate > 0 && tcprequestSize > 0) {
-    //         incast_tcp(fromLeafId, tcpqueryRequestRate, tcprequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-    //     }
-    // }
 std::cout << "apps finished" << std::endl;
     topof.close();
     tracef.close();
@@ -1436,6 +1261,7 @@ std::cout << "apps finished" << std::endl;
     Simulator::Stop(Seconds(END_TIME));
     Simulator::Run();
     Simulator::Destroy();
+    MpiInterface::Disable();
     NS_LOG_INFO("Done.");
     std::cout<<"Done"<<std::endl;
 }

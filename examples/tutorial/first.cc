@@ -18,6 +18,7 @@
 #include "ns3/internet-module.h"
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/mpi-interface.h"
 
 // Default Network Topology
 //
@@ -30,19 +31,16 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("FirstScriptExample");
 
-int
-main(int argc, char* argv[])
-{
-    CommandLine cmd(__FILE__);
-    cmd.Parse(argc, argv);
-
+int main(int argc, char* argv[]){
+    MpiInterface::Enable(&argc, &argv);
+    int rank = MpiInterface::GetSystemId();  // 获取当前进程号
+    std::cout << "Process " << rank << " initialized" << std::endl;
+    int size = MpiInterface::GetSize();  // 获取总进程数
     Time::SetResolution(Time::NS);
     LogComponentEnable("UdpEchoClientApplication", LOG_LEVEL_INFO);
     LogComponentEnable("UdpEchoServerApplication", LOG_LEVEL_INFO);
-
     NodeContainer nodes;
     nodes.Create(2);
-
     PointToPointHelper pointToPoint;
     pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
     pointToPoint.SetChannelAttribute("Delay", StringValue("2ms"));
@@ -75,5 +73,6 @@ main(int argc, char* argv[])
     std::cout<<"first"<<std::endl;
     Simulator::Run();
     Simulator::Destroy();
+    MpiInterface::Destroy();
     return 0;
 }

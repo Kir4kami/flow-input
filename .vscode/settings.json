@@ -74,6 +74,7 @@
         "variant": "cpp",
         "clocale": "cpp",
         "filesystem": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "regex": "cpp"
     }
 }
