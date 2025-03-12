@@ -1,7 +1,16 @@
 [0/2] Re-checking globbed directories...[K
 [0/2] Re-checking globbed directories...[K
+[0/2] Re-checking globbed directories...[K
+[0/2] Re-checking globbed directories...[K
+[0/2] Re-checking globbed directories...[K
 ninja: no work to do.
 ninja: no work to do.
+ninja: no work to do.
+ninja: no work to do.
+ninja: no work to do.
+config finished
+config finished
+config finished
 config finished
 config finished
 maxRtt=17280 maxBdp=54000 minRtt=8640
@@ -46,25 +55,69 @@ total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLoss
 total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
 total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
 total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
-SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
-Reading flow info
-system 1 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 4 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 8 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 12 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 16 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 20 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 24 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 28 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 32 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 36 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 40 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 44 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 48 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-system 1 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
-apps finished
+maxRtt=17280 maxBdp=54000 minRtt=8640
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+maxRtt=17280 maxBdp=54000 minRtt=8640
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+maxRtt=17280 maxBdp=54000 minRtt=8640
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 738200 ingressPool 1821800 egressLosslessPool 2560000 egressLossyPool 1457440 sharedPool 1821800
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
+total headroom: 590560 ingressPool 1969440 egressLosslessPool 2560000 egressLossyPool 1575552 sharedPool 1969440
 SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
 Reading flow info
 system 0 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
@@ -84,39 +137,227 @@ system 0 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 167
 system 0 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
 system 0 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
 apps finished
- system 1 phase 0 flow 1 0.00961939
- system 1 phase 0 flow 2 0.00961939
- system 1 phase 0 flow 3 0.00961939
- system 1 phase 0 flow 4 0.00961939
- system 1 phase 0 flow 5 0.00961939
- system 1 phase 0 flow 6 0.00961939
- system 1 phase 0 flow 7 0.00961939
- system 1 phase 0 flow 8 0.00961939
- system 1 phase 0 flow 9 0.00961939
- system 1 phase 0 flow 10 0.00961939
- system 1 phase 0 flow 11 0.00961939
- system 1 phase 0 flow 12 0.00961939
- system 1 phase 0 flow 13 0.00961939
- system 1 phase 0 flow 14 0.00961939
- system 1 phase 0 flow 15 0.00961939
- system 1 phase 0 flow 16 0.00961939
+SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
+Reading flow info
+system 1 from 0 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 4 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 8 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 12 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 16 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 20 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 24 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 28 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 32 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 36 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 40 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 44 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 1 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+apps finished
+SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
+Reading flow info
+system 2 from 0 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 4 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 8 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 12 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 16 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 20 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 24 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 28 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 32 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 36 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 40 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 44 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 48 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 52 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+system 2 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 4194304
+apps finished
+SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
+Reading flow info
+system 3 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 4 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 8 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 12 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 16 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 20 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 24 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 28 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 32 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 36 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 40 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 44 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 48 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+system 3 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 16777216
+apps finished
+SERVER_COUNT 16 LEAF_COUNT 16 SPINE_COUNT 4 LINK_COUNT 1 RDMALOAD 0.2 TCPLOAD 0 oversubRatio 4
+Reading flow info
+system 4 from 0 to 8 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 4 to 12 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 8 to 0 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 12 to 4 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 16 to 24 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 20 to 28 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 24 to 16 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 28 to 20 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 32 to 40 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 36 to 44 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 40 to 32 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 44 to 36 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+system 4 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.003 flowsize 8388608
+apps finished
+ system 2 phase 0 flow 1 0.00461883
+ system 2 phase 0 flow 2 0.00461883
+ system 2 phase 0 flow 3 0.00462801
+ system 2 phase 0 flow 4 0.00466749
+ system 2 phase 0 flow 5 0.00466749
+ system 2 phase 0 flow 6 0.00612538
+ system 2 phase 0 flow 7 0.00624572
+ system 2 phase 0 flow 8 0.00626547
+ system 2 phase 0 flow 9 0.00626547
+ system 2 phase 0 flow 10 0.00632371
+ system 2 phase 0 flow 11 0.00634182
+ system 2 phase 0 flow 12 0.00634506
+ system 2 phase 0 flow 13 0.00634506
+ system 1 phase 0 flow 1 0.00631333
+ system 1 phase 0 flow 2 0.00631333
+ system 1 phase 0 flow 3 0.00631333
+ system 1 phase 0 flow 4 0.00631333
+ system 1 phase 0 flow 5 0.00631333
+ system 1 phase 0 flow 6 0.00631333
+ system 1 phase 0 flow 7 0.00631333
+ system 1 phase 0 flow 8 0.00631333
+ system 1 phase 0 flow 9 0.00631333
+ system 1 phase 0 flow 10 0.00631333
+ system 1 phase 0 flow 11 0.00631333
+ system 1 phase 0 flow 12 0.00631333
+ system 1 phase 0 flow 13 0.00631333
+ system 1 phase 0 flow 14 0.00631333
+ system 1 phase 0 flow 15 0.00631333
+ system 1 phase 0 flow 16 0.00631333
 complete a phase
-system 1 from 0 to 8 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 4 to 12 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 8 to 0 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 12 to 4 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 16 to 24 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 20 to 28 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 24 to 16 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 28 to 20 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 32 to 40 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 36 to 44 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 40 to 32 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 44 to 36 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
-system 1 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
+system 1 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 4 to 0 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 8 to 12 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 12 to 8 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 16 to 20 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 20 to 16 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 24 to 28 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 28 to 24 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 32 to 36 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 36 to 32 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 40 to 44 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 44 to 40 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 48 to 52 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+system 1 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 16777216
+ system 2 phase 0 flow 14 0.00794971
+ system 2 phase 0 flow 15 0.00800814
+ system 2 phase 0 flow 16 0.00806284
+complete a phase
+system 2 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 4 to 0 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 8 to 12 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 12 to 8 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 16 to 20 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 20 to 16 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 24 to 28 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 28 to 24 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 32 to 36 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 36 to 32 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 40 to 44 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 44 to 40 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 48 to 52 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+system 2 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.00806284 flowsize 16777216
+ system 4 phase 0 flow 1 0.00631333
+ system 4 phase 0 flow 2 0.00631333
+ system 4 phase 0 flow 3 0.00631333
+ system 4 phase 0 flow 4 0.00631333
+ system 4 phase 0 flow 5 0.00631333
+ system 4 phase 0 flow 6 0.00631333
+ system 4 phase 0 flow 7 0.00631333
+ system 4 phase 0 flow 8 0.00631333
+ system 4 phase 0 flow 9 0.00631333
+ system 4 phase 0 flow 10 0.00631333
+ system 4 phase 0 flow 11 0.00631333
+ system 4 phase 0 flow 12 0.00631333
+ system 4 phase 0 flow 13 0.00631333
+ system 4 phase 0 flow 14 0.00631333
+ system 4 phase 0 flow 15 0.00631333
+ system 4 phase 0 flow 16 0.00631333
+complete a phase
+system 4 from 0 to 16 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 4 to 20 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 8 to 24 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 12 to 28 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 16 to 0 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 20 to 4 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 24 to 8 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 28 to 12 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 32 to 48 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 36 to 52 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 40 to 56 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 44 to 60 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 48 to 32 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 52 to 36 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+system 4 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.00631333 flowsize 4194304
+ system 4 phase 1 flow 1 0.00793967
+ system 4 phase 1 flow 2 0.00793967
+ system 4 phase 1 flow 3 0.00794698
+ system 4 phase 1 flow 4 0.0079892
+ system 4 phase 1 flow 5 0.0079892
+ system 4 phase 1 flow 6 0.00936106
+ system 4 phase 1 flow 7 0.00958154
+ system 4 phase 1 flow 8 0.00961984
+ system 4 phase 1 flow 9 0.00961984
+ system 4 phase 1 flow 10 0.00963801
+ system 4 phase 1 flow 11 0.00965747
+ system 4 phase 1 flow 12 0.00965747
+ system 4 phase 1 flow 13 0.00965945
+ system 3 phase 0 flow 1 0.00961939
+ system 3 phase 0 flow 2 0.00961939
+ system 3 phase 0 flow 3 0.00961939
+ system 3 phase 0 flow 4 0.00961939
+ system 3 phase 0 flow 5 0.00961939
+ system 3 phase 0 flow 6 0.00961939
+ system 3 phase 0 flow 7 0.00961939
+ system 3 phase 0 flow 8 0.00961939
+ system 3 phase 0 flow 9 0.00961939
+ system 3 phase 0 flow 10 0.00961939
+ system 3 phase 0 flow 11 0.00961939
+ system 3 phase 0 flow 12 0.00961939
+ system 3 phase 0 flow 13 0.00961939
+ system 3 phase 0 flow 14 0.00961939
+ system 3 phase 0 flow 15 0.00961939
+ system 3 phase 0 flow 16 0.00961939
+complete a phase
+system 3 from 0 to 16 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 4 to 20 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 8 to 24 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 12 to 28 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 16 to 0 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 20 to 4 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 24 to 8 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 28 to 12 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 32 to 48 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 36 to 52 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 40 to 56 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 44 to 60 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 48 to 32 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 52 to 36 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
+system 3 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 4194304
  system 0 phase 0 flow 1 0.00961939
  system 0 phase 0 flow 2 0.00961939
  system 0 phase 0 flow 3 0.00961939
@@ -150,39 +391,125 @@ system 0 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.00961939 flowsiz
 system 0 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
 system 0 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
 system 0 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.00961939 flowsize 8388608
- system 1 phase 1 flow 1 0.0129328
- system 1 phase 1 flow 2 0.0129328
- system 1 phase 1 flow 3 0.0129328
- system 1 phase 1 flow 4 0.0129328
- system 1 phase 1 flow 5 0.0129328
- system 1 phase 1 flow 6 0.0129328
- system 1 phase 1 flow 7 0.0129328
- system 1 phase 1 flow 8 0.0129328
- system 1 phase 1 flow 9 0.0129328
- system 1 phase 1 flow 10 0.0129328
- system 1 phase 1 flow 11 0.0129328
- system 1 phase 1 flow 12 0.0129328
- system 1 phase 1 flow 13 0.0129328
- system 1 phase 1 flow 14 0.0129328
- system 1 phase 1 flow 15 0.0129328
- system 1 phase 1 flow 16 0.0129328
+ system 4 phase 1 flow 14 0.0111751
+ system 4 phase 1 flow 15 0.0113144
+ system 4 phase 1 flow 16 0.0113914
 complete a phase
-system 1 from 0 to 16 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 4 to 20 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 8 to 24 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 12 to 28 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 16 to 0 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 20 to 4 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 24 to 8 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 28 to 12 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 32 to 48 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 36 to 52 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 40 to 56 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 44 to 60 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 48 to 32 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 52 to 36 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
-system 1 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
+system 4 from 0 to 4 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 4 to 0 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 8 to 12 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 12 to 8 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 16 to 20 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 20 to 16 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 24 to 28 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 28 to 24 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 32 to 36 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 36 to 32 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 40 to 44 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 44 to 40 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 48 to 52 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 52 to 48 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 56 to 60 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+system 4 from 60 to 56 fromportNumber 0 destportNumder 0 time 0.0113914 flowsize 16777216
+ system 3 phase 1 flow 1 0.0112541
+ system 3 phase 1 flow 2 0.0112541
+ system 3 phase 1 flow 3 0.0112594
+ system 3 phase 1 flow 4 0.0113034
+ system 3 phase 1 flow 5 0.0113034
+ system 3 phase 1 flow 6 0.0127009
+ system 3 phase 1 flow 7 0.0128979
+ system 3 phase 1 flow 8 0.0129214
+ system 3 phase 1 flow 9 0.0129214
+ system 3 phase 1 flow 10 0.0129443
+ system 3 phase 1 flow 11 0.012963
+ system 3 phase 1 flow 12 0.0129635
+ system 3 phase 1 flow 13 0.0129635
+ system 2 phase 1 flow 1 0.0146822
+ system 2 phase 1 flow 2 0.0146822
+ system 2 phase 1 flow 3 0.0146822
+ system 2 phase 1 flow 4 0.0146822
+ system 2 phase 1 flow 5 0.0146822
+ system 2 phase 1 flow 6 0.0146822
+ system 2 phase 1 flow 7 0.0146822
+ system 2 phase 1 flow 8 0.0146822
+ system 2 phase 1 flow 9 0.0146822
+ system 2 phase 1 flow 10 0.0146822
+ system 2 phase 1 flow 11 0.0146822
+ system 2 phase 1 flow 12 0.0146822
+ system 2 phase 1 flow 13 0.0146822
+ system 2 phase 1 flow 14 0.0146822
+ system 2 phase 1 flow 15 0.0146822
+ system 2 phase 1 flow 16 0.0146822
+complete a phase
+system 2 from 0 to 8 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 4 to 12 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 8 to 0 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 12 to 4 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 16 to 24 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 20 to 28 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 24 to 16 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 28 to 20 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 32 to 40 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 36 to 44 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 40 to 32 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 44 to 36 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+system 2 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.0146822 flowsize 8388608
+ system 1 phase 1 flow 1 0.0129327
+ system 1 phase 1 flow 2 0.0129327
+ system 1 phase 1 flow 3 0.0129327
+ system 1 phase 1 flow 4 0.0129327
+ system 1 phase 1 flow 5 0.0129327
+ system 1 phase 1 flow 6 0.0129327
+ system 1 phase 1 flow 7 0.0129327
+ system 1 phase 1 flow 8 0.0129327
+ system 1 phase 1 flow 9 0.0129327
+ system 1 phase 1 flow 10 0.0129327
+ system 1 phase 1 flow 11 0.0129327
+ system 1 phase 1 flow 12 0.0129327
+ system 1 phase 1 flow 13 0.0129327
+ system 1 phase 1 flow 14 0.0129327
+ system 1 phase 1 flow 15 0.0129327
+ system 1 phase 1 flow 16 0.0129327
+complete a phase
+system 1 from 0 to 16 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 4 to 20 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 8 to 24 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 12 to 28 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 16 to 0 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 20 to 4 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 24 to 8 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 28 to 12 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 32 to 48 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 36 to 52 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 40 to 56 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 44 to 60 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 48 to 32 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 52 to 36 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+system 1 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129327 flowsize 4194304
+ system 3 phase 1 flow 14 0.0145197
+ system 3 phase 1 flow 15 0.014599
+ system 3 phase 1 flow 16 0.0146943
+complete a phase
+system 3 from 0 to 8 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 4 to 12 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 8 to 0 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 12 to 4 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 16 to 24 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 20 to 28 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 24 to 16 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 28 to 20 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 32 to 40 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 36 to 44 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 40 to 32 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 44 to 36 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 48 to 56 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 52 to 60 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 56 to 48 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
+system 3 from 60 to 52 fromportNumber 0 destportNumder 0 time 0.0146943 flowsize 8388608
  system 0 phase 1 flow 1 0.0129328
  system 0 phase 1 flow 2 0.0129328
  system 0 phase 1 flow 3 0.0129328
@@ -218,7 +545,7 @@ system 0 from 56 to 40 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize
 system 0 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize 4194304
  system 1 phase 2 flow 1 0.0145765
  system 1 phase 2 flow 2 0.0145765
- system 1 phase 2 flow 3 0.0145786
+ system 1 phase 2 flow 3 0.0145785
  system 1 phase 2 flow 4 0.0146255
  system 1 phase 2 flow 5 0.0146255
  system 0 phase 2 flow 1 0.0145765
@@ -227,7 +554,6 @@ system 0 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize
  system 0 phase 2 flow 4 0.0146255
  system 0 phase 2 flow 5 0.0146255
  system 1 phase 2 flow 6 0.0159863
- system 0 phase 2 flow 6 0.0159863
  system 1 phase 2 flow 7 0.0161689
  system 1 phase 2 flow 8 0.0162484
  system 1 phase 2 flow 9 0.0162562
@@ -235,6 +561,28 @@ system 0 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize
  system 1 phase 2 flow 11 0.0162644
  system 1 phase 2 flow 12 0.0162644
  system 1 phase 2 flow 13 0.0162781
+ system 0 phase 2 flow 6 0.0159863
+ system 1 phase 2 flow 14 0.0177348
+ system 2 phase 2 flow 1 0.0179956
+ system 2 phase 2 flow 2 0.0179956
+ system 2 phase 2 flow 3 0.0179956
+ system 2 phase 2 flow 4 0.0179956
+ system 2 phase 2 flow 5 0.0179956
+ system 2 phase 2 flow 6 0.0179956
+ system 2 phase 2 flow 7 0.0179956
+ system 2 phase 2 flow 8 0.0179956
+ system 2 phase 2 flow 9 0.0179956
+ system 2 phase 2 flow 10 0.0179956
+ system 2 phase 2 flow 11 0.0179956
+ system 2 phase 2 flow 12 0.0179956
+ system 2 phase 2 flow 13 0.0179956
+ system 2 phase 2 flow 14 0.0179956
+ system 2 phase 2 flow 15 0.0179956
+ system 2 phase 2 flow 16 0.0179956
+complete a phase
+ system 1 phase 2 flow 15 0.01791
+ system 1 phase 2 flow 16 0.0180177
+complete a phase
  system 0 phase 2 flow 7 0.0161689
  system 0 phase 2 flow 8 0.0162484
  system 0 phase 2 flow 9 0.0162562
@@ -242,13 +590,46 @@ system 0 from 60 to 44 fromportNumber 0 destportNumder 0 time 0.0129328 flowsize
  system 0 phase 2 flow 11 0.0162644
  system 0 phase 2 flow 12 0.0162644
  system 0 phase 2 flow 13 0.0162781
- system 1 phase 2 flow 14 0.0177349
- system 1 phase 2 flow 15 0.01791
- system 1 phase 2 flow 16 0.0180177
+ system 3 phase 2 flow 1 0.0180077
+ system 3 phase 2 flow 2 0.0180077
+ system 3 phase 2 flow 3 0.0180077
+ system 3 phase 2 flow 4 0.0180077
+ system 3 phase 2 flow 5 0.0180077
+ system 3 phase 2 flow 6 0.0180077
+ system 3 phase 2 flow 7 0.0180077
+ system 3 phase 2 flow 8 0.0180077
+ system 3 phase 2 flow 9 0.0180077
+ system 3 phase 2 flow 10 0.0180077
+ system 3 phase 2 flow 11 0.0180077
+ system 3 phase 2 flow 12 0.0180077
+ system 3 phase 2 flow 13 0.0180077
+ system 3 phase 2 flow 14 0.0180077
+ system 3 phase 2 flow 15 0.0180077
+ system 3 phase 2 flow 16 0.0180077
+complete a phase
+ system 4 phase 2 flow 1 0.0180109
+ system 4 phase 2 flow 2 0.0180109
+ system 4 phase 2 flow 3 0.0180109
+ system 4 phase 2 flow 4 0.0180109
+ system 4 phase 2 flow 5 0.0180109
+ system 4 phase 2 flow 6 0.0180109
+ system 4 phase 2 flow 7 0.0180109
+ system 4 phase 2 flow 8 0.0180109
+ system 4 phase 2 flow 9 0.0180109
+ system 4 phase 2 flow 10 0.0180109
+ system 4 phase 2 flow 11 0.0180109
+ system 4 phase 2 flow 12 0.0180109
+ system 4 phase 2 flow 13 0.0180109
+ system 4 phase 2 flow 14 0.0180109
+ system 4 phase 2 flow 15 0.0180109
+ system 4 phase 2 flow 16 0.0180109
 complete a phase
  system 0 phase 2 flow 14 0.0177349
  system 0 phase 2 flow 15 0.01791
  system 0 phase 2 flow 16 0.0180177
 complete a phase
+Done
+Done
+Done
 Done
 Done

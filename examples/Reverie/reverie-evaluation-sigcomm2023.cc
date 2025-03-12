@@ -510,7 +510,7 @@ int main(int argc, char *argv[]){
 
     std::string confFile = "examples/Reverie/config-workload.txt";
     std::string cdfFileName = "examples/Reverie/websearch.txt";
-    std::string flowInputFileName= "examples/Reverie/flowinputtest.txt";
+    std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(systemId)+".txt";
     unsigned randomSeed = 1;
 
     CommandLine cmd;
@@ -587,6 +587,8 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
     cmd.Parse (argc, argv);
+
+    fctOutFile+=(to_string(systemId)+".fct");
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
@@ -1207,12 +1209,10 @@ int main(int argc, char *argv[]){
     init_cdf (cdfTable);
     load_cdf (cdfTable, cdfFileName.c_str ());
 
-    if (randomSeed == 0)
-    {
+    if (randomSeed == 0){
         srand ((unsigned)time (NULL));
     }
-    else
-    {
+    else{
         srand (randomSeed);
     }
 
