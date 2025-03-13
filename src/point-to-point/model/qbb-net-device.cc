@@ -51,6 +51,7 @@
 #include "ns3/interface-tag.h"
 #include "ns3/unsched-tag.h"
 #include "flow-acc.h"
+#include "ns3/node-list.h"
 
 #include <iostream>
 
@@ -682,6 +683,8 @@ void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std:
 // 计算每条流速率并输出
 void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
+
+    // 遍历所有流，找出与flowid对应的流，计算速率
     //判断系统稳态的变量
 	bool allSteadyStateReached = true;
 
@@ -698,6 +701,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
 				stat.ifnewpacket =false;
+				stat.rate.push_back(rate);
 				if(stat.rate.size() >= stat.size){
 					stat.rate.erase(stat.rate.begin());
 					// 获取最小值和最大值
@@ -714,79 +718,17 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 					}
 					
 				}
-				stat.rate.push_back(rate);
+				
 				// 清空流的统计信息
 				stat.byteCount = 0;
 				stat.timestamp = currentTime;
 				//stat.byteCount +=packetSize;
 			}
-			/*// 计算速率（单位：字节/纳秒）
-			double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
-			cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
-			flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
-			stat.ifnewpacket =false;
-			if(stat.rate.size() >= stat.size){
-				stat.rate.erase(stat.rate.begin());
-				// 获取最小值和最大值
-				auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-				auto minIt = result.first;
-				auto maxIt = result.second;
-				if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-					stat.steadyStateReached = true;//流进入稳态
-					//cout<<"进入稳态"<<endl;
-					
-				}else {
-					stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-					allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
-				}
-				
-			}
-			stat.rate.push_back(rate);
-			// 清空流的统计信息
-			stat.byteCount = 0;
-			stat.timestamp = currentTime;
-			//stat.byteCount +=packetSize;*/
 		}
 		if(flow_id == flowid){		
 			stat.ifnewpacket	= true;
 			stat.byteCount +=packetSize;
 		}
-		/*if(flow_id == flowid){//（应该还得加一个变量，判断在这个周期内，这个流有没有新数据包进入,有进入再更新）
-
-			// 判断是否超过监测周期
-			if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
-				// 计算速率（单位：字节/纳秒）
-				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
-				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
-				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
-				if(stat.rate.size() >= stat.size){
-					stat.rate.erase(stat.rate.begin());
-					// 获取最小值和最大值
-					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-					auto minIt = result.first;
-					auto maxIt = result.second;
-					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-						stat.steadyStateReached = true;//流进入稳态
-						//cout<<"进入稳态"<<endl;
-						
-					}else {
-						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
-					}
-					
-				}
-				stat.rate.push_back(rate);
-
-				// 清空流的统计信息
-				stat.byteCount = 0;
-				stat.timestamp = currentTime;
-
-				//stat.byteCount +=packetSize;
-			}
-			
-			stat.byteCount +=packetSize;
-
-    	}*/
 	}
 
 	for (auto& entry_SteadyState : flowStats) {				
@@ -804,8 +746,9 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间
 		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
 		calculateMintime();
-		//cout << "最小流完成时间: " << flowMinTime <<endl;
-		
+		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
+		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
+		flowMinTime = 1.79769e+308;
     }
 
     // 判断系统是否退出稳态
@@ -813,31 +756,43 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
         uint64_t steadyStateExitTime = currentTime;
         uint64_t duration = steadyStateExitTime - steadyStateStartTime;
         cout << "System exited steady state at time: " << steadyStateExitTime << " ns" << endl;
-        cout << "Steady state duration: " << duration / 1e9 << " s" << endl;
-        flowstatsFile << "System exited steady state at time: " << steadyStateExitTime << " ns, duration: " << duration / 1e9 << " s" << std::endl;
+        cout << "Steady state duration: " << std::fixed << std::setprecision(6)<<duration  << " ns" << endl;
+        flowstatsFile << "System exited steady state at time: " << steadyStateExitTime << " ns, duration: " <<std::fixed << std::setprecision(6)<< duration  << " ns" << std::endl;
         inSteadyState = false;
     }
-	/*for (auto& entry_SteadyState : flowStats) {				
-		if (!entry_SteadyState.second.steadyStateReached) {
-			allSteadyStateReached = false;
-			break;  // 一旦发现一个流未进入稳态，直接跳出循环
-			}
-		}
-	if (allSteadyStateReached) {
-		cout << "All flows have reached steady state." << endl;
-		// 在这里可以执行进一步操作，比如标记系统进入稳态
-		// 例如，触发一些事件或改变状态等
-	}*/
 }
 
 //计算剩余流量大小除以已测量的速度均值，获取最小时间
 //每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
 void QbbNetDevice::calculateMintime(){
+	// 遍历所有 Node（网络节点）
+    for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+    {
+        Ptr<Node> node = *it;
+
+        // 遍历该 Node 的所有 NetDevice（设备）
+        for (uint32_t i = 0; i < node->GetNDevices(); ++i)
+        {
+            Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
+            if (!qbbDev|| node->GetNodeType()!=0) continue; // 如果不是 QbbNetDevice或者主机端，则跳过
+
+            // 获取该设备的 RDMA 事件队列
+            Ptr<RdmaEgressQueue> rdmaEQ = qbbDev->m_rdmaEQ;
+            if (!rdmaEQ) continue;
+
+            // 遍历 RDMA 事件队列中的所有流，计算最小流完成时间
+            flowCompletiontime(rdmaEQ);
+        }
+    }
+}
+
+
+void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 	uint32_t qIndex;
-	uint32_t fcount = m_rdmaEQ->m_qpGrp->GetN();
+	uint32_t fcount = rdmaEQ->m_qpGrp->GetN();
 		for (qIndex = 0; qIndex < fcount; qIndex++) {
 			uint32_t idx = qIndex ;
-			Ptr<RdmaQueuePair> qp = m_rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
+			Ptr<RdmaQueuePair> qp = rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
 
 			//获取flowid
 			uint32_t srcIp = qp->sip.Get(); // 获取源IP地址

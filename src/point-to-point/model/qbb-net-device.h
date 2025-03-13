@@ -36,6 +36,7 @@
 #include <fstream>
 #include <filesystem>//判断文件时是否存在
 #include<numeric> //accmulate
+#include<numeric> //accmulate
 // #include <ns3/rdma.h>
 // #define ENABLE_QP 1
 
@@ -98,7 +99,8 @@ public:
   void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
   //计算剩余流量大小除以已测量的速度均值，获取最小时间
   void calculateMintime();
-
+  //计算流完成时间的子函数
+  void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);
 
   /**
    * Receive a packet from a connected PointToPointChannel.
