@@ -723,7 +723,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 
     // 判断系统是否退出稳态
     if (!allSteadyStateReached && inSteadyState) {
-        uint64_t steadyStateExitTime = currentTime;
+        uint64_t steadyStateExitTime = currentTime; //退出稳态时间
         uint64_t duration = steadyStateExitTime - steadyStateStartTime;
         cout << "System exited steady state at time: " << steadyStateExitTime << " ns" << endl;
         cout << "Steady state duration: " << std::fixed << std::setprecision(6)<<duration  << " ns" << endl;
