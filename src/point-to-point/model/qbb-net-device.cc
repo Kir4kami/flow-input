@@ -622,36 +622,6 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
         NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
         return ; // 返回默认值表示不支持的协议
     }
-    /*Ipv4Header ipv4Header; // IPv4头部对象
-    Ptr<Packet> payload = packet->Copy(); // 复制数据包以避免修改原始数据包
-    payload->RemoveHeader(ipv4Header); // 移除IPv4头部
-
-    uint8_t protocol = ipv4Header.GetProtocol(); // 获取协议号
-    uint32_t srcIp = ipv4Header.GetSource().Get(); // 获取源IP地址
-    uint32_t dstIp = ipv4Header.GetDestination().Get(); // 获取目标IP地址
-    uint16_t srcPort = 0; // 源端口号
-    uint16_t dstPort = 0; // 目标端口号
-
-    // 根据协议类型处理传输层头部
-    if (protocol == 0x12) // UDP协议号为17
-    {
-        UdpHeader udpHeader;
-        payload->RemoveHeader(udpHeader); // 移除UDP头部
-        srcPort = udpHeader.GetSourcePort(); // 获取源端口号
-        dstPort = udpHeader.GetDestinationPort(); // 获取目标端口号
-    }
-    else if (protocol == 0x06) // TCP协议号为6
-    {
-        TcpHeader tcpHeader;
-        payload->RemoveHeader(tcpHeader); // 移除TCP头部
-        srcPort = tcpHeader.GetSourcePort(); // 获取源端口号
-        dstPort = tcpHeader.GetDestinationPort(); // 获取目标端口号
-    }
-    else
-    {
-        NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
-        return ; // 返回默认值表示不支持的协议
-    }*/
 
     // 将所有信息组合成一个字符串
     std::ostringstream oss;
