@@ -1,1 +1,3 @@
 timestamp flowsize fctus basefctus slowdown baserttus priority incastflow
+1.00506 1677721 2058148 571284 3.60267 8640 3 0
+1.01165 16777216 8652444 5635059 1.53547 8640 3 0
