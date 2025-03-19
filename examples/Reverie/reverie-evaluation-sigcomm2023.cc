@@ -365,7 +365,6 @@ T rand_range (T min, T max)
 uint32_t numPriorities;
 uint32_t prioRand = 0;
 
-
 #define QUERY_DATA 300000
 
 int tar = 0;
@@ -382,8 +381,9 @@ uint32_t FAN = 5;
 
 //written by Kira START
 
+
 struct FlowInfo {
-    std::string type;
+    char type[32];
     int src_node;
     int src_port;
     int dst_node;
@@ -391,10 +391,43 @@ struct FlowInfo {
     int priority;
     uint64_t msg_len;
 };
+vector<vector<FlowInfo>> flowInfos;
 u_int16_t systemId=0;
 u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
-vector<vector<FlowInfo>> flowInfos;
+MPI_Datatype MPI_FlowInfo;
+MPI_Datatype create_MPI_FlowInfo() {
+    // 定义结构体的成员数量（7个）
+    const int num_members = 7;
+    MPI_Datatype types[num_members] = {
+        MPI_CHAR,           // type[32]
+        MPI_INT,            // src_node
+        MPI_INT,            // src_port
+        MPI_INT,            // dst_node
+        MPI_INT,            // dst_port
+        MPI_INT,            // priority
+        MPI_UNSIGNED_LONG_LONG // msg_len (uint64_t)
+    };
+    int block_lengths[num_members] = {32, 1, 1, 1, 1, 1, 1};  // 每个成员的块长度
+    // 计算每个成员的位移
+    MPI_Aint displacements[num_members];
+    FlowInfo dummy;  // 临时结构体实例，用于计算地址偏移
+    MPI_Get_address(&dummy.type,         &displacements[0]);
+    MPI_Get_address(&dummy.src_node,     &displacements[1]);
+    MPI_Get_address(&dummy.src_port,     &displacements[2]);
+    MPI_Get_address(&dummy.dst_node,     &displacements[3]);
+    MPI_Get_address(&dummy.dst_port,     &displacements[4]);
+    MPI_Get_address(&dummy.priority,     &displacements[5]);
+    MPI_Get_address(&dummy.msg_len,      &displacements[6]);
+    // 转换为相对于结构体起始地址的位移
+    for (int i = num_members - 1; i >= 0; i--) 
+        displacements[i] -= displacements[0];
+    // 创建 MPI 数据类型
+    MPI_Datatype MPI_FlowInfo;
+    MPI_Type_create_struct(num_members, block_lengths, displacements, types, &MPI_FlowInfo);
+    MPI_Type_commit(&MPI_FlowInfo);
+    return MPI_FlowInfo;
+}
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
     flowCom++;
     std::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
@@ -419,54 +452,118 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
         Simulator::Run();
     }
 }
+void branch_read_info(uint16_t sysid){//branch process send flowInfo
+    std::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
+    std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(systemId)+".txt";
+    flowInput.open(flowInputFileName.c_str());
+    if (!flowInput.is_open())
+        std::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
+    std::string line;
+    int batch = -1;
+    while (std::getline(flowInput, line)) {
+        if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
+        std::stringstream ss(line);
+        std::string  type_str;
+        if (line.find("phase")!=string::npos){//phase
+            double phase;
+            ss >> type_str >> phase;
+            flowInfos.emplace_back(vector<FlowInfo> {});
+            batch++;
+            continue;//to be changed
+        }
+        FlowInfo flow;
+        ss >> type_str >> flow.type;
+        ss >> type_str >> flow.src_node;
+        ss >> type_str >> flow.src_port;
+        ss >> type_str >> flow.dst_node;
+        ss >> type_str >> flow.dst_port;
+        ss >> type_str >> flow.priority;
+        ss >> type_str >> flow.msg_len;
+        flowInfos[batch].emplace_back(flow);
+    }
+    flowInput.close();//read file end
+    int length=flowInfos.size();
+    MPI_Send(&length, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    for (auto& row : flowInfos) {
+        int cols = row.size();
+        MPI_Send(&cols, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
+        MPI_Send(row.data(), cols, MPI_FlowInfo, 0, 2, MPI_COMM_WORLD);
+    }
+}
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
     std::cout<<"Reading flow info"<< std::endl;
     std::string line;
     double startTime = START_TIME;
-    int batch = -1;
-    for(int i=0;i<5;i++){
-        std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(i)+".txt";
-        flowInput.open(flowInputFileName.c_str());
-        if (!flowInput.is_open())
-            std::cout << "unable to open flowInputFile!" << std::endl;
-        while (std::getline(flowInput, line)) {
-            if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
-            std::stringstream ss(line);
-            std::string  type_str;
-            if (line.find("phase")!=string::npos){//phase
-                double phase;
-                ss >> type_str >> phase;
-                if(batch < 0)
-                    startTime += phase/1e6;
-                batch ++;
-                flowInfos.emplace_back(vector<FlowInfo> {});
-                continue;//to be changed
-            }
-            FlowInfo flow;
-            ss >> type_str >> flow.type;
-            ss >> type_str >> flow.src_node;
-            ss >> type_str >> flow.src_port;
-            ss >> type_str >> flow.dst_node;
-            ss >> type_str >> flow.dst_port;
-            ss >> type_str >> flow.priority;
-            ss >> type_str >> flow.msg_len;
-            flowCount += 1;
-            flowInfos[batch].emplace_back(flow);
-            if(batch == 0){
-                RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-                flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-                global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-                ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-                appCon.Start(Seconds(startTime));//to be changed
-                //apps.emplace_back(appCon);
-                std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+    int batch = 0;
+    for (int src = 1; src <= 4; src++) {
+        int rows;
+        MPI_Recv(&rows, 1, MPI_INT, src, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        for (int i = 0; i < rows; i++) {
+            flowInfos.emplace_back(vector<FlowInfo> {});
+            int cols;
+            MPI_Recv(&cols, 1, MPI_INT, src, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            flowInfos[batch].resize(cols);
+            MPI_Recv(flowInfos[batch].data(), cols, MPI_FlowInfo, src, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            batch++;
+            std::cout<<"recv flowInfo from system:"<<src<<std::endl;
+        }
+        // 处理接收到的 flowInfos
+        for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
+            RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+            flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+            global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+            ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+            appCon.Start(Seconds(0));//to be changed
+            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<
-                    " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
-            }
+                    " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
         }
-        flowInput.close();
     }
+    // for(int i=0;i<5;i++){
+    //     std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(i)+".txt";
+    //     flowInput.open(flowInputFileName.c_str());
+    //     if (!flowInput.is_open())
+    //         std::cout << "unable to open flowInputFile!" << std::endl;
+    //     while (std::getline(flowInput, line)) {
+    //         if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
+    //         std::stringstream ss(line);
+    //         std::string  type_str;
+    //         if (line.find("phase")!=string::npos){//phase
+    //             double phase;
+    //             ss >> type_str >> phase;
+    //             if(batch < 0)
+    //                 startTime += phase/1e6;
+    //             batch ++;
+    //             flowInfos.emplace_back(vector<FlowInfo> {});
+    //             continue;//to be changed
+    //         }
+    //         FlowInfo flow;
+    //         ss >> type_str >> flow.type;
+    //         ss >> type_str >> flow.src_node;
+    //         ss >> type_str >> flow.src_port;
+    //         ss >> type_str >> flow.dst_node;
+    //         ss >> type_str >> flow.dst_port;
+    //         ss >> type_str >> flow.priority;
+    //         ss >> type_str >> flow.msg_len;
+    //         flowCount += 1;
+    //         flowInfos[batch].emplace_back(flow);
+    //         if(batch == 0){
+    //             RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+    //             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+    //             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+    //             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+    //             appCon.Start(Seconds(startTime));//to be changed
+    //             //apps.emplace_back(appCon);
+    //             std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+    //                 " fromportNumber " << flow.src_port <<
+    //                 " destportNumder " << flow.dst_port <<
+    //                 " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
+    //         }
+    //     }
+
+    //     flowInput.close();
+    // }
 }
 //written by Kira END
 
@@ -495,6 +592,14 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 int main(int argc, char *argv[]){
     MpiInterface::Enable(&argc, &argv);
     systemId = MpiInterface::GetSystemId();
+    MPI_FlowInfo = create_MPI_FlowInfo();
+    
+    if(systemId!=0){//branch process
+        branch_read_info(systemId);
+        std::cout<<"system" <<systemId<<"end"<<std::endl;
+        MpiInterface::Disable();
+        return systemId;
+    }
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -1258,6 +1363,7 @@ std::cout << "apps finished" << std::endl;
     Simulator::Stop(Seconds(END_TIME));
     Simulator::Run();
     Simulator::Destroy();
+    MPI_Type_free(&MPI_FlowInfo);
     MpiInterface::Disable();
     NS_LOG_INFO("Done.");
     std::cout<<"Done"<<std::endl;
