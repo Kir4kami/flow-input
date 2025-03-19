@@ -1,971 +1,2408 @@
+0
+1000
+2000
+3000
+4000
+5000
+6000
+7000
+8000
+9000
+10000
+11000
+12000
+13000
+14000
+15000
 Flow ID: 0-1-0-0 - Rate: 12.9792 Gbps currentTime: 1003014720
 Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1003015055
+16000
+17000
+18000
+19000
+20000
+21000
+22000
+23000
+24000
+25000
+26000
+27000
+28000
+29000
+30000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003024770
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003025105
+31000
+32000
+33000
+34000
+35000
+36000
+37000
+38000
+39000
+40000
+41000
+42000
+43000
+44000
+45000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003034820
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003035155
+46000
+47000
+48000
+49000
+50000
+51000
+52000
+53000
+54000
+55000
+56000
+57000
+58000
+59000
+60000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003044870
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003045205
+61000
+62000
+63000
+64000
+65000
+66000
+67000
+68000
+69000
+70000
+71000
+72000
+73000
+74000
+75000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003054920
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003055255
+76000
+77000
+78000
+79000
+80000
+81000
+82000
+83000
+84000
+85000
+86000
+87000
+88000
+89000
+90000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003064970
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003065305
+91000
+92000
+93000
+94000
+95000
+96000
+97000
+98000
+99000
+100000
+101000
+102000
+103000
+104000
+105000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003075020
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003075355
+106000
+107000
+108000
+109000
+110000
+111000
+112000
+113000
+114000
+115000
+116000
+117000
+118000
+119000
+120000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003085070
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003085405
+121000
+122000
+123000
+124000
+125000
+126000
+127000
+128000
+129000
+130000
+131000
+132000
+133000
+134000
+135000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003095120
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003095455
+136000
+137000
+138000
+139000
+140000
+141000
+142000
+143000
+144000
+145000
+146000
+147000
+148000
+149000
+150000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003105170
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003105505
 System entered steady state at time: 1003105505 ns
-最小流完成时间: 982722.550953
+最小流完成时间: 895937.541091
+151000
+152000
+153000
+154000
+155000
+156000
+157000
+158000
+159000
+160000
+161000
+162000
+163000
+164000
+165000
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003115220
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1003115555
-System exited steady state at time: 1003115555 ns, duration: 10050 ns
-Flow ID: 0-1-0-0 - Rate: 7.3008 Gbps currentTime: 1003125270
-Flow ID: 4-1-0-0 - Rate: 17.0352 Gbps currentTime: 1003125605
-Flow ID: 0-1-0-0 - Rate: 3.2448 Gbps currentTime: 1003135320
-Flow ID: 4-1-0-0 - Rate: 21.0912 Gbps currentTime: 1003135655
-Flow ID: 0-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003145370
-Flow ID: 4-1-0-0 - Rate: 21.9024 Gbps currentTime: 1003145705
-Flow ID: 0-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003156435
-Flow ID: 4-1-0-0 - Rate: 15.4128 Gbps currentTime: 1003156435
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003169434
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003169434
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003182433
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003195432
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003208431
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003212764
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003221430
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003234429
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003247428
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003256094
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003260427
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003273426
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003286425
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003299424
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003303757
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003312423
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003325422
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003338421
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003347087
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003351420
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003364419
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003377418
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003390417
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003394750
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003403416
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003416415
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003429414
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003438080
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003442413
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003455412
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003468411
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003481410
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003485743
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003494409
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003507408
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003520407
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003533406
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003533406
-System entered steady state at time: 1003533406 ns
-最小流完成时间: 14642218.934911
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003546405
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003559404
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003572403
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003576736
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003585402
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003598401
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003611400
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003624399
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003624399
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003637398
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003650397
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003663396
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003667729
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003676395
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003689394
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003702393
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003715392
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003715392
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003728391
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003741390
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003754389
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003758722
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003767388
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003780387
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003793386
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003803857
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003806385
-Flow ID: 4-1-0-0 - Rate: 1.6224 Gbps currentTime: 1003815051
-System exited steady state at time: 1003815051 ns, duration: 281645 ns
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003828050
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003841049
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003849973
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003854048
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003867047
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003880046
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003893045
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003897378
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003906044
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003919043
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003932042
-System entered steady state at time: 1003932042 ns
-最小流完成时间: 14563323.471400
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003945041
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003945041
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003958040
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003971039
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003984038
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1003988371
-Flow ID: 4-1-0-0 - Rate: 2.4336 Gbps currentTime: 1003997037
-Flow ID: 4-1-0-0 - Rate: 4.056 Gbps currentTime: 1004007569
-System exited steady state at time: 1004007569 ns, duration: 75527 ns
-Flow ID: 4-1-0-0 - Rate: 13.7904 Gbps currentTime: 1004018143
-Flow ID: 4-1-0-0 - Rate: 13.7904 Gbps currentTime: 1004028717
-Flow ID: 0-1-0-0 - Rate: 0.8112 Gbps currentTime: 1004033119
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004038814
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004043169
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004048864
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004053219
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004058914
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004063269
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004068964
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004073319
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004079014
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004083369
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004089064
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004093419
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004099114
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004103469
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004109164
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004113519
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004119214
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004123569
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004129264
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004133619
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004139314
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004143669
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004149364
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004153719
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004159414
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004163769
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004169464
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004173819
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004179514
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004183869
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004189564
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004193919
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004199614
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004203969
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004209664
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004214019
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004219714
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004224069
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004229764
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004234119
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004239814
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004244169
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004249864
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004254219
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004259914
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004264269
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004269964
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004274319
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004280014
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004284369
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004290064
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004294419
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004300114
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004304469
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004310164
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004314519
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004320214
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004324569
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004330264
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004334619
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004340314
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004344669
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004350364
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004354719
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004360414
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004364769
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004370464
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004374819
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004380514
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004384869
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004390564
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004394919
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004400614
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004404969
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004410664
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004415019
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004420714
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004425069
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004430764
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004435119
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004440814
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004445169
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004450864
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004455219
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004460914
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004465269
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004470964
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004475319
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004481014
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004485369
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004491064
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004495419
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004501114
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004505469
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004511164
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004515519
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004521214
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004525569
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004531264
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004535619
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004541314
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004545669
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004551364
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004555719
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004561414
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004565769
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004571464
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004575819
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004581514
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004585869
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004591564
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004595919
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004601614
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004605969
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004611664
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004616019
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004621714
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004626069
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004631764
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004636119
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004641814
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004646169
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004651864
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004656219
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004661914
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004666269
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004671964
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004676319
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004682014
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004686369
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004692064
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004696419
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004702114
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004706469
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004712164
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004716519
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004722214
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004726569
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004732264
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004736619
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004742314
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004746669
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004752364
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004756719
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004762414
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004766769
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004772464
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004776819
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004782514
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004786869
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004792564
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004796919
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004802614
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004806969
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004812664
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004817019
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004822714
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004827069
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004832764
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004837119
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004842814
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004847169
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004852864
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004857219
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004862914
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004867269
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004872964
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004877319
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004883014
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004887369
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004893064
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004897419
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004903114
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004907469
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004913164
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004917519
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004923214
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004927569
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004933264
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004937619
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004943314
-Flow ID: 0-1-0-0 - Rate: 9.7344 Gbps currentTime: 1004947669
-Flow ID: 4-1-0-0 - Rate: 13.7904 Gbps currentTime: 1004953364
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004957719
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1004963414
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004967769
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004973464
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004977819
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004983514
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1004987869
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004993564
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004997919
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1005003614
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1005007969
-Flow ID: 4-1-0-0 - Rate: 12.9792 Gbps currentTime: 1005013664
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1005018019
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1005023714
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1005028069
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1005033764
-Flow ID: 0-1-0-0 - Rate: 11.3568 Gbps currentTime: 1005038119
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1005043814
-Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1005048169
-Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1005053864
-Flow ID: 0-1-0-0 - Rate: 7.8888 Gbps currentTime: 1005058465
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005064160
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005074210
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005084260
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005094310
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005104360
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005114410
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005124460
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005134510
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005144560
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005154610
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005164660
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005174710
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005184760
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005194810
-Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005205321
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005215761
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005226201
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005236641
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005247081
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005257521
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005267961
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005278401
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005288841
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005299281
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005309721
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005320161
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005330601
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005341041
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005351481
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005361921
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005372361
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005382801
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005393241
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005403681
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005414121
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005424561
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005435001
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005445441
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005455881
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005466321
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005476761
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005487201
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005497641
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005508081
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005518521
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005528961
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005539401
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005549841
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005560281
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005570721
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005581161
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005591601
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005602041
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005612481
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005622921
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005633361
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005643801
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005654241
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005664681
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005675121
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005685561
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005696001
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005706441
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005716881
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005727321
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005737761
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005748201
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005758641
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005769081
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005779521
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005789961
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005800401
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005810841
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005821281
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005831721
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005842161
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005852601
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005863041
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005873481
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005883921
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005894361
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005904801
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005915241
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005925681
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005936121
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005946561
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005957001
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005967441
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005977881
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005988321
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1005998761
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1006009201
-Flow ID: 4-1-0-0 - Rate: 16.224 Gbps currentTime: 1006019218
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006029668
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006040118
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006050568
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006061018
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006071468
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006081918
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006092368
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006102818
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006113268
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006123718
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006134168
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006144618
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006155068
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006165518
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006175968
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006186418
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006196868
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006207318
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006217768
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006228218
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006238668
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006249118
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006259568
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006270018
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006280468
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006290918
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006301368
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006311818
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006322268
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006332718
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006343168
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006353618
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006364068
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006374518
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006384968
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006395418
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006405868
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006416318
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006426768
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006437218
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006447668
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006458118
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006468568
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006479018
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006489468
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006499918
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006510368
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006520818
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006531268
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006541718
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006552168
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006562618
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006573068
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006583518
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006593968
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006604418
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006614868
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006625318
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006635768
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006646218
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006656668
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006667118
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006677568
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006688018
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006698468
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006708918
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006719368
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006729818
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006740268
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006750718
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006761168
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006771618
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006782068
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006792518
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006802968
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006813418
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006823868
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006834318
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006844768
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006855218
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006865668
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006876118
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006886568
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006897018
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006907468
-Flow ID: 4-1-0-0 - Rate: 17.8464 Gbps currentTime: 1006917792
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006928234
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006938676
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006949118
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006959560
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006970002
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006980444
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1006990886
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007001328
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007011770
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007022212
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007032654
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007043096
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007053538
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007063980
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007074422
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007084864
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007095306
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007105748
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007116190
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007126632
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007137074
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007147516
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007157958
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007168400
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007178842
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007189284
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007199726
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007210168
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007220610
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007231052
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007241494
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007251936
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007262378
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007272820
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007283262
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007293704
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007304146
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007314588
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007325030
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007335472
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007345914
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007356356
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007366798
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007377240
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007387682
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007398124
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007408566
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007419008
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007429450
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007439892
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007450334
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007460776
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007471218
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007481660
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007492102
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007502544
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007512986
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007523428
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007533870
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007544312
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007554754
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007565196
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007575638
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007586080
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007596522
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007606964
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007617406
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007627848
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007638290
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007648732
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007659174
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007669616
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007680058
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007690500
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007700942
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007711384
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007721826
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007732268
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007742710
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007753152
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007763594
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007774036
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007784478
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007794920
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007805362
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007815782
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007825971
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007836160
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007846349
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007856538
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007866727
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007876916
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007887105
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007897294
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007907483
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007917672
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007927861
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007938050
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007948239
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007958428
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007968617
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007978806
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007988995
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1007999184
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008009373
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008019562
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008029751
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008039940
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008050129
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008060318
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008070507
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008080696
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008090885
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008101074
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008111263
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008121452
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008131641
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008141830
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008152019
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008162208
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008172397
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008182586
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008192775
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008202964
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008213153
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008223342
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008233531
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008243720
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008253909
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008264098
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008274287
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008284476
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008294665
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008304854
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008315043
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008325232
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008335421
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008345610
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008355799
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008365988
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008376177
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008386366
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008396555
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008406744
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008416933
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008427122
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008437311
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008447500
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008457689
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008467878
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008478067
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008488256
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008498445
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008508634
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008518823
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008529012
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008539201
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008549390
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008559579
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008569768
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008579957
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008590146
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008600335
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008610524
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008620713
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008630902
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008641091
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008651280
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008661469
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008671658
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008681847
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008692036
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008702225
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008712414
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008722484
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008732512
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008742540
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008752568
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008762596
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008772624
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008782652
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008792680
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008802708
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008812736
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008822764
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008832792
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008842820
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008852848
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008862876
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008872904
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008882932
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008892960
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008902988
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008913016
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008923044
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008933072
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008943100
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008953128
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008963156
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008973184
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008983212
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1008993240
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009003268
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009013296
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009023324
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009033352
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009043380
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009053408
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009063436
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009073464
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009083492
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009093520
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009103548
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009113576
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009123604
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009133632
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009143660
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009153688
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009163716
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009173744
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009183772
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009193800
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009203828
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009213856
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009223884
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009233912
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009243940
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009253968
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009263996
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009274024
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009284052
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009294080
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009304108
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009314136
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009324164
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009334192
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009344220
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009354248
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009364276
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009374304
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009384332
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009394360
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009404388
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009414416
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009424444
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009434472
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009444500
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009454528
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009464556
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009474584
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009484612
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009494640
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009504668
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009514696
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009524724
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009534752
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009544780
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009554808
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009564836
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009574864
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009584892
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009594920
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009604948
-Flow ID: 4-1-0-0 - Rate: 18.6576 Gbps currentTime: 1009614976
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009625344
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009635712
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009646080
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009656448
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009666816
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009677184
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009687552
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009697920
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009708288
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009718656
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009729024
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009739392
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009749760
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009760128
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009770496
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009780864
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009791232
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009801600
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009811968
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009822336
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009832704
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009843072
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009853440
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009863808
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009874176
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009884544
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009894912
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009905280
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009915648
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009926016
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009936384
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009946752
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009957120
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009967488
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009977856
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009988224
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1009998592
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010008960
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010019328
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010029696
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010040064
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010050432
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010060800
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010071168
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010081536
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010091904
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010102272
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010112640
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010123008
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010133376
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010143744
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010154112
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010164480
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010174848
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010185216
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010195584
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010205952
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010216320
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010226688
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010237056
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010247424
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010257792
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010268160
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010278528
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010288896
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010299264
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010309632
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010320000
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010330368
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010340736
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010351104
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010361472
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010371840
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010382208
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010392576
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010402944
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010413312
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010423680
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010434048
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010444416
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010454784
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010465152
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010475520
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010485888
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010496256
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010506624
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010516977
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010527273
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010537569
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010547865
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010558161
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010568457
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010578753
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010589049
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010599345
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010609641
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010619937
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010630233
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010640529
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010650825
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010661121
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010671417
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010681713
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010692009
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010702305
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010712601
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010722897
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010733193
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010743489
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010753785
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010764081
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010774377
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010784673
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010794969
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010805265
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010815561
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010825857
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010836153
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010846449
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010856745
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010867041
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010877337
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010887633
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010897929
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010908225
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010918521
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010928817
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010939113
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010949409
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010959705
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010970001
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010980297
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1010990593
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011000889
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011011185
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011021481
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011031777
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011042073
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011052369
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011062665
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011072961
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011083257
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011093553
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011103849
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011114145
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011124441
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011134737
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011145033
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011155329
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011165625
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011175921
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011186217
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011196513
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011206809
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011217105
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011227401
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011237697
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011247993
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011258289
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011268585
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011278881
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011289177
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011299473
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011309769
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011320065
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011330361
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011340657
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011350953
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011361249
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011371545
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011381841
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011392137
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011402433
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011412729
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011422968
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011433192
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011443416
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011453640
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011463864
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011474088
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011484312
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011494536
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011504760
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011514984
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011525208
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011535432
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011545656
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011555880
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011566104
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011576328
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011586552
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011596776
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011607000
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011617224
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011627448
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011637672
-Flow ID: 4-1-0-0 - Rate: 19.4688 Gbps currentTime: 1011647896
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003115555
+166000
+167000
+168000
+169000
+170000
+171000
+172000
+173000
+174000
+175000
+176000
+177000
+178000
+179000
+180000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003125270
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003125605
+181000
+182000
+183000
+184000
+185000
+186000
+187000
+188000
+189000
+190000
+191000
+192000
+193000
+194000
+195000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003135320
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003135655
+196000
+197000
+198000
+199000
+200000
+201000
+202000
+203000
+204000
+205000
+206000
+207000
+208000
+209000
+210000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003145370
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003145705
+211000
+212000
+213000
+214000
+215000
+216000
+217000
+218000
+219000
+220000
+221000
+222000
+223000
+224000
+225000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003155420
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003155755
+226000
+227000
+228000
+229000
+230000
+231000
+232000
+233000
+234000
+235000
+236000
+237000
+238000
+239000
+240000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003165470
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003165805
+241000
+242000
+243000
+244000
+245000
+246000
+247000
+248000
+249000
+250000
+251000
+252000
+253000
+254000
+255000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003175520
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003175855
+256000
+257000
+258000
+259000
+260000
+261000
+262000
+263000
+264000
+265000
+266000
+267000
+268000
+269000
+270000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003185570
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003185905
+271000
+272000
+273000
+274000
+275000
+276000
+277000
+278000
+279000
+280000
+281000
+282000
+283000
+284000
+285000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003195620
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003195955
+286000
+287000
+288000
+289000
+290000
+291000
+292000
+293000
+294000
+295000
+296000
+297000
+298000
+299000
+300000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003205670
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003206005
+301000
+302000
+303000
+304000
+305000
+306000
+307000
+308000
+309000
+310000
+311000
+312000
+313000
+314000
+315000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003215720
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003216055
+316000
+317000
+318000
+319000
+320000
+321000
+322000
+323000
+324000
+325000
+326000
+327000
+328000
+329000
+330000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003225770
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003226105
+331000
+332000
+333000
+334000
+335000
+336000
+337000
+338000
+339000
+340000
+341000
+342000
+343000
+344000
+345000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003235820
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003236155
+346000
+347000
+348000
+349000
+350000
+351000
+352000
+353000
+354000
+355000
+356000
+357000
+358000
+359000
+360000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003245870
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003246205
+361000
+362000
+363000
+364000
+365000
+366000
+367000
+368000
+369000
+370000
+371000
+372000
+373000
+374000
+375000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003255920
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003256255
+376000
+377000
+378000
+379000
+380000
+381000
+382000
+383000
+384000
+385000
+386000
+387000
+388000
+389000
+390000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003265970
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003266305
+391000
+392000
+393000
+394000
+395000
+396000
+397000
+398000
+399000
+400000
+401000
+402000
+403000
+404000
+405000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003276020
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003276355
+406000
+407000
+408000
+409000
+410000
+411000
+412000
+413000
+414000
+415000
+416000
+417000
+418000
+419000
+420000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003286070
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003286405
+421000
+422000
+423000
+424000
+425000
+426000
+427000
+428000
+429000
+430000
+431000
+432000
+433000
+434000
+435000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003296120
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003296455
+436000
+437000
+438000
+439000
+440000
+441000
+442000
+443000
+444000
+445000
+446000
+447000
+448000
+449000
+450000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003306170
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003306505
+451000
+452000
+453000
+454000
+455000
+456000
+457000
+458000
+459000
+460000
+461000
+462000
+463000
+464000
+465000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003316220
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003316555
+466000
+467000
+468000
+469000
+470000
+471000
+472000
+473000
+474000
+475000
+476000
+477000
+478000
+479000
+480000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003326270
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003326605
+481000
+482000
+483000
+484000
+485000
+486000
+487000
+488000
+489000
+490000
+491000
+492000
+493000
+494000
+495000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003336320
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003336655
+496000
+497000
+498000
+499000
+500000
+501000
+502000
+503000
+504000
+505000
+506000
+507000
+508000
+509000
+510000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003346370
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003346705
+511000
+512000
+513000
+514000
+515000
+516000
+517000
+518000
+519000
+520000
+521000
+522000
+523000
+524000
+525000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003356420
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003356755
+526000
+527000
+528000
+529000
+530000
+531000
+532000
+533000
+534000
+535000
+536000
+537000
+538000
+539000
+540000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003366470
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003366805
+541000
+542000
+543000
+544000
+545000
+546000
+547000
+548000
+549000
+550000
+551000
+552000
+553000
+554000
+555000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003376520
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003376855
+556000
+557000
+558000
+559000
+560000
+561000
+562000
+563000
+564000
+565000
+566000
+567000
+568000
+569000
+570000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003386570
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003386905
+571000
+572000
+573000
+574000
+575000
+576000
+577000
+578000
+579000
+580000
+581000
+582000
+583000
+584000
+585000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003396620
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003396955
+586000
+587000
+588000
+589000
+590000
+591000
+592000
+593000
+594000
+595000
+596000
+597000
+598000
+599000
+600000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003406670
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003407005
+601000
+602000
+603000
+604000
+605000
+606000
+607000
+608000
+609000
+610000
+611000
+612000
+613000
+614000
+615000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003416720
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003417055
+616000
+617000
+618000
+619000
+620000
+621000
+622000
+623000
+624000
+625000
+626000
+627000
+628000
+629000
+630000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003426770
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003427105
+631000
+632000
+633000
+634000
+635000
+636000
+637000
+638000
+639000
+640000
+641000
+642000
+643000
+644000
+645000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003436820
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003437155
+646000
+647000
+648000
+649000
+650000
+651000
+652000
+653000
+654000
+655000
+656000
+657000
+658000
+659000
+660000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003446870
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003447205
+661000
+662000
+663000
+664000
+665000
+666000
+667000
+668000
+669000
+670000
+671000
+672000
+673000
+674000
+675000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003456920
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003457255
+676000
+677000
+678000
+679000
+680000
+681000
+682000
+683000
+684000
+685000
+686000
+687000
+688000
+689000
+690000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003466970
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003467305
+691000
+692000
+693000
+694000
+695000
+696000
+697000
+698000
+699000
+700000
+701000
+702000
+703000
+704000
+705000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003477020
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003477355
+706000
+707000
+708000
+709000
+710000
+711000
+712000
+713000
+714000
+715000
+716000
+717000
+718000
+719000
+720000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003487070
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003487405
+721000
+722000
+723000
+724000
+725000
+726000
+727000
+728000
+729000
+730000
+731000
+732000
+733000
+734000
+735000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003497120
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003497455
+736000
+737000
+738000
+739000
+740000
+741000
+742000
+743000
+744000
+745000
+746000
+747000
+748000
+749000
+750000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003507170
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003507505
+751000
+752000
+753000
+754000
+755000
+756000
+757000
+758000
+759000
+760000
+761000
+762000
+763000
+764000
+765000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003517220
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003517555
+766000
+767000
+768000
+769000
+770000
+771000
+772000
+773000
+774000
+775000
+776000
+777000
+778000
+779000
+780000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003527270
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003527605
+781000
+782000
+783000
+784000
+785000
+786000
+787000
+788000
+789000
+790000
+791000
+792000
+793000
+794000
+795000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003537320
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003537655
+796000
+797000
+798000
+799000
+800000
+801000
+802000
+803000
+804000
+805000
+806000
+807000
+808000
+809000
+810000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003547370
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003547705
+811000
+812000
+813000
+814000
+815000
+816000
+817000
+818000
+819000
+820000
+821000
+822000
+823000
+824000
+825000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003557420
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003557755
+826000
+827000
+828000
+829000
+830000
+831000
+832000
+833000
+834000
+835000
+836000
+837000
+838000
+839000
+840000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003567470
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003567805
+841000
+842000
+843000
+844000
+845000
+846000
+847000
+848000
+849000
+850000
+851000
+852000
+853000
+854000
+855000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003577520
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003577855
+856000
+857000
+858000
+859000
+860000
+861000
+862000
+863000
+864000
+865000
+866000
+867000
+868000
+869000
+870000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003587570
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003587905
+871000
+872000
+873000
+874000
+875000
+876000
+877000
+878000
+879000
+880000
+881000
+882000
+883000
+884000
+885000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003597620
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003597955
+886000
+887000
+888000
+889000
+890000
+891000
+892000
+893000
+894000
+895000
+896000
+897000
+898000
+899000
+900000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003607670
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003608005
+901000
+902000
+903000
+904000
+905000
+906000
+907000
+908000
+909000
+910000
+911000
+912000
+913000
+914000
+915000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003617720
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003618055
+916000
+917000
+918000
+919000
+920000
+921000
+922000
+923000
+924000
+925000
+926000
+927000
+928000
+929000
+930000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003627770
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003628105
+931000
+932000
+933000
+934000
+935000
+936000
+937000
+938000
+939000
+940000
+941000
+942000
+943000
+944000
+945000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003637820
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003638155
+946000
+947000
+948000
+949000
+950000
+951000
+952000
+953000
+954000
+955000
+956000
+957000
+958000
+959000
+960000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003647870
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003648205
+961000
+962000
+963000
+964000
+965000
+966000
+967000
+968000
+969000
+970000
+971000
+972000
+973000
+974000
+975000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003657920
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003658255
+976000
+977000
+978000
+979000
+980000
+981000
+982000
+983000
+984000
+985000
+986000
+987000
+988000
+989000
+990000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003667970
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003668305
+991000
+992000
+993000
+994000
+995000
+996000
+997000
+998000
+999000
+1000000
+1001000
+1002000
+1003000
+1004000
+1005000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003678020
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003678355
+1006000
+1007000
+1008000
+1009000
+1010000
+1011000
+1012000
+1013000
+1014000
+1015000
+1016000
+1017000
+1018000
+1019000
+1020000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003688070
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003688405
+1021000
+1022000
+1023000
+1024000
+1025000
+1026000
+1027000
+1028000
+1029000
+1030000
+1031000
+1032000
+1033000
+1034000
+1035000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003698120
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003698455
+1036000
+1037000
+1038000
+1039000
+1040000
+1041000
+1042000
+1043000
+1044000
+1045000
+1046000
+1047000
+1048000
+1049000
+1050000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003708170
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003708505
+1051000
+1052000
+1053000
+1054000
+1055000
+1056000
+1057000
+1058000
+1059000
+1060000
+1061000
+1062000
+1063000
+1064000
+1065000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003718220
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003718555
+1066000
+1067000
+1068000
+1069000
+1070000
+1071000
+1072000
+1073000
+1074000
+1075000
+1076000
+1077000
+1078000
+1079000
+1080000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003728270
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003728605
+1081000
+1082000
+1083000
+1084000
+1085000
+1086000
+1087000
+1088000
+1089000
+1090000
+1091000
+1092000
+1093000
+1094000
+1095000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003738320
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003738655
+1096000
+1097000
+1098000
+1099000
+1100000
+1101000
+1102000
+1103000
+1104000
+1105000
+1106000
+1107000
+1108000
+1109000
+1110000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003748370
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003748705
+1111000
+1112000
+1113000
+1114000
+1115000
+1116000
+1117000
+1118000
+1119000
+1120000
+1121000
+1122000
+1123000
+1124000
+1125000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003758420
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003758755
+1126000
+1127000
+1128000
+1129000
+1130000
+1131000
+1132000
+1133000
+1134000
+1135000
+1136000
+1137000
+1138000
+1139000
+1140000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003768470
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003768805
+1141000
+1142000
+1143000
+1144000
+1145000
+1146000
+1147000
+1148000
+1149000
+1150000
+1151000
+1152000
+1153000
+1154000
+1155000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003778520
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003778855
+1156000
+1157000
+1158000
+1159000
+1160000
+1161000
+1162000
+1163000
+1164000
+1165000
+1166000
+1167000
+1168000
+1169000
+1170000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003788570
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003788905
+1171000
+1172000
+1173000
+1174000
+1175000
+1176000
+1177000
+1178000
+1179000
+1180000
+1181000
+1182000
+1183000
+1184000
+1185000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003798620
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003798955
+1186000
+1187000
+1188000
+1189000
+1190000
+1191000
+1192000
+1193000
+1194000
+1195000
+1196000
+1197000
+1198000
+1199000
+1200000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003808670
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003809005
+1201000
+1202000
+1203000
+1204000
+1205000
+1206000
+1207000
+1208000
+1209000
+1210000
+1211000
+1212000
+1213000
+1214000
+1215000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003818720
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003819055
+1216000
+1217000
+1218000
+1219000
+1220000
+1221000
+1222000
+1223000
+1224000
+1225000
+1226000
+1227000
+1228000
+1229000
+1230000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003828770
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003829105
+1231000
+1232000
+1233000
+1234000
+1235000
+1236000
+1237000
+1238000
+1239000
+1240000
+1241000
+1242000
+1243000
+1244000
+1245000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003838820
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003839155
+1246000
+1247000
+1248000
+1249000
+1250000
+1251000
+1252000
+1253000
+1254000
+1255000
+1256000
+1257000
+1258000
+1259000
+1260000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003848870
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003849205
+1261000
+1262000
+1263000
+1264000
+1265000
+1266000
+1267000
+1268000
+1269000
+1270000
+1271000
+1272000
+1273000
+1274000
+1275000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003858920
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003859255
+1276000
+1277000
+1278000
+1279000
+1280000
+1281000
+1282000
+1283000
+1284000
+1285000
+1286000
+1287000
+1288000
+1289000
+1290000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003868970
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003869305
+1291000
+1292000
+1293000
+1294000
+1295000
+1296000
+1297000
+1298000
+1299000
+1300000
+1301000
+1302000
+1303000
+1304000
+1305000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003879020
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003879355
+1306000
+1307000
+1308000
+1309000
+1310000
+1311000
+1312000
+1313000
+1314000
+1315000
+1316000
+1317000
+1318000
+1319000
+1320000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003889070
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003889405
+1321000
+1322000
+1323000
+1324000
+1325000
+1326000
+1327000
+1328000
+1329000
+1330000
+1331000
+1332000
+1333000
+1334000
+1335000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003899120
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003899455
+1336000
+1337000
+1338000
+1339000
+1340000
+1341000
+1342000
+1343000
+1344000
+1345000
+1346000
+1347000
+1348000
+1349000
+1350000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003909170
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003909505
+1351000
+1352000
+1353000
+1354000
+1355000
+1356000
+1357000
+1358000
+1359000
+1360000
+1361000
+1362000
+1363000
+1364000
+1365000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003919220
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003919555
+1366000
+1367000
+1368000
+1369000
+1370000
+1371000
+1372000
+1373000
+1374000
+1375000
+1376000
+1377000
+1378000
+1379000
+1380000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003929270
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003929605
+1381000
+1382000
+1383000
+1384000
+1385000
+1386000
+1387000
+1388000
+1389000
+1390000
+1391000
+1392000
+1393000
+1394000
+1395000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003939320
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003939655
+1396000
+1397000
+1398000
+1399000
+1400000
+1401000
+1402000
+1403000
+1404000
+1405000
+1406000
+1407000
+1408000
+1409000
+1410000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003949370
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003949705
+1411000
+1412000
+1413000
+1414000
+1415000
+1416000
+1417000
+1418000
+1419000
+1420000
+1421000
+1422000
+1423000
+1424000
+1425000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003959420
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003959755
+1426000
+1427000
+1428000
+1429000
+1430000
+1431000
+1432000
+1433000
+1434000
+1435000
+1436000
+1437000
+1438000
+1439000
+1440000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003969470
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003969805
+1441000
+1442000
+1443000
+1444000
+1445000
+1446000
+1447000
+1448000
+1449000
+1450000
+1451000
+1452000
+1453000
+1454000
+1455000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003979520
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003979855
+1456000
+1457000
+1458000
+1459000
+1460000
+1461000
+1462000
+1463000
+1464000
+1465000
+1466000
+1467000
+1468000
+1469000
+1470000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003989570
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003989905
+1471000
+1472000
+1473000
+1474000
+1475000
+1476000
+1477000
+1478000
+1479000
+1480000
+1481000
+1482000
+1483000
+1484000
+1485000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003999620
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003999955
+1486000
+1487000
+1488000
+1489000
+1490000
+1491000
+1492000
+1493000
+1494000
+1495000
+1496000
+1497000
+1498000
+1499000
+1500000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004009670
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004010005
+1501000
+1502000
+1503000
+1504000
+1505000
+1506000
+1507000
+1508000
+1509000
+1510000
+1511000
+1512000
+1513000
+1514000
+1515000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004019720
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004020055
+1516000
+1517000
+1518000
+1519000
+1520000
+1521000
+1522000
+1523000
+1524000
+1525000
+1526000
+1527000
+1528000
+1529000
+1530000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004029770
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004030105
+1531000
+1532000
+1533000
+1534000
+1535000
+1536000
+1537000
+1538000
+1539000
+1540000
+1541000
+1542000
+1543000
+1544000
+1545000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004039820
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004040155
+1546000
+1547000
+1548000
+1549000
+1550000
+1551000
+1552000
+1553000
+1554000
+1555000
+1556000
+1557000
+1558000
+1559000
+1560000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004049870
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004050205
+1561000
+1562000
+1563000
+1564000
+1565000
+1566000
+1567000
+1568000
+1569000
+1570000
+1571000
+1572000
+1573000
+1574000
+1575000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004059920
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004060255
+1576000
+1577000
+1578000
+1579000
+1580000
+1581000
+1582000
+1583000
+1584000
+1585000
+1586000
+1587000
+1588000
+1589000
+1590000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004069970
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004070305
+1591000
+1592000
+1593000
+1594000
+1595000
+1596000
+1597000
+1598000
+1599000
+1600000
+1601000
+1602000
+1603000
+1604000
+1605000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004080020
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004080355
+1606000
+1607000
+1608000
+1609000
+1610000
+1611000
+1612000
+1613000
+1614000
+1615000
+1616000
+1617000
+1618000
+1619000
+1620000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004090070
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004090405
+1621000
+1622000
+1623000
+1624000
+1625000
+1626000
+1627000
+1628000
+1629000
+1630000
+1631000
+1632000
+1633000
+1634000
+1635000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004100120
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004100455
+1636000
+1637000
+1638000
+1639000
+1640000
+1641000
+1642000
+1643000
+1644000
+1645000
+1646000
+1647000
+1648000
+1649000
+1650000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004110170
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004110505
+1651000
+1652000
+1653000
+1654000
+1655000
+1656000
+1657000
+1658000
+1659000
+1660000
+1661000
+1662000
+1663000
+1664000
+1665000
+Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1004120220
+Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1004120555
+1666000
+1667000
+1668000
+1669000
+1670000
+1671000
+1672000
+1673000
+1674000
+1675000
+1676000
+1677000
+Flow ID: 0-1-0-0 - Rate: 10.3224 Gbps currentTime: 1004130516
+System exited steady state at time: 1004130516 ns, duration: 1025011 ns
+Flow ID: 4-1-0-0 - Rate: 15.4128 Gbps currentTime: 1004130851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004140901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004150951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004161001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004171051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004181101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004191151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004201201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004211251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004221301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004231351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004241401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004251451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004261501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004271551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004281601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004291651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004301701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004311751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004321801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004331851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004341901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004351951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004362001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004372051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004382101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004392151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004402201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004412251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004422301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004432351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004442401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004452451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004462501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004472551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004482601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004492651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004502701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004512751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004522801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004532851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004542901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004552951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004563001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004573051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004583101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004593151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004603201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004613251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004623301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004633351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004643401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004653451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004663501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004673551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004683601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004693651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004703701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004713751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004723801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004733851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004743901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004753951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004764001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004774051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004784101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004794151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004804201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004814251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004824301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004834351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004844401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004854451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004864501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004874551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004884601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004894651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004904701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004914751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004924801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004934851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004944901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004954951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004965001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004975051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004985101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1004995151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005005201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005015251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005025301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005035351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005045401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005055451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005065501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005075551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005085601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005095651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005105701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005115751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005125801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005135851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005145901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005155951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005166001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005176051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005186101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005196151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005206201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005216251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005226301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005236351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005246401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005256451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005266501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005276551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005286601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005296651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005306701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005316751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005326801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005336851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005346901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005356951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005367001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005377051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005387101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005397151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005407201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005417251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005427301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005437351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005447401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005457451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005467501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005477551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005487601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005497651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005507701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005517751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005527801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005537851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005547901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005557951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005568001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005578051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005588101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005598151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005608201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005618251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005628301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005638351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005648401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005658451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005668501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005678551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005688601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005698651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005708701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005718751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005728801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005738851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005748901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005758951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005769001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005779051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005789101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005799151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005809201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005819251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005829301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005839351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005849401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005859451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005869501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005879551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005889601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005899651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005909701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005919751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005929801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005939851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005949901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005959951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005970001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005980051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1005990101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006000151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006010201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006020251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006030301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006040351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006050401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006060451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006070501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006080551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006090601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006100651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006110701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006120751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006130801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006140851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006150901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006160951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006171001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006181051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006191101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006201151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006211201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006221251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006231301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006241351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006251401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006261451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006271501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006281551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006291601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006301651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006311701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006321751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006331801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006341851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006351901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006361951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006372001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006382051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006392101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006402151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006412201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006422251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006432301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006442351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006452401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006462451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006472501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006482551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006492601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006502651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006512701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006522751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006532801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006542851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006552901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006562951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006573001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006583051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006593101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006603151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006613201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006623251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006633301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006643351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006653401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006663451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006673501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006683551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006693601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006703651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006713701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006723751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006733801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006743851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006753901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006763951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006774001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006784051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006794101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006804151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006814201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006824251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006834301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006844351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006854401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006864451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006874501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006884551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006894601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006904651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006914701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006924751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006934801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006944851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006954901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006964951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006975001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006985051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1006995101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007005151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007015201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007025251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007035301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007045351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007055401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007065451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007075501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007085551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007095601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007105651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007115701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007125751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007135801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007145851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007155901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007165951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007176001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007186051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007196101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007206151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007216201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007226251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007236301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007246351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007256401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007266451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007276501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007286551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007296601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007306651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007316701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007326751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007336801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007346851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007356901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007366951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007377001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007387051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007397101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007407151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007417201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007427251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007437301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007447351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007457401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007467451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007477501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007487551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007497601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007507651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007517701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007527751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007537801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007547851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007557901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007567951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007578001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007588051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007598101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007608151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007618201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007628251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007638301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007648351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007658401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007668451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007678501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007688551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007698601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007708651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007718701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007728751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007738801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007748851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007758901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007768951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007779001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007789051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007799101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007809151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007819201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007829251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007839301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007849351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007859401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007869451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007879501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007889551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007899601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007909651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007919701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007929751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007939801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007949851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007959901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007969951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007980001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1007990051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008000101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008010151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008020201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008030251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008040301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008050351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008060401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008070451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008080501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008090551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008100601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008110651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008120701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008130751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008140801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008150851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008160901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008170951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008181001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008191051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008201101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008211151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008221201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008231251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008241301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008251351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008261401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008271451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008281501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008291551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008301601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008311651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008321701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008331751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008341801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008351851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008361901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008371951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008382001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008392051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008402101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008412151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008422201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008432251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008442301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008452351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008462401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008472451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008482501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008492551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008502601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008512651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008522701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008532751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008542801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008552851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008562901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008572951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008583001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008593051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008603101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008613151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008623201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008633251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008643301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008653351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008663401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008673451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008683501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008693551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008703601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008713651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008723701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008733751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008743801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008753851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008763901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008773951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008784001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008794051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008804101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008814151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008824201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008834251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008844301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008854351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008864401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008874451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008884501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008894551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008904601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008914651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008924701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008934751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008944801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008954851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008964901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008974951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008985001
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1008995051
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009005101
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009015151
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009025201
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009035251
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009045301
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009055351
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009065401
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009075451
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009085501
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009095551
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009105601
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009115651
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009125701
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009135751
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009145801
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009155851
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009165901
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009175951
+Flow ID: 4-1-0-0 - Rate: 24.336 Gbps currentTime: 1009186001

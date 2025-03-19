@@ -69,7 +69,7 @@ std::map<std::string, FlowStat> flowStats; //flowid,size字节数,存储流的�
 uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
 bool inSteadyState = false;         // 标识系统是否处于稳态
 double flowMinTime = 1.79769e+308;	//整个系统最小流完成时间
-
+//int number_test = 0;//做一个计数实验，看判断多少次最小流完成时间
 
 // RdmaEgressQueue
 //使用 TypeId 机制来查询 RdmaEgressQueue 的类型信息
@@ -632,6 +632,11 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
     uint32_t flowid = static_cast<uint32_t>(hasher(oss.str()));*/
 	std::string flowid = oss.str();
     
+	if(flowid == "0-1-0-0"){
+		cout << header.udp.seq<<endl;
+		flowstatsFile <<header.udp.seq<<endl;
+	}
+
 	//计算速率
 	onPacketReceived(flowid, packetSize,flowstatsFile);
 }
@@ -718,6 +723,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		calculateMintime();
 		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
 		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
+		//flowstatsFile <<"判断最小流完成时间的次数"<<number_test<<endl;
 		flowMinTime = 1.79769e+308;
     }
 
@@ -781,6 +787,7 @@ void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
     			double avg = sum / iter->second.rate.size();
 				double time = static_cast<double>(qp->GetBytesLeft())*8 / avg;
+				//number_test++;
 				if(time < flowMinTime)
 					flowMinTime =time;
 			}

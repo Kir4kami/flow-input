@@ -690,7 +690,7 @@ int main(int argc, char *argv[]){
     double rdmaqueryRequestRate = 1;
     cmd.AddValue("rdmaqueryRequestRate", "Query request rate (poisson arrivals)", rdmaqueryRequestRate);
 
-    uint32_t rdmacc = DCQCNCC;
+    uint32_t rdmacc = 0;//DCQCNCC;
     cmd.AddValue ("rdmacc", "specify CC mode. This is added for my convinience since I prefer cmd rather than parsing files.", rdmacc);
 
     uint32_t tcpcc = 2;
@@ -724,7 +724,7 @@ int main(int argc, char *argv[]){
     double egressLossyShare = 0.8;
     cmd.AddValue("egressLossyShare", "buffer pool for egress lossy specified as fraction of ingress buffer",egressLossyShare);
     
-    std::string bufferModel = "sonic";
+    std::string bufferModel = "sonic";//"blank";
     cmd.AddValue("bufferModel", "the buffer model to be used in the switch MMU", bufferModel);
     
     double gamma = 0.99;
