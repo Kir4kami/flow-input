@@ -75,6 +75,7 @@
         "clocale": "cpp",
         "filesystem": "cpp",
         "__nullptr": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "csignal": "cpp"
     }
 }
