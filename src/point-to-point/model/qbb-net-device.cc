@@ -632,10 +632,10 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
     uint32_t flowid = static_cast<uint32_t>(hasher(oss.str()));*/
 	std::string flowid = oss.str();
     
-	if(flowid == "0-1-0-0"){
+	/*if(flowid == "0-1-0-0"){
 		cout << header.udp.seq<<endl;
 		flowstatsFile <<header.udp.seq<<endl;
-	}
+	}*/
 
 	//计算速率
 	onPacketReceived(flowid, packetSize,flowstatsFile);
