@@ -25,7 +25,6 @@
 #include <ns3/sim-setting.h>
 #include "ns3/mpi-interface.h"
 
-#include <mpi.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -203,6 +202,7 @@ Ipv4Address node_id_to_ip(uint32_t id) {
 uint32_t ip_to_node_id(Ipv4Address ip) {
     return (ip.Get() >> 8) & 0xffff;
 }
+
 
 void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start, bool incast, uint32_t prior )
 {
@@ -429,8 +429,9 @@ MPI_Datatype create_MPI_FlowInfo() {
     return MPI_FlowInfo;
 }
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
+
     flowCom++;
-    std::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+    std::cout<<"phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
     if(flowCom>=flowInfos[BatchCur].size()){
         BatchCur++;
         flowCom=0;
@@ -443,8 +444,8 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Seconds(0));//to be changed
-            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+            appCon.Start(Simulator::Now());//to be changed
+            std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<
                     " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
@@ -568,6 +569,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
 //written by Kira END
 
 uint32_t flowEnd = 0;
+
 void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
     for (uint32_t i = 0; i < switches.GetN(); i++) {
         if (switches.Get(i)->GetNodeType()) { // switch
@@ -587,6 +589,8 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
     if (Simulator::Now().GetSeconds() < flowEnd)
         Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
 }
+
+
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
@@ -619,8 +623,9 @@ int main(int argc, char *argv[]){
     bool powertcp = false;
     bool thetapowertcp = false;
 
-    std::string confFile = "examples/Reverie/config-workload.txt";
-    std::string cdfFileName = "examples/Reverie/websearch.txt";
+    std::string confFile = "/home/flow-input/examples/Reverie/config-workload.txt";
+    std::string cdfFileName = "/home/flow-input/examples/Reverie/websearch.txt";
+    std::string flowInputFileName= "/home/flow-input/examples/Reverie/flowinputtest0.txt";
     unsigned randomSeed = 1;
 
     CommandLine cmd;
@@ -642,7 +647,7 @@ int main(int argc, char *argv[]){
     double rdmaqueryRequestRate = 1;
     cmd.AddValue("rdmaqueryRequestRate", "Query request rate (poisson arrivals)", rdmaqueryRequestRate);
 
-    uint32_t rdmacc = DCQCNCC;
+    uint32_t rdmacc = 0;//DCQCNCC;
     cmd.AddValue ("rdmacc", "specify CC mode. This is added for my convinience since I prefer cmd rather than parsing files.", rdmacc);
 
     uint32_t tcpcc = 2;
@@ -676,7 +681,7 @@ int main(int argc, char *argv[]){
     double egressLossyShare = 0.8;
     cmd.AddValue("egressLossyShare", "buffer pool for egress lossy specified as fraction of ingress buffer",egressLossyShare);
     
-    std::string bufferModel = "sonic";
+    std::string bufferModel = "sonic";//"blank";
     cmd.AddValue("bufferModel", "the buffer model to be used in the switch MMU", bufferModel);
     
     double gamma = 0.99;
@@ -697,8 +702,6 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
     cmd.Parse (argc, argv);
-
-    fctOutFile+=(to_string(systemId)+".fct");
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
@@ -931,6 +934,10 @@ int main(int argc, char *argv[]){
     }
     conf.close();
     std::cout << "config finished" << std::endl;
+
+    flowInput.open(flowInputFileName.c_str());
+    if (!flowInput.is_open())
+        std::cout << "unable to open flowInputFile!" << std::endl;
     
     has_win = rdmaWindowCheck;
     var_win = rdmaVarWin;
@@ -1311,12 +1318,16 @@ int main(int argc, char *argv[]){
     /* Applications Background*/
     double oversubRatio = static_cast<double>(SERVER_COUNT * LEAF_SERVER_CAPACITY) / (SPINE_LEAF_CAPACITY * SPINE_COUNT * LINK_COUNT);
     std::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
+    struct cdf_table* cdfTable = new cdf_table ();
+    init_cdf (cdfTable);
+    load_cdf (cdfTable, cdfFileName.c_str ());
 
-
-    if (randomSeed == 0){
+    if (randomSeed == 0)
+    {
         srand ((unsigned)time (NULL));
     }
-    else{
+    else
+    {
         srand (randomSeed);
     }
 
@@ -1324,6 +1335,16 @@ int main(int argc, char *argv[]){
         PORT_START[i] = 4444;
 
     long flowCount = 1;
+    long totalFlowSize = 0;
+    double requestRate = rdmaload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
+
+    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
+    // {
+    //     workload_rdma(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     if (rdmaqueryRequestRate > 0 && rdmarequestSize > 0){
+    //         incast_rdma(fromLeafId, rdmaqueryRequestRate, rdmarequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     }
+    // }
     workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
 
     /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
@@ -1350,6 +1371,15 @@ int main(int argc, char *argv[]){
         Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpDctcp::GetTypeId()));
         Config::SetDefault ("ns3::TcpSocketBase::UseEcn", StringValue ("On"));
     }
+
+    // requestRate = tcpload * LEAF_SERVER_CAPACITY * SERVER_COUNT / oversubRatio / (8 * avg_cdf (cdfTable)) / SERVER_COUNT;
+    // for (int fromLeafId = 0; fromLeafId < LEAF_COUNT; fromLeafId ++)
+    // {
+    //     workload_tcp(fromLeafId, requestRate, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     if (tcpqueryRequestRate > 0 && tcprequestSize > 0) {
+    //         incast_tcp(fromLeafId, tcpqueryRequestRate, tcprequestSize, cdfTable, flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    //     }
+    // }
 std::cout << "apps finished" << std::endl;
     topof.close();
     tracef.close();

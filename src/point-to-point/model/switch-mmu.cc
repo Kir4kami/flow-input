@@ -732,6 +732,9 @@ bool SwitchMmu::CheckIngressAdmission(uint32_t port, uint32_t qIndex, uint32_t p
 			exit(1);
 		}
 	}
+	else if(model == "blank"){
+		return true;
+	}
 	else {
 		std::cout << "unknown bufferModel encountered in CheckIngressAdmission function! This is not expected. Abort!" << std::endl;
 		exit(1);
@@ -811,6 +814,9 @@ bool SwitchMmu::CheckEgressAdmission(uint32_t port, uint32_t qIndex, uint32_t ps
 			std::cout << "unknown type came in to CheckEgressAdmission function! This is not expected. Abort!" << std::endl;
 			exit(1);
 		}
+	}
+	else if(model == "blank"){
+		return true;
 	}
 	else {
 		std::cout << "unknown bufferModel encountered in CheckIngressAdmission function! This is not expected. Abort!" << std::endl;
