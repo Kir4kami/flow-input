@@ -508,17 +508,17 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             std::cout<<"recv flowInfo from system:"<<src<<std::endl;
         }
         // 处理接收到的 flowInfos
-        for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
-            RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-            flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-            global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-            ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Seconds(0));//to be changed
-            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-                    " fromportNumber " << flow.src_port <<
-                    " destportNumder " << flow.dst_port <<
-                    " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
-        }
+    }
+    for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
+        RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+        flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+        global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+        ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+        appCon.Start(Seconds(0));//to be changed
+        std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+                " fromportNumber " << flow.src_port <<
+                " destportNumder " << flow.dst_port <<
+                " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
     }
     // for(int i=0;i<5;i++){
     //     std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(i)+".txt";
