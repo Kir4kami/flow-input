@@ -565,7 +565,7 @@ void RdmaHw::RedistributeQp() {
 }
 
 Ptr<Packet> RdmaHw::GetNxtPacket(Ptr<RdmaQueuePair> qp) {
-	uint32_t payload_size = qp->GetBytesLeft();
+	uint32_t payload_size = qp->GetBytesLeft();	//获取剩余流量大小
 	if (m_mtu < payload_size)
 		payload_size = m_mtu;
 	Ptr<Packet> p = Create<Packet> (payload_size);

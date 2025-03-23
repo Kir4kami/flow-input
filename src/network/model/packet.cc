@@ -301,6 +301,7 @@ Packet::RemoveHeader(Header& header)
     return deserialized;
 }
 
+//查看但不移除数据包中的头部信息
 uint32_t
 Packet::PeekHeader(Header& header) const
 {

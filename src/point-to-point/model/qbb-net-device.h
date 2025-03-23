@@ -31,6 +31,12 @@
 #include "ns3/rdma-queue-pair.h"
 #include <vector>
 #include<map>
+#include<string>
+#include <sstream>
+#include <fstream>
+#include <filesystem>//判断文件时是否存在
+#include<numeric> //accmulate
+#include<numeric> //accmulate
 // #include <ns3/rdma.h>
 // #define ENABLE_QP 1
 
@@ -52,7 +58,7 @@ public:
 
 	static TypeId GetTypeId (void);
 	RdmaEgressQueue();
-	Ptr<Packet> DequeueQindex(int qIndex);
+	Ptr<Packet> DequeueQindex(int qIndex);  //封装数据包
 	int GetNextQindex(bool paused[]);
 	int GetLastQueue();
 	uint32_t GetNBytes(uint32_t qIndex);
@@ -83,6 +89,18 @@ public:
 
   QbbNetDevice ();
   virtual ~QbbNetDevice ();
+
+  //计算接收端流量速率
+  //生成flowid和获取数据包大小
+  void GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile);
+  //接收到数据包时的初始化
+  void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  // 计算速率并输出
+  void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  //计算剩余流量大小除以已测量的速度均值，获取最小时间
+  void calculateMintime();
+  //计算流完成时间的子函数
+  void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);
 
   /**
    * Receive a packet from a connected PointToPointChannel.
