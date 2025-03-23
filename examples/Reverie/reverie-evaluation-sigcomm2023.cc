@@ -25,7 +25,6 @@
 #include <ns3/sim-setting.h>
 #include "ns3/mpi-interface.h"
 
-#include <mpi.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -38,6 +37,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+
+#include "kira_functions.h"
 
 using namespace ns3;
 using namespace std;
@@ -63,10 +64,6 @@ using namespace std;
 
 NS_LOG_COMPONENT_DEFINE("GENERIC_SIMULATION");
 
-extern "C"
-{
-#include "cdf.h"
-}
 #define GIGA    1000000000          // 1Gbps
 
 std::string topology_file, flow_file;
@@ -203,6 +200,7 @@ Ipv4Address node_id_to_ip(uint32_t id) {
 uint32_t ip_to_node_id(Ipv4Address ip) {
     return (ip.Get() >> 8) & 0xffff;
 }
+
 
 void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start, bool incast, uint32_t prior )
 {
@@ -343,18 +341,12 @@ uint64_t get_nic_rate(NodeContainer &n) {
     for (uint32_t i = 0; i < n.GetN(); i++)
         if (n.Get(i)->GetNodeType() == 0)
             return DynamicCast<QbbNetDevice>(n.Get(i)->GetDevice(1))->GetDataRate().GetBitRate();
+    return 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Applications */
-
-// double poission_gen_interval(double avg_rate){
-//     if (avg_rate > 0)
-//         return -std::log(1.0 - (double)rand() / RAND_MAX) / avg_rate;
-//     else
-//         return 0;
-// }
 
 template<typename T>
 T rand_range (T min, T max)
@@ -411,7 +403,7 @@ MPI_Datatype create_MPI_FlowInfo() {
     int block_lengths[num_members] = {32, 1, 1, 1, 1, 1, 1};  // 每个成员的块长度
     // 计算每个成员的位移
     MPI_Aint displacements[num_members];
-    FlowInfo dummy;  // 临时结构体实例，用于计算地址偏移
+    FlowInfo dummy={0,0,0,0,0,0,0};  // 临时结构体实例，用于计算地址偏移
     MPI_Get_address(&dummy.type,         &displacements[0]);
     MPI_Get_address(&dummy.src_node,     &displacements[1]);
     MPI_Get_address(&dummy.src_port,     &displacements[2]);
@@ -429,12 +421,13 @@ MPI_Datatype create_MPI_FlowInfo() {
     return MPI_FlowInfo;
 }
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
+
     flowCom++;
-    std::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+    kira::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
     if(flowCom>=flowInfos[BatchCur].size()){
         BatchCur++;
         flowCom=0;
-        std::cout<<"complete a phase"<<std::endl;
+        kira::cout<<"complete a phase"<<std::endl;
         if(BatchCur>=flowInfos.size())
             return ;
         Simulator::Stop();
@@ -444,20 +437,20 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
             appCon.Start(Seconds(0));//to be changed
-            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-                    " fromportNumber " << flow.src_port <<
-                    " destportNumder " << flow.dst_port <<
-                    " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
+            kira::cout << " system "<< systemId <<" from " << flow.src_node << " to " 
+                      << flow.dst_node <<" fromportNumber " << flow.src_port 
+                      <<" destportNumder " << flow.dst_port << " time " 
+                      << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
         }
         Simulator::Run();
     }
 }
 void branch_read_info(uint16_t sysid){//branch process send flowInfo
-    std::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
+    kira::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
     std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(systemId)+".txt";
     flowInput.open(flowInputFileName.c_str());
     if (!flowInput.is_open())
-        std::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
+        kira::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
     std::string line;
     int batch = -1;
     while (std::getline(flowInput, line)) {
@@ -469,7 +462,7 @@ void branch_read_info(uint16_t sysid){//branch process send flowInfo
             ss >> type_str >> phase;
             flowInfos.emplace_back(vector<FlowInfo> {});
             batch++;
-            continue;//to be changed
+            continue;
         }
         FlowInfo flow;
         ss >> type_str >> flow.type;
@@ -491,9 +484,8 @@ void branch_read_info(uint16_t sysid){//branch process send flowInfo
     }
 }
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
-    std::cout<<"Reading flow info"<< std::endl;
+    kira::cout<<"Reading flow info"<< std::endl;
     std::string line;
-    double startTime = START_TIME;
     int batch = 0;
     for (int src = 1; src <= 4; src++) {
         int rows;
@@ -505,69 +497,26 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             flowInfos[batch].resize(cols);
             MPI_Recv(flowInfos[batch].data(), cols, MPI_FlowInfo, src, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             batch++;
-            std::cout<<"recv flowInfo from system:"<<src<<std::endl;
+            kira::cout<<"recv flowInfo from system:"<<src<<std::endl;
         }
         // 处理接收到的 flowInfos
-        for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
-            RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-            flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-            global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-            ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Seconds(0));//to be changed
-            std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-                    " fromportNumber " << flow.src_port <<
-                    " destportNumder " << flow.dst_port <<
-                    " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
-        }
     }
-    // for(int i=0;i<5;i++){
-    //     std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(i)+".txt";
-    //     flowInput.open(flowInputFileName.c_str());
-    //     if (!flowInput.is_open())
-    //         std::cout << "unable to open flowInputFile!" << std::endl;
-    //     while (std::getline(flowInput, line)) {
-    //         if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
-    //         std::stringstream ss(line);
-    //         std::string  type_str;
-    //         if (line.find("phase")!=string::npos){//phase
-    //             double phase;
-    //             ss >> type_str >> phase;
-    //             if(batch < 0)
-    //                 startTime += phase/1e6;
-    //             batch ++;
-    //             flowInfos.emplace_back(vector<FlowInfo> {});
-    //             continue;//to be changed
-    //         }
-    //         FlowInfo flow;
-    //         ss >> type_str >> flow.type;
-    //         ss >> type_str >> flow.src_node;
-    //         ss >> type_str >> flow.src_port;
-    //         ss >> type_str >> flow.dst_node;
-    //         ss >> type_str >> flow.dst_port;
-    //         ss >> type_str >> flow.priority;
-    //         ss >> type_str >> flow.msg_len;
-    //         flowCount += 1;
-    //         flowInfos[batch].emplace_back(flow);
-    //         if(batch == 0){
-    //             RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-    //             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-    //             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-    //             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-    //             appCon.Start(Seconds(startTime));//to be changed
-    //             //apps.emplace_back(appCon);
-    //             std::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-    //                 " fromportNumber " << flow.src_port <<
-    //                 " destportNumder " << flow.dst_port <<
-    //                 " time " << startTime << " flowsize "<< flow.msg_len << std::endl;
-    //         }
-    //     }
-
-    //     flowInput.close();
-    // }
+    for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
+        RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+        flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+        global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+        ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+        appCon.Start(Seconds(0));//to be changed
+        kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+                " fromportNumber " << flow.src_port <<
+                " destportNumder " << flow.dst_port <<
+                " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
+    }
 }
 //written by Kira END
 
 uint32_t flowEnd = 0;
+
 void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
     for (uint32_t i = 0; i < switches.GetN(); i++) {
         if (switches.Get(i)->GetNodeType()) { // switch
@@ -587,6 +536,8 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
     if (Simulator::Now().GetSeconds() < flowEnd)
         Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
 }
+
+
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
@@ -594,12 +545,22 @@ int main(int argc, char *argv[]){
     systemId = MpiInterface::GetSystemId();
     MPI_FlowInfo = create_MPI_FlowInfo();
     
+    if (!kira::init_log("examples/Reverie/dump_sigcomm/system"+to_string(systemId)+".log")) {
+        std::cout << "system: " << systemId << " 日志文件创建失败" << std::endl;
+        return -1;
+    }
+
     if(systemId!=0){//branch process
         branch_read_info(systemId);
-        std::cout<<"system" <<systemId<<"end"<<std::endl;
+        kira::cout<<"system" <<systemId<<"end"<<std::endl;
         MpiInterface::Disable();
         return systemId;
     }
+    
+    kira::cout<<"hello"<<std::endl;
+
+    std::string confFile = "examples/Reverie/config-workload.txt";
+
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -615,12 +576,9 @@ int main(int argc, char *argv[]){
 
     uint32_t incast = 5;
 
-
     bool powertcp = false;
     bool thetapowertcp = false;
 
-    std::string confFile = "examples/Reverie/config-workload.txt";
-    std::string cdfFileName = "examples/Reverie/websearch.txt";
     unsigned randomSeed = 1;
 
     CommandLine cmd;
@@ -631,7 +589,6 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("START_TIME", "sim start time", START_TIME);
     cmd.AddValue ("END_TIME", "sim end time", END_TIME);
     cmd.AddValue ("FLOW_LAUNCH_END_TIME", "flow launch process end time", FLOW_LAUNCH_END_TIME);
-    cmd.AddValue ("cdfFileName", "File name for flow distribution", cdfFileName);
     uint32_t tcprequestSize = 4000000;
     cmd.AddValue ("tcprequestSize", "Query Size in Bytes", tcprequestSize);
     double tcpqueryRequestRate = 0;
@@ -642,7 +599,7 @@ int main(int argc, char *argv[]){
     double rdmaqueryRequestRate = 1;
     cmd.AddValue("rdmaqueryRequestRate", "Query request rate (poisson arrivals)", rdmaqueryRequestRate);
 
-    uint32_t rdmacc = DCQCNCC;
+    uint32_t rdmacc = 0;//DCQCNCC;
     cmd.AddValue ("rdmacc", "specify CC mode. This is added for my convinience since I prefer cmd rather than parsing files.", rdmacc);
 
     uint32_t tcpcc = 2;
@@ -652,7 +609,7 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("rdmaload", "RDMA load", rdmaload);
 
     double tcpload = 0;
-    cmd.AddValue ("tcpload", "TCP load", tcpload);    
+    cmd.AddValue ("tcpload", "TCP load", tcpload);
 
     bool enable_qcn = true;
     cmd.AddValue ("enableEcn", "enable ECN markin", enable_qcn);
@@ -676,7 +633,7 @@ int main(int argc, char *argv[]){
     double egressLossyShare = 0.8;
     cmd.AddValue("egressLossyShare", "buffer pool for egress lossy specified as fraction of ingress buffer",egressLossyShare);
     
-    std::string bufferModel = "sonic";
+    std::string bufferModel = "sonic";//"blank";
     cmd.AddValue("bufferModel", "the buffer model to be used in the switch MMU", bufferModel);
     
     double gamma = 0.99;
@@ -697,8 +654,6 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
     cmd.Parse (argc, argv);
-
-    fctOutFile+=(to_string(systemId)+".fct");
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
@@ -755,10 +710,10 @@ int main(int argc, char *argv[]){
     LEAF_SERVER_CAPACITY = LEAF_SERVER_CAPACITY * GIGA;
 
     conf.open(confFile.c_str());
+
     while (!conf.eof()){
         std::string key;
         conf >> key;
-
         if (key.compare("CLAMP_TARGET_RATE") == 0)
         {
             uint32_t v;
@@ -930,8 +885,8 @@ int main(int argc, char *argv[]){
         fflush(stdout);
     }
     conf.close();
-    std::cout << "config finished" << std::endl;
-    
+    kira::cout << "config finished" << std::endl;
+
     has_win = rdmaWindowCheck;
     var_win = rdmaVarWin;
 
@@ -959,7 +914,7 @@ int main(int argc, char *argv[]){
 
     topof.open(topology_file.c_str());
     flowf.open(flow_file.c_str());
-    uint32_t node_num, switch_num, tors, link_num, trace_num;
+    uint32_t node_num, switch_num, tors, link_num ;
     topof >> node_num >> switch_num >> tors >> link_num >> LEAF_SERVER_CAPACITY >> SPINE_LEAF_CAPACITY ;
     LEAF_COUNT = tors;
     SPINE_COUNT = switch_num - tors;
@@ -1222,7 +1177,7 @@ int main(int argc, char *argv[]){
 
     // config switch
     // The switch mmu runs Dynamic Thresholds (DT) by default.
-    uint64_t totalHeadroom;
+    uint64_t totalHeadroom=0;
     for (uint32_t i = 0; i < node_num; i++) {
         if (n.Get(i)->GetNodeType()) { // is switch
             Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(n.Get(i));
@@ -1274,7 +1229,7 @@ int main(int argc, char *argv[]){
             sw->m_mmu->node_id = sw->GetId();
         }
         if (n.Get(i)->GetNodeType())
-            std::cout << "total headroom: " << totalHeadroom << " ingressPool " << buffer_size - totalHeadroom << " egressLosslessPool " 
+            kira::cout << "total headroom: " << totalHeadroom << " ingressPool " << buffer_size - totalHeadroom << " egressLosslessPool " 
                       << buffer_size << " egressLossyPool " << (uint64_t)((buffer_size - totalHeadroom) * egressLossyShare) 
                       << " sharedPool " << buffer_size - totalHeadroom <<  std::endl;
     }
@@ -1310,9 +1265,7 @@ int main(int argc, char *argv[]){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Applications Background*/
     double oversubRatio = static_cast<double>(SERVER_COUNT * LEAF_SERVER_CAPACITY) / (SPINE_LEAF_CAPACITY * SPINE_COUNT * LINK_COUNT);
-    std::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
-
-
+    kira:cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
     if (randomSeed == 0){
         srand ((unsigned)time (NULL));
     }
@@ -1322,8 +1275,8 @@ int main(int argc, char *argv[]){
 
     for (uint32_t i = 0; i < SERVER_COUNT * LEAF_COUNT; i++)
         PORT_START[i] = 4444;
-
     long flowCount = 1;
+    //long totalFlowSize = 0;
     workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
 
     /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
@@ -1344,13 +1297,13 @@ int main(int argc, char *argv[]){
         Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpCubic::GetTypeId()));
     else if (tcpcc == DCTCP){
         if (enable_qcn != 1){
-            std::cout << "Set enableEcn option in order to use DCTCP" << std::endl;
+            kira::cout << "Set enableEcn option in order to use DCTCP" << std::endl;
             exit(1);
         }
         Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpDctcp::GetTypeId()));
         Config::SetDefault ("ns3::TcpSocketBase::UseEcn", StringValue ("On"));
     }
-std::cout << "apps finished" << std::endl;
+    kira::cout << "apps finished" << std::endl;
     topof.close();
     tracef.close();
     double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
@@ -1364,7 +1317,7 @@ std::cout << "apps finished" << std::endl;
     Simulator::Run();
     Simulator::Destroy();
     MPI_Type_free(&MPI_FlowInfo);
-    MpiInterface::Disable();
     NS_LOG_INFO("Done.");
-    std::cout<<"Done"<<std::endl;
+    kira::cout<<"Done"<<std::endl;
+    MpiInterface::Disable();
 }
