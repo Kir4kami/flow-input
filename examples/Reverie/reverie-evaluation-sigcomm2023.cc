@@ -373,16 +373,6 @@ uint32_t FAN = 5;
 
 //written by Kira START
 
-
-struct FlowInfo {
-    char type[32];
-    int src_node;
-    int src_port;
-    int dst_node;
-    int dst_port;
-    int priority;
-    uint64_t msg_len;
-};
 vector<vector<FlowInfo>> flowInfos;
 u_int16_t systemId=0;
 u_int16_t BatchCur=0;
@@ -483,11 +473,12 @@ void branch_read_info(uint16_t sysid){//branch process send flowInfo
         MPI_Send(row.data(), cols, MPI_FlowInfo, 0, 2, MPI_COMM_WORLD);
     }
 }
+u_int16_t DST;
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
     kira::cout<<"Reading flow info"<< std::endl;
     std::string line;
     int batch = 0;
-    for (int src = 1; src <= 4; src++) {
+    for (int src = 1; src < DST; src++) {
         int rows;
         MPI_Recv(&rows, 1, MPI_INT, src, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         for (int i = 0; i < rows; i++) {
@@ -541,6 +532,7 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
+
     MpiInterface::Enable(&argc, &argv);
     systemId = MpiInterface::GetSystemId();
     MPI_FlowInfo = create_MPI_FlowInfo();
@@ -552,6 +544,8 @@ int main(int argc, char *argv[]){
 
     if(systemId!=0){//branch process
         branch_read_info(systemId);
+        kira::cout<<"system" <<systemId<<"read end"<<std::endl;
+        MPI_Barrier(MPI_COMM_WORLD);
         kira::cout<<"system" <<systemId<<"end"<<std::endl;
         MpiInterface::Disable();
         return systemId;
@@ -582,6 +576,7 @@ int main(int argc, char *argv[]){
     unsigned randomSeed = 1;
 
     CommandLine cmd;
+    cmd.AddValue("DST", "number of system", DST);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
@@ -1265,7 +1260,7 @@ int main(int argc, char *argv[]){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Applications Background*/
     double oversubRatio = static_cast<double>(SERVER_COUNT * LEAF_SERVER_CAPACITY) / (SPINE_LEAF_CAPACITY * SPINE_COUNT * LINK_COUNT);
-    kira:cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
+    kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
     if (randomSeed == 0){
         srand ((unsigned)time (NULL));
     }
@@ -1316,6 +1311,7 @@ int main(int argc, char *argv[]){
     Simulator::Stop(Seconds(END_TIME));
     Simulator::Run();
     Simulator::Destroy();
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Type_free(&MPI_FlowInfo);
     NS_LOG_INFO("Done.");
     kira::cout<<"Done"<<std::endl;
