@@ -532,7 +532,6 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
-
     MpiInterface::Enable(&argc, &argv);
     systemId = MpiInterface::GetSystemId();
     MPI_FlowInfo = create_MPI_FlowInfo();
