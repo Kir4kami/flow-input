@@ -448,7 +448,7 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
             flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
             global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
             ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Simulator::Now());//to be changed
+            appCon.Start(Seconds(0));//to be changed
             std::cout << " from " << flow.src_node << " to " << flow.dst_node <<
                     " fromportNumber " << flow.src_port <<
                     " destportNumder " << flow.dst_port <<

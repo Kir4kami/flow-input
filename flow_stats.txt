@@ -19,7 +19,7 @@ Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003095455
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003105170
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003105505
 System entered steady state at time: 1003105505 ns
-最小流完成时间: 895937.541091
+最小流完成时间: 1004418.803419
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003115220
 Flow ID: 4-1-0-0 - Rate: 12.168 Gbps currentTime: 1003115555
 Flow ID: 0-1-0-0 - Rate: 12.168 Gbps currentTime: 1003125270

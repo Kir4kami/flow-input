@@ -638,10 +638,10 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
 	}*/
 
 	//计算速率
-	onPacketReceived(flowid, packetSize,flowstatsFile);
+	onPacketReceived(flowid, packetSize,flowstatsFile,header);
 }
 
-void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
+void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile,CustomHeader& header) {
     uint64_t currentTime = Simulator::Now().GetNanoSeconds();
     
     // 检查该流是否存在
@@ -652,11 +652,11 @@ void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std:
         FlowStat newStat = { packetSize, currentTime };
         flowStats[flowid] = newStat;
     }
-	calculateRate(flowid,packetSize,flowstatsFile);
+	calculateRate(flowid,packetSize,flowstatsFile,header);
 }
 
 // 计算每条流速率并输出
-void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
+void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile,CustomHeader& header) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
 
     // 遍历所有流，找出与flowid对应的流，计算速率
@@ -720,7 +720,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间
 		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
-		calculateMintime();
+		calculateMintime(header);
 		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
 		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
 		//flowstatsFile <<"判断最小流完成时间的次数"<<number_test<<endl;
@@ -740,7 +740,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 
 //计算剩余流量大小除以已测量的速度均值，获取最小时间
 //每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
-void QbbNetDevice::calculateMintime(){
+void QbbNetDevice::calculateMintime(CustomHeader& header){
 	// 遍历所有 Node（网络节点）
     for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
     {
@@ -757,13 +757,13 @@ void QbbNetDevice::calculateMintime(){
             if (!rdmaEQ) continue;
 
             // 遍历 RDMA 事件队列中的所有流，计算最小流完成时间
-            flowCompletiontime(rdmaEQ);
+            flowCompletiontime(rdmaEQ,header);
         }
     }
 }
 
 
-void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
+void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ,CustomHeader& header){
 	uint32_t qIndex;
 	uint32_t fcount = rdmaEQ->m_qpGrp->GetN();
 		for (qIndex = 0; qIndex < fcount; qIndex++) {
@@ -786,7 +786,7 @@ void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 			if(iter!=flowStats.end()){
 				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
     			double avg = sum / iter->second.rate.size();
-				double time = static_cast<double>(qp->GetBytesLeft())*8 / avg;
+				double time = static_cast<double>(qp->m_size-header.udp.seq)*8 / avg;
 				//number_test++;
 				if(time < flowMinTime)
 					flowMinTime =time;

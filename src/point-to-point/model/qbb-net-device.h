@@ -94,13 +94,13 @@ public:
   //生成flowid和获取数据包大小
   void GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile);
   //接收到数据包时的初始化
-  void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile,CustomHeader& header);
   // 计算速率并输出
-  void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile,CustomHeader& header);
   //计算剩余流量大小除以已测量的速度均值，获取最小时间
-  void calculateMintime();
+  void calculateMintime(CustomHeader& header);
   //计算流完成时间的子函数
-  void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);
+  void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ,CustomHeader& header);
 
   /**
    * Receive a packet from a connected PointToPointChannel.
