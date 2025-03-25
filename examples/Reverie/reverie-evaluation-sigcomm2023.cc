@@ -151,7 +151,7 @@ map<Ptr<Node>, map<Ptr<Node>, uint64_t> > pairTxDelay;
 map<uint32_t, map<uint32_t, uint64_t> > pairBw;
 map<Ptr<Node>, map<Ptr<Node>, uint64_t> > pairBdp;
 map<uint32_t, map<uint32_t, uint64_t> > pairRtt;
-
+std::map<std::pair<uint32_t,uint32_t>,std::vector<std::vector<uint32_t>>> flowPath;//流量路径
 std::vector<Ipv4Address> serverAddress;
 
 // maintain port number for each host pair
@@ -257,7 +257,7 @@ void get_pfc(Ptr<OutputStreamWrapper> fout, Ptr<QbbNetDevice> dev, uint32_t type
     // fprintf(fout, "%lu %u %u %u %u\n", Simulator::Now().GetTimeStep(), dev->GetNode()->GetId(), dev->GetNode()->GetNodeType(), dev->GetIfIndex(), type);
 }
 
-void CalculateRoute(Ptr<Node> host) {
+void CalculateRoute(Ptr<Node> host) {//静态路由计算
     // queue for the BFS.
     vector<Ptr<Node> > q;
     // Distance from the host to each node.
@@ -265,6 +265,7 @@ void CalculateRoute(Ptr<Node> host) {
     map<Ptr<Node>, uint64_t> delay;
     map<Ptr<Node>, uint64_t> txDelay;
     map<Ptr<Node>, uint64_t> bw;
+    map<Ptr<Node>, Ptr<Node>> predecessor;
     // init BFS.
     q.push_back(host);
     dis[host] = 0;
@@ -282,6 +283,7 @@ void CalculateRoute(Ptr<Node> host) {
             Ptr<Node> next = it->first;
             // If 'next' have not been visited.
             if (dis.find(next) == dis.end()) {
+                predecessor[next] = now;
                 dis[next] = d + 1;
                 delay[next] = delay[now] + it->second.delay;
                 txDelay[next] = txDelay[now] + packet_payload_size * 1000000000lu * 8 / it->second.bw;
@@ -296,6 +298,23 @@ void CalculateRoute(Ptr<Node> host) {
             }
         }
     }
+    for (uint32_t i = 0; i < n.GetN(); ++i) {
+        Ptr<Node> node = n.Get(i);
+        if (node->GetNodeType() != 0 || node == host) continue;
+        vector<uint32_t> path;
+        Ptr<Node> current = node;
+        while (current != host) {
+            path.push_back(current->GetId());
+            current = predecessor[current];
+            if (!current) break; // 防止环路
+        }
+        if (current == host) {
+            path.push_back(host->GetId());
+            reverse(path.begin(), path.end());
+            flowPath[{host->GetId(), node->GetId()}].emplace_back(path);
+        }
+    }
+    
     for (auto it : delay)
         pairDelay[it.first][host] = it.second;
     for (auto it : txDelay)
@@ -430,7 +449,23 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
             kira::cout << " system "<< systemId <<" from " << flow.src_node << " to " 
                       << flow.dst_node <<" fromportNumber " << flow.src_port 
                       <<" destportNumder " << flow.dst_port << " time " 
-                      << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
+                      << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len 
+                      <<" FlowPath:";
+            auto paths = flowPath[{flow.src_node, flow.dst_node}];
+            for (auto& path : paths) {
+                for (uint32_t idx = 0; idx < path.size(); idx++) {
+                    kira::cout << " " << path[idx];
+                    if (idx < path.size() - 1) {
+                        Ptr<Node> current = n.Get(path[idx]);
+                        Ptr<Node> next = n.Get(path[idx+1]);
+                        uint32_t port = nbr2if[current][next].idx;
+                        kira::cout << ":" << port;
+                    }
+                    if (idx != path.size() - 1)
+                        kira::cout << " -> ";
+                }
+            }
+            kira::cout << std::endl;
         }
         Simulator::Run();
     }
@@ -501,7 +536,23 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
         kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
                 " fromportNumber " << flow.src_port <<
                 " destportNumder " << flow.dst_port <<
-                " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len << std::endl;
+                " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<
+                " FlowPath:";
+        auto paths = flowPath[{flow.src_node, flow.dst_node}];
+        for (auto& path : paths) {
+            for (uint32_t idx = 0; idx < path.size(); idx++) {
+                kira::cout << " " << path[idx];
+                if (idx < path.size() - 1) {
+                    Ptr<Node> current = n.Get(path[idx]);
+                    Ptr<Node> next = n.Get(path[idx+1]);
+                    uint32_t port = nbr2if[current][next].idx;
+                    kira::cout << ":" << port;
+                }
+                if (idx != path.size() - 1)
+                    kira::cout << " -> ";
+            }
+        }
+        kira::cout << std::endl;
     }
 }
 //written by Kira END
@@ -550,8 +601,6 @@ int main(int argc, char *argv[]){
         return systemId;
     }
     
-    kira::cout<<"hello"<<std::endl;
-
     std::string confFile = "examples/Reverie/config-workload.txt";
 
     std::ifstream conf;
@@ -587,63 +636,43 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("tcprequestSize", "Query Size in Bytes", tcprequestSize);
     double tcpqueryRequestRate = 0;
     cmd.AddValue("tcpqueryRequestRate", "Query request rate (poisson arrivals)", tcpqueryRequestRate);
-
     uint32_t rdmarequestSize = 2000000;
     cmd.AddValue ("rdmarequestSize", "Query Size in Bytes", rdmarequestSize);
     double rdmaqueryRequestRate = 1;
     cmd.AddValue("rdmaqueryRequestRate", "Query request rate (poisson arrivals)", rdmaqueryRequestRate);
-
     uint32_t rdmacc = 0;//DCQCNCC;
     cmd.AddValue ("rdmacc", "specify CC mode. This is added for my convinience since I prefer cmd rather than parsing files.", rdmacc);
-
     uint32_t tcpcc = 2;
     cmd.AddValue ("tcpcc", "specify CC for Tcp/Ip applications", tcpcc);
-
     double rdmaload = 0.8;
     cmd.AddValue ("rdmaload", "RDMA load", rdmaload);
-
     double tcpload = 0;
     cmd.AddValue ("tcpload", "TCP load", tcpload);
-
     bool enable_qcn = true;
     cmd.AddValue ("enableEcn", "enable ECN markin", enable_qcn);
-    
     uint32_t rdmaWindowCheck = 0;
     cmd.AddValue("rdmaWindowCheck", "windowCheck", rdmaWindowCheck);
-    
     uint32_t rdmaVarWin = 9;
     cmd.AddValue("rdmaVarWin", "windowCheck", rdmaVarWin);
-    
-
     uint64_t buffer_size = 2610000;//5.4;
     cmd.AddValue("buffersize", "buffer size in MB",buffer_size);
-    
     uint32_t bufferalgIngress = DT;
     cmd.AddValue ("bufferalgIngress", "specify buffer management algorithm to be used at the ingress", bufferalgIngress);
-    
     uint32_t bufferalgEgress = DT;
     cmd.AddValue ("bufferalgEgress", "specify buffer management algorithm to be used at the egress", bufferalgEgress);
-    
     double egressLossyShare = 0.8;
     cmd.AddValue("egressLossyShare", "buffer pool for egress lossy specified as fraction of ingress buffer",egressLossyShare);
-    
     std::string bufferModel = "sonic";//"blank";
     cmd.AddValue("bufferModel", "the buffer model to be used in the switch MMU", bufferModel);
-    
     double gamma = 0.99;
     cmd.AddValue("gamma","gamma parameter value for Reverie", gamma);
-
     std::string alphasFile = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/examples/Reverie/alphas"; // On lakewood
     cmd.AddValue ("alphasFile", "alpha values file (should be exactly nPrior lines)", alphasFile);
-
     cmd.AddValue("incast", "incast", incast);
-
     std::string fctOutFile = "./fcts.txt";
     cmd.AddValue ("fctOutFile", "File path for FCTs", fctOutFile);
-
     std::string torOutFile = "./tor.txt";
     cmd.AddValue ("torOutFile", "File path for ToR statistic", torOutFile);
-
     std::string pfcOutFile = "./pfc.txt";
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
