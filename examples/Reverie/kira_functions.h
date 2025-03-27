@@ -33,17 +33,7 @@ struct FlowInfo {
     int priority;
     uint64_t msg_len;
 };
-// namespace ns3{
-//     class MPI_Controller{
-//     public:
-//         MPI_Datatype MPI_FlowInfo;
-//         MPI_Controller(int* pargc, char*** pargv);
-//         ~MPI_Controller();
-//         MPI_Datatype create_MPI_FlowInfo();
-//         int SendFI(const void *buf, int count, int dest,
-//                     int tag, MPI_Comm comm);
-//         int RecvFI(void *buf, int count, int source,
-//                     int tag, MPI_Comm comm, MPI_Status *status);
-//     };
-// }
+namespace ns3{
+
+}
 #endif

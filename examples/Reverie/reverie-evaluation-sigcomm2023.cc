@@ -158,41 +158,6 @@ std::vector<Ipv4Address> serverAddress;
 std::unordered_map<uint32_t, unordered_map<uint32_t, uint16_t> > portNumder;
 std::unordered_map<uint32_t, unordered_map<uint32_t, uint16_t> > DestportNumder;
 
-struct FlowInput {
-    uint64_t src, dst, pg, maxPacketCount, port, dport;
-    double start_time;
-    uint32_t idx;
-};
-FlowInput flow_input = {0};
-uint32_t flow_num;
-
-void ReadFlowInput() {
-    if (flow_input.idx < flow_num) {
-        flowf >> flow_input.src >> flow_input.dst >> flow_input.pg >> flow_input.dport >> flow_input.maxPacketCount >> flow_input.start_time;
-        NS_ASSERT(n.Get(flow_input.src)->GetNodeType() == 0 && n.Get(flow_input.dst)->GetNodeType() == 0);
-    }
-}
-void ScheduleFlowInputs() {
-    while (flow_input.idx < flow_num && Seconds(flow_input.start_time) <= Simulator::Now()) {
-        // std::cout << "Flow " << flow_input.src << " " << flow_input.dst << " " << flow_input.pg << " " << flow_input.dport << " " << flow_input.maxPacketCount << " " << flow_input.start_time << " " << Simulator::Now().GetSeconds() << std::endl;
-        uint32_t port = portNumder[flow_input.src][flow_input.dst]++; // get a new port number
-        RdmaClientHelper clientHelper(flow_input.pg, serverAddress[flow_input.src], serverAddress[flow_input.dst], port, flow_input.dport, flow_input.maxPacketCount, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow_input.src)][n.Get(flow_input.dst)]) : 0, global_t == 1 ? maxRtt : pairRtt[flow_input.src][flow_input.dst], Simulator::GetMaximumSimulationTime());
-        ApplicationContainer appCon = clientHelper.Install(n.Get(flow_input.src));
-//      appCon.Start(Seconds(flow_input.start_time));
-        appCon.Start(Seconds(0)); // setting the correct time here conflicts with Sim time since there is already a schedule event that triggered this function at desired time.
-        // get the next flow input
-        flow_input.idx++;
-        ReadFlowInput();
-    }
-
-    // schedule the next time to run this function
-    if (flow_input.idx < flow_num) {
-        Simulator::Schedule(Seconds(flow_input.start_time) - Simulator::Now(), ScheduleFlowInputs);
-    } else { // no more flows, close the file
-        flowf.close();
-    }
-}
-
 Ipv4Address node_id_to_ip(uint32_t id) {
     return Ipv4Address(0x0b000001 + ((id / 256) * 0x00010000) + ((id % 256) * 0x00000100));
 }
@@ -200,7 +165,6 @@ Ipv4Address node_id_to_ip(uint32_t id) {
 uint32_t ip_to_node_id(Ipv4Address ip) {
     return (ip.Get() >> 8) & 0xffff;
 }
-
 
 void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start, bool incast, uint32_t prior )
 {
@@ -348,9 +312,8 @@ void SetRoutingEntries() {
                 uint32_t interface = nbr2if[node][next].idx;
                 if (node->GetNodeType() == 1)
                     DynamicCast<SwitchNode>(node)->AddTableEntry(dstAddr, interface);
-                else {
+                else
                     node->GetObject<RdmaDriver>()->m_rdma->AddTableEntry(dstAddr, interface);
-                }
             }
         }
     }
@@ -373,23 +336,6 @@ T rand_range (T min, T max)
     return min + ((double)max - min) * rand () / RAND_MAX;
 }
 
-uint32_t numPriorities;
-uint32_t prioRand = 0;
-
-#define QUERY_DATA 300000
-
-int tar = 0;
-int get_target_leaf(int leafCount) {
-    tar += 1;
-    if (tar == leafCount) {
-        tar = 0;
-        return tar;
-    }
-    return tar;
-}
-
-uint32_t FAN = 5;
-
 //written by Kira START
 
 vector<vector<FlowInfo>> flowInfos;
@@ -397,6 +343,32 @@ u_int16_t systemId=0;
 u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
 MPI_Datatype MPI_FlowInfo;
+
+void flowSend(FlowInfo &flow){
+    RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
+        flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
+        global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
+    ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+    appCon.Start(Seconds(0));//to be changed?
+    kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
+            " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
+            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" FlowPath:";
+    auto paths = flowPath[{flow.src_node, flow.dst_node}];
+    for (auto& path : paths) {
+        for (uint32_t idx = 0; idx < path.size(); idx++) {
+            kira::cout << " " << path[idx];
+            if (idx < path.size() - 1) {
+                Ptr<Node> current = n.Get(path[idx]);
+                Ptr<Node> next = n.Get(path[idx+1]);
+                uint32_t port = nbr2if[current][next].idx;
+                kira::cout << ":" << port;
+            }
+            if (idx != path.size() - 1)
+                kira::cout << " -> ";
+        }
+    }
+    kira::cout << std::endl;
+}
 MPI_Datatype create_MPI_FlowInfo() {
     // 定义结构体的成员数量（7个）
     const int num_members = 7;
@@ -430,9 +402,9 @@ MPI_Datatype create_MPI_FlowInfo() {
     return MPI_FlowInfo;
 }
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-
     flowCom++;
-    kira::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<< flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+    kira::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<<
+        flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
     if(flowCom>=flowInfos[BatchCur].size()){
         BatchCur++;
         flowCom=0;
@@ -440,33 +412,8 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
         if(BatchCur>=flowInfos.size())
             return ;
         Simulator::Stop();
-        for(FlowInfo flow:flowInfos[BatchCur]){
-            RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-            flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-            global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-            ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-            appCon.Start(Seconds(0));//to be changed
-            kira::cout << " system "<< systemId <<" from " << flow.src_node << " to " 
-                      << flow.dst_node <<" fromportNumber " << flow.src_port 
-                      <<" destportNumder " << flow.dst_port << " time " 
-                      << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len 
-                      <<" FlowPath:";
-            auto paths = flowPath[{flow.src_node, flow.dst_node}];
-            for (auto& path : paths) {
-                for (uint32_t idx = 0; idx < path.size(); idx++) {
-                    kira::cout << " " << path[idx];
-                    if (idx < path.size() - 1) {
-                        Ptr<Node> current = n.Get(path[idx]);
-                        Ptr<Node> next = n.Get(path[idx+1]);
-                        uint32_t port = nbr2if[current][next].idx;
-                        kira::cout << ":" << port;
-                    }
-                    if (idx != path.size() - 1)
-                        kira::cout << " -> ";
-                }
-            }
-            kira::cout << std::endl;
-        }
+        for(FlowInfo flow:flowInfos[BatchCur])
+            flowSend(flow);
         Simulator::Run();
     }
 }
@@ -527,33 +474,8 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
         }
         // 处理接收到的 flowInfos
     }
-    for(FlowInfo flow:flowInfos[BatchCur]){//start first batch
-        RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-        flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-        global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-        ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-        appCon.Start(Seconds(0));//to be changed
-        kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-                " fromportNumber " << flow.src_port <<
-                " destportNumder " << flow.dst_port <<
-                " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<
-                " FlowPath:";
-        auto paths = flowPath[{flow.src_node, flow.dst_node}];
-        for (auto& path : paths) {
-            for (uint32_t idx = 0; idx < path.size(); idx++) {
-                kira::cout << " " << path[idx];
-                if (idx < path.size() - 1) {
-                    Ptr<Node> current = n.Get(path[idx]);
-                    Ptr<Node> next = n.Get(path[idx+1]);
-                    uint32_t port = nbr2if[current][next].idx;
-                    kira::cout << ":" << port;
-                }
-                if (idx != path.size() - 1)
-                    kira::cout << " -> ";
-            }
-        }
-        kira::cout << std::endl;
-    }
+    for(FlowInfo flow:flowInfos[BatchCur])//start first phase
+        flowSend(flow);
 }
 //written by Kira END
 
@@ -583,8 +505,8 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
-    MpiInterface::Enable(&argc, &argv);
-    systemId = MpiInterface::GetSystemId();
+    MpiInterface::Enable(&argc, &argv); // 初始化MPI
+    systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
     MPI_FlowInfo = create_MPI_FlowInfo();
     
     if (!kira::init_log("examples/Reverie/dump_sigcomm/system"+to_string(systemId)+".log")) {
@@ -592,12 +514,12 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-    if(systemId!=0){//branch process
+    if(systemId!=0){ // 分支进程
         branch_read_info(systemId);
         kira::cout<<"system" <<systemId<<"read end"<<std::endl;
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成读取
         kira::cout<<"system" <<systemId<<"end"<<std::endl;
-        MpiInterface::Disable();
+        MpiInterface::Disable(); // 禁用MPI
         return systemId;
     }
     
@@ -942,10 +864,7 @@ int main(int argc, char *argv[]){
     LEAF_COUNT = tors;
     SPINE_COUNT = switch_num - tors;
     SERVER_COUNT = (node_num - switch_num) / tors;
-
     LINK_COUNT = (link_num - (SERVER_COUNT * tors))/(LEAF_COUNT*SPINE_COUNT); // number of links between each tor-spine pair
-
-    flowf >> flow_num;
 
     NodeContainer serverNodes;
     NodeContainer torNodes;
@@ -953,9 +872,15 @@ int main(int argc, char *argv[]){
     NodeContainer switchNodes;
     NodeContainer allNodes;
 
+    // LEAF_COUNT/=DST;
+    // SPINE_COUNT/=DST;
+    // SERVER_COUNT/=DST;
+
+    
+
     std::vector<uint32_t> node_type(node_num, 0);
 
-    for (uint32_t i = 0; i < switch_num; i++) {
+    for (uint32_t i = 0; i < switch_num; i++) {//交换机节点
         uint32_t sid;
         topof >> sid;
         switchNumToId[i] = sid;
@@ -990,25 +915,19 @@ int main(int argc, char *argv[]){
         }
     }
     NS_LOG_INFO("Create nodes.");
-
     Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue(true));
     InternetStackHelper internet;
     Ipv4GlobalRoutingHelper globalRoutingHelper;
     internet.SetRoutingHelper (globalRoutingHelper);
     internet.Install(n);
-
-    //
     // Assign IP to each server
-    //
     for (uint32_t i = 0; i < node_num; i++) {
         if (n.Get(i)->GetNodeType() == 0) { // is server
             serverAddress.resize(i + 1);
             serverAddress[i] = node_id_to_ip(i);
         }
     }
-
     NS_LOG_INFO("Create channels.");
-
     //
     // Explicitly create the channels required by the topology.
     //
@@ -1095,7 +1014,6 @@ int main(int argc, char *argv[]){
         nbr2if[dnode][snode].bw = DynamicCast<QbbNetDevice>(d.Get(1))->GetDataRate().GetBitRate();
 
         // This is just to set up the connectivity between nodes. The IP addresses are useless
-        // char ipstring[16];
         std::stringstream ipstring;
         ipstring << "10." << i / 254 + 1 << "." << i % 254 + 1 << ".0";
         // sprintf(ipstring, "10.%d.%d.0", i / 254 + 1, i % 254 + 1);
@@ -1107,9 +1025,7 @@ int main(int argc, char *argv[]){
         DynamicCast<QbbNetDevice>(d.Get(0))->TraceConnectWithoutContext("QbbPfc", MakeBoundCallback (&get_pfc, pfc_file, DynamicCast<QbbNetDevice>(d.Get(0))));
         DynamicCast<QbbNetDevice>(d.Get(1))->TraceConnectWithoutContext("QbbPfc", MakeBoundCallback (&get_pfc, pfc_file, DynamicCast<QbbNetDevice>(d.Get(1))));
     }
-
     nic_rate = get_nic_rate(n);
-
 #if ENABLE_QP
     //
     // install RDMA driver
@@ -1299,33 +1215,10 @@ int main(int argc, char *argv[]){
     for (uint32_t i = 0; i < SERVER_COUNT * LEAF_COUNT; i++)
         PORT_START[i] = 4444;
     long flowCount = 1;
-    //long totalFlowSize = 0;
+
+    // 主进程处理
     workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
 
-    /*General TCP Socket settings. Mostly used by various congestion control algorithms in common*/
-    Config::SetDefault ("ns3::TcpSocket::ConnTimeout", TimeValue (MilliSeconds (10))); // syn retry interval
-    Config::SetDefault ("ns3::TcpSocketBase::MinRto", TimeValue (MicroSeconds (1000)) );  //(MilliSeconds (5))
-    Config::SetDefault ("ns3::TcpSocketBase::RTTBytes", UintegerValue ( packet_payload_size*100 )); //packet_payload_size*1000 // This many number of first bytes will be prioritized by ABM. It is not necessarily RTTBytes
-    Config::SetDefault ("ns3::TcpSocketBase::ClockGranularity", TimeValue (NanoSeconds (10))); //(MicroSeconds (100))
-    Config::SetDefault ("ns3::RttEstimator::InitialEstimation", TimeValue (MicroSeconds (10))); //TimeValue (MicroSeconds (80))
-    Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1073725440)); //1073725440
-    Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1073725440));
-    Config::SetDefault ("ns3::TcpSocket::ConnCount", UintegerValue (6));  // Syn retry count
-    Config::SetDefault ("ns3::TcpSocketBase::Timestamp", BooleanValue (true));
-    Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (packet_payload_size));
-    Config::SetDefault ("ns3::TcpSocket::DelAckCount", UintegerValue (0));
-    Config::SetDefault ("ns3::TcpSocket::PersistTimeout", TimeValue (Seconds (20)));
-
-    if (tcpcc == CUBIC)
-        Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpCubic::GetTypeId()));
-    else if (tcpcc == DCTCP){
-        if (enable_qcn != 1){
-            kira::cout << "Set enableEcn option in order to use DCTCP" << std::endl;
-            exit(1);
-        }
-        Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (ns3::TcpDctcp::GetTypeId()));
-        Config::SetDefault ("ns3::TcpSocketBase::UseEcn", StringValue ("On"));
-    }
     kira::cout << "apps finished" << std::endl;
     topof.close();
     tracef.close();
@@ -1333,15 +1226,13 @@ int main(int argc, char *argv[]){
     Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, torNodes, delay);
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
-    // AsciiTraceHelper ascii;
-    // qbb.EnableAsciiAll (ascii.CreateFileStream ("eval.tr"));
     NS_LOG_INFO("Run Simulation.");
     Simulator::Stop(Seconds(END_TIME));
     Simulator::Run();
     Simulator::Destroy();
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Type_free(&MPI_FlowInfo);
+    MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成模拟
+    MPI_Type_free(&MPI_FlowInfo); // 释放MPI数据类型
     NS_LOG_INFO("Done.");
     kira::cout<<"Done"<<std::endl;
-    MpiInterface::Disable();
+    MpiInterface::Disable(); // 禁用MPI
 }
