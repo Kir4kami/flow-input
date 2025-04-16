@@ -317,6 +317,23 @@ void SetRoutingEntries() {
             }
         }
     }
+    // 打印所有节点的路由表
+    for (auto &node_entry : nextHop) {
+        Ptr<Node> node = node_entry.first;
+        kira::cout << "Node " << node->GetId() << " Routing Table:\n";
+
+        for (auto &dest_entry : node_entry.second) {
+            Ptr<Node> dest = dest_entry.first;
+            Ipv4Address destAddr = dest->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+
+            kira::cout << "  Destination: " << destAddr << " -> Next Hops: ";
+            for (Ptr<Node> nexthop : dest_entry.second) {
+                uint32_t interface = nbr2if[node][nexthop].idx;
+                kira::cout << "via Iface " << interface << " (Node " << nexthop->GetId() << "), ";
+            }
+            kira::cout << "\n";
+        }
+    }
 }
 
 uint64_t get_nic_rate(NodeContainer &n) {
@@ -915,7 +932,7 @@ int main(int argc, char *argv[]){
         }
     }
     NS_LOG_INFO("Create nodes.");
-    Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue(true));
+    Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue(false));
     InternetStackHelper internet;
     Ipv4GlobalRoutingHelper globalRoutingHelper;
     internet.SetRoutingHelper (globalRoutingHelper);
@@ -974,6 +991,7 @@ int main(int argc, char *argv[]){
         // because we want our IP to be the primary IP (first in the IP address list),
         // so that the global routing is based on our IP
         NetDeviceContainer d = qbb.Install(snode, dnode);
+        //qbb.EnablePcapAll("traffic_trace");
         if (snode->GetNodeType() == 0) {
             Ptr<Ipv4> ipv4 = snode->GetObject<Ipv4>();
             ipv4->AddInterface(d.Get(0));
@@ -1223,7 +1241,7 @@ int main(int argc, char *argv[]){
     topof.close();
     tracef.close();
     double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
-    Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, torNodes, delay);
+    Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, spineNodes, delay);
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     NS_LOG_INFO("Run Simulation.");
