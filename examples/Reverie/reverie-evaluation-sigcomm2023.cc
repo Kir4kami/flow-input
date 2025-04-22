@@ -318,23 +318,22 @@ void SetRoutingEntries() {
         }
     }
     // 打印所有节点的路由表
-    for (auto &node_entry : nextHop) {
-        Ptr<Node> node = node_entry.first;
-        kira::cout << "Node " << node->GetId() << " Routing Table:\n";
-
-        for (auto &dest_entry : node_entry.second) {
-            Ptr<Node> dest = dest_entry.first;
-            Ipv4Address destAddr = dest->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
-
-            kira::cout << "  Destination: " << destAddr << " -> Next Hops: ";
-            for (Ptr<Node> nexthop : dest_entry.second) {
-                uint32_t interface = nbr2if[node][nexthop].idx;
-                kira::cout << "via Iface " << interface << " (Node " << nexthop->GetId() << "), ";
-            }
-            kira::cout << "\n";
-        }
-    }
+    // for (auto &node_entry : nextHop) {
+    //     Ptr<Node> node = node_entry.first;
+    //     kira::cout << "Node " << node->GetId() << " Routing Table:\n";
+    //     for (auto &dest_entry : node_entry.second) {
+    //         Ptr<Node> dest = dest_entry.first;
+    //         Ipv4Address destAddr = dest->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+    //         kira::cout << "  Destination: " << destAddr << " -> Next Hops: ";
+    //         for (Ptr<Node> nexthop : dest_entry.second) {
+    //             uint32_t interface = nbr2if[node][nexthop].idx;
+    //             kira::cout << "via Iface " << interface << " (Node " << nexthop->GetId() << "), ";
+    //         }
+    //         kira::cout << "\n";
+    //     }
+    // }
 }
+//实际转发时交换机根据五元组生成hash值，在多个下一跳中选择
 
 uint64_t get_nic_rate(NodeContainer &n) {
     for (uint32_t i = 0; i < n.GetN(); i++)
@@ -888,12 +887,6 @@ int main(int argc, char *argv[]){
     NodeContainer spineNodes;
     NodeContainer switchNodes;
     NodeContainer allNodes;
-
-    // LEAF_COUNT/=DST;
-    // SPINE_COUNT/=DST;
-    // SERVER_COUNT/=DST;
-
-    
 
     std::vector<uint32_t> node_type(node_num, 0);
 
