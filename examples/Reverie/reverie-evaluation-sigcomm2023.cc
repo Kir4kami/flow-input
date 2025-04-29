@@ -342,7 +342,6 @@ uint64_t get_nic_rate(NodeContainer &n) {
     return 0;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Applications */
 
@@ -360,6 +359,35 @@ u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
 MPI_Datatype MPI_FlowInfo;
 
+void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
+    Ptr<Node> current = n.Get(src_node);
+    uint32_t current_id = src_node;
+    std::vector<std::pair<uint32_t, uint32_t>> path; // <node_id, port>
+    while (current_id != dst_node) {
+        // 获取当前节点的路由表
+        auto& next_hops = nextHop[current][n.Get(dst_node)];
+        if (next_hops.empty()) break;
+        // 使用ECMP哈希选择下一跳
+        uint32_t hash = ns3::GetFlowHash(src_node, dst_node, sport, dport, current_id);
+        uint32_t idx = hash % next_hops.size();
+        Ptr<Node> next = next_hops[idx];
+        // 获取出端口
+        uint32_t port = nbr2if[current][next].idx;
+        path.emplace_back(current_id, port);
+        current = next;
+        current_id = current->GetId();
+    }
+    // 打印实际路径
+    kira::cout << "Flow actual path: ";
+    for (size_t i = 0; i < path.size(); ++i) {
+        kira::cout << path[i].first << ":" << path[i].second;
+        if (i != path.size() - 1) {
+            kira::cout << " -> ";
+        }
+    }
+    kira::cout << std::endl;
+}
+
 void flowSend(FlowInfo &flow){
     RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
         flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
@@ -369,20 +397,21 @@ void flowSend(FlowInfo &flow){
     kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
             " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
             " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" FlowPath:";
-    auto paths = flowPath[{flow.src_node, flow.dst_node}];
-    for (auto& path : paths) {
-        for (uint32_t idx = 0; idx < path.size(); idx++) {
-            kira::cout << " " << path[idx];
-            if (idx < path.size() - 1) {
-                Ptr<Node> current = n.Get(path[idx]);
-                Ptr<Node> next = n.Get(path[idx+1]);
-                uint32_t port = nbr2if[current][next].idx;
-                kira::cout << ":" << port;
-            }
-            if (idx != path.size() - 1)
-                kira::cout << " -> ";
-        }
-    }
+    // auto paths = flowPath[{flow.src_node, flow.dst_node}];
+    // for (auto& path : paths) {
+    //     for (uint32_t idx = 0; idx < path.size(); idx++) {
+    //         kira::cout << " " << path[idx];
+    //         if (idx < path.size() - 1) {
+    //             Ptr<Node> current = n.Get(path[idx]);
+    //             Ptr<Node> next = n.Get(path[idx+1]);
+    //             uint32_t port = nbr2if[current][next].idx;
+    //             kira::cout << ":" << port;
+    //         }
+    //         if (idx != path.size() - 1)
+    //             kira::cout << " -> ";
+    //     }
+    // }
+    TraceActualPath(flow.src_node, flow.dst_node, flow.src_port, flow.dst_port);
     kira::cout << std::endl;
 }
 MPI_Datatype create_MPI_FlowInfo() {
@@ -957,8 +986,6 @@ int main(int argc, char *argv[]){
         std::string data_rate, link_delay;
         double error_rate;
         topof >> src >> dst >> data_rate >> link_delay >> error_rate;
-
-        // std::cout << src << " " << dst << " " << n.GetN() << std::endl;
         Ptr<Node> snode = n.Get(src), dnode = n.Get(dst);
 
         qbb.SetDeviceAttribute("DataRate", StringValue(data_rate));
