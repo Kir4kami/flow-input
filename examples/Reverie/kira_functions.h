@@ -34,6 +34,7 @@ struct FlowInfo {
     uint64_t msg_len;
 };
 namespace ns3{
-
+    uint32_t GetFlowHash(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport, uint32_t current_id);
+    uint32_t EcmpHash(const uint8_t* key, size_t len, uint32_t seed);
 }
 #endif

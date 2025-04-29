@@ -1,3 +1,6 @@
+cd ../..
+./ns3 build reverie-evaluation-sigcomm2023
+cd examples/Reverie/
 source config.sh
 DIR=$(pwd)
 DUMP_DIR=$DIR/dump_sigcomm
