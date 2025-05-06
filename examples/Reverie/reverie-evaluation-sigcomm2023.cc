@@ -377,6 +377,7 @@ void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint1
         current = next;
         current_id = current->GetId();
     }
+    path.emplace_back(dst_node,0);
     // 打印实际路径
     kira::cout << "Flow actual path: ";
     for (size_t i = 0; i < path.size(); ++i) {
@@ -396,7 +397,7 @@ void flowSend(FlowInfo &flow){
     appCon.Start(Seconds(0));//to be changed?
     kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
             " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
-            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" FlowPath:";
+            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len ;
     // auto paths = flowPath[{flow.src_node, flow.dst_node}];
     // for (auto& path : paths) {
     //     for (uint32_t idx = 0; idx < path.size(); idx++) {
@@ -412,7 +413,6 @@ void flowSend(FlowInfo &flow){
     //     }
     // }
     TraceActualPath(flow.src_node, flow.dst_node, flow.src_port, flow.dst_port);
-    kira::cout << std::endl;
 }
 MPI_Datatype create_MPI_FlowInfo() {
     // 定义结构体的成员数量（7个）
