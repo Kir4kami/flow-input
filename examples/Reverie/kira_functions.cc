@@ -56,8 +56,8 @@ namespace ns3 {
             uint8_t u8[12];
             uint32_t u32[3];
         } hashKey;
-        hashKey.u32[0] = src_node;
-        hashKey.u32[1] = dst_node;
+        hashKey.u32[0] = 0x0b000001 + ((src_node / 256) * 0x00010000) + ((src_node % 256) * 0x00000100);
+        hashKey.u32[1] = 0x0b000001 + ((dst_node / 256) * 0x00010000) + ((dst_node % 256) * 0x00000100);
         hashKey.u32[2] = sport | (dport << 16);
         return ns3::EcmpHash(hashKey.u8, 12, current_id); // 使用与switch-node.cc相同的哈希算法
     }
