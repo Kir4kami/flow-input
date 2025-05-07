@@ -68,15 +68,6 @@ NS_LOG_COMPONENT_DEFINE("GENERIC_SIMULATION");
 
 std::string topology_file, flow_file;
 
-Ptr<OutputStreamWrapper> fctOutput;
-AsciiTraceHelper asciiTraceHelper;
-
-Ptr<OutputStreamWrapper> torStats;
-AsciiTraceHelper torTraceHelper;
-
-Ptr<OutputStreamWrapper> pfc_file;
-AsciiTraceHelper asciiTraceHelperpfc;
-
 uint32_t packet_payload_size = 1400, l2_chunk_size = 0, l2_ack_interval = 0;
 double pause_time = 5, simulator_stop_time = 3.01;
 
@@ -114,7 +105,7 @@ uint32_t PORT_START[512] = {4444};
 /************************************************
  * Runtime varibles
  ***********************************************/
-std::ifstream topof, flowf, tracef;
+std::ifstream topof, flowf;
 std::ifstream flowInput;
 NodeContainer n;
 NetDeviceContainer switchToSwitchInterfaces;
@@ -125,16 +116,11 @@ std::map<uint32_t, uint32_t> switchNumToId;
 std::map<uint32_t, uint32_t> switchIdToNum;
 std::map<uint32_t, NetDeviceContainer> switchUp;
 std::map<uint32_t, NetDeviceContainer> switchDown;
-//NetDeviceContainer switchUp[switch_num];
 std::map<uint32_t, NetDeviceContainer> sourceNodes;
-
 NodeContainer servers;
 NodeContainer tors;
-
 uint64_t nic_rate;
-
 uint64_t maxRtt, maxBdp;
-
 struct Interface {
     uint32_t idx;
     bool up;
@@ -144,83 +130,17 @@ struct Interface {
     Interface() : idx(0), up(false) {}
 };
 map<Ptr<Node>, map<Ptr<Node>, Interface> > nbr2if;
-// Mapping destination to next hop for each node: <node, <dest, <nexthop0, ...> > >
 map<Ptr<Node>, map<Ptr<Node>, vector<Ptr<Node> > > > nextHop;
 map<Ptr<Node>, map<Ptr<Node>, uint64_t> > pairDelay;
 map<Ptr<Node>, map<Ptr<Node>, uint64_t> > pairTxDelay;
 map<uint32_t, map<uint32_t, uint64_t> > pairBw;
 map<Ptr<Node>, map<Ptr<Node>, uint64_t> > pairBdp;
 map<uint32_t, map<uint32_t, uint64_t> > pairRtt;
-std::map<std::pair<uint32_t,uint32_t>,std::vector<std::vector<uint32_t>>> flowPath;//流量路径
 std::vector<Ipv4Address> serverAddress;
-
-// maintain port number for each host pair
-std::unordered_map<uint32_t, unordered_map<uint32_t, uint16_t> > portNumder;
-std::unordered_map<uint32_t, unordered_map<uint32_t, uint16_t> > DestportNumder;
 
 Ipv4Address node_id_to_ip(uint32_t id) {
     return Ipv4Address(0x0b000001 + ((id / 256) * 0x00010000) + ((id % 256) * 0x00000100));
 }
-
-uint32_t ip_to_node_id(Ipv4Address ip) {
-    return (ip.Get() >> 8) & 0xffff;
-}
-
-void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start, bool incast, uint32_t prior )
-{
-    double fct, standalone_fct, slowdown;
-    fct = Simulator::Now().GetNanoSeconds() - start;
-    standalone_fct = maxRtt + (1e9*size * 8.0) / nic_rate;
-    slowdown = fct / standalone_fct;
-
-    *stream->GetStream ()
-            << Simulator::Now().GetSeconds()
-            << " " << size
-            << " " << fct
-            << " " << standalone_fct
-            << " " << slowdown
-            << " " << maxRtt
-            << " " << 1
-            << " " << incast
-            << std::endl;
-}
-
-void qp_finish(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q) {
-    uint32_t sid = ip_to_node_id(q->sip), did = ip_to_node_id(q->dip);
-    uint64_t base_rtt = pairRtt[sid][did], b = pairBw[sid][did];
-    uint32_t total_bytes = q->m_size + ((q->m_size - 1) / packet_payload_size + 1) * (CustomHeader::GetStaticWholeHeaderSize() - IntHeader::GetStaticSize()); // translate to the minimum bytes required (with header but no INT)
-    uint64_t standalone_fct = base_rtt + total_bytes * 8 * 1e9 / b;
-    uint64_t fct = (Simulator::Now() - q->startTime).GetNanoSeconds();
-    double slowdown = double(fct)/standalone_fct;
-    *fout->GetStream () 
-            << Simulator::Now().GetSeconds()
-            << " " << q->m_size
-            << " " << fct 
-            << " " << standalone_fct
-            << " " << slowdown
-            << " " << base_rtt
-            << " " << 3
-            << " " << q->incastFlow
-            << std::endl;
-
-    // remove rxQp from the receiver
-    Ptr<Node> dstNode = n.Get(did);
-    Ptr<RdmaDriver> rdma = dstNode->GetObject<RdmaDriver> ();
-    rdma->m_rdma->DeleteRxQp(q->sip.Get(), q->m_pg, q->sport);
-}
-
-
-void get_pfc(Ptr<OutputStreamWrapper> fout, Ptr<QbbNetDevice> dev, uint32_t type) {
-    *fout->GetStream()
-        << Simulator::Now().GetSeconds()
-        << " " << dev->GetNode()->GetId()
-        << " " << dev->GetNode()->GetNodeType()
-        << " " << dev->GetIfIndex()
-        << " " << type
-        << std::endl;
-    // fprintf(fout, "%lu %u %u %u %u\n", Simulator::Now().GetTimeStep(), dev->GetNode()->GetId(), dev->GetNode()->GetNodeType(), dev->GetIfIndex(), type);
-}
-
 void CalculateRoute(Ptr<Node> host) {//静态路由计算
     // queue for the BFS.
     vector<Ptr<Node> > q;
@@ -275,10 +195,8 @@ void CalculateRoute(Ptr<Node> host) {//静态路由计算
         if (current == host) {
             path.push_back(host->GetId());
             reverse(path.begin(), path.end());
-            flowPath[{host->GetId(), node->GetId()}].emplace_back(path);
         }
     }
-    
     for (auto it : delay)
         pairDelay[it.first][host] = it.second;
     for (auto it : txDelay)
@@ -294,7 +212,7 @@ void CalculateRoutes(NodeContainer &n) {
             CalculateRoute(node);
     }
 }
-
+bool show_routing_table = false;
 void SetRoutingEntries() {
     // For each node.
     for (auto i = nextHop.begin(); i != nextHop.end(); i++) {
@@ -318,23 +236,22 @@ void SetRoutingEntries() {
         }
     }
     // 打印所有节点的路由表
-    // for (auto &node_entry : nextHop) {
-    //     Ptr<Node> node = node_entry.first;
-    //     kira::cout << "Node " << node->GetId() << " Routing Table:\n";
-    //     for (auto &dest_entry : node_entry.second) {
-    //         Ptr<Node> dest = dest_entry.first;
-    //         Ipv4Address destAddr = dest->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
-    //         kira::cout << "  Destination: " << destAddr << " -> Next Hops: ";
-    //         for (Ptr<Node> nexthop : dest_entry.second) {
-    //             uint32_t interface = nbr2if[node][nexthop].idx;
-    //             kira::cout << "via Iface " << interface << " (Node " << nexthop->GetId() << "), ";
-    //         }
-    //         kira::cout << "\n";
-    //     }
-    // }
+    if(show_routing_table)
+        for (auto &node_entry : nextHop) {
+            Ptr<Node> node = node_entry.first;
+            kira::cout << "Node " << node->GetId() << " Routing Table:\n";
+            for (auto &dest_entry : node_entry.second) {
+                Ptr<Node> dest = dest_entry.first;
+                Ipv4Address destAddr = dest->GetObject<Ipv4>()->GetAddress(1,0).GetLocal();
+                kira::cout << "  Destination: " << destAddr << " -> Next Hops: ";
+                for (Ptr<Node> nexthop : dest_entry.second) {
+                    uint32_t interface = nbr2if[node][nexthop].idx;
+                    kira::cout << "via Iface " << interface << " (Node " << nexthop->GetId() << "), ";
+                }
+                kira::cout << "\n";
+            }
+        }
 }
-//实际转发时交换机根据五元组生成hash值，在多个下一跳中选择
-
 uint64_t get_nic_rate(NodeContainer &n) {
     for (uint32_t i = 0; i < n.GetN(); i++)
         if (n.Get(i)->GetNodeType() == 0)
@@ -344,22 +261,13 @@ uint64_t get_nic_rate(NodeContainer &n) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Applications */
-
-template<typename T>
-T rand_range (T min, T max)
-{
-    return min + ((double)max - min) * rand () / RAND_MAX;
-}
-
-//written by Kira START
-
 vector<vector<FlowInfo>> flowInfos;
 u_int16_t systemId=0;
 u_int16_t BatchCur=0;
 u_int16_t flowCom=0;
 MPI_Datatype MPI_FlowInfo;
 
-void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
+std::vector<std::pair<uint32_t, uint32_t>> TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
     Ptr<Node> current = n.Get(src_node);
     uint32_t current_id = src_node;
     std::vector<std::pair<uint32_t, uint32_t>> path; // <node_id, port>
@@ -387,189 +295,33 @@ void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint1
         }
     }
     kira::cout << std::endl;
+    return path;
 }
-
-void flowSend(FlowInfo &flow){
-    RdmaClientHelper clientHelper(3, serverAddress[flow.src_node], serverAddress[flow.dst_node], flow.src_port, flow.dst_port,
-        flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
-        global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
-    ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
-    appCon.Start(Seconds(0));//to be changed?
-    kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
-            " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
-            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" ";
-    // auto paths = flowPath[{flow.src_node, flow.dst_node}];
-    // for (auto& path : paths) {
-    //     for (uint32_t idx = 0; idx < path.size(); idx++) {
-    //         kira::cout << " " << path[idx];
-    //         if (idx < path.size() - 1) {
-    //             Ptr<Node> current = n.Get(path[idx]);
-    //             Ptr<Node> next = n.Get(path[idx+1]);
-    //             uint32_t port = nbr2if[current][next].idx;
-    //             kira::cout << ":" << port;
-    //         }
-    //         if (idx != path.size() - 1)
-    //             kira::cout << " -> ";
-    //     }
-    // }
-    TraceActualPath(flow.src_node, flow.dst_node, flow.src_port, flow.dst_port);
-}
-MPI_Datatype create_MPI_FlowInfo() {
-    // 定义结构体的成员数量（7个）
-    const int num_members = 7;
-    MPI_Datatype types[num_members] = {
-        MPI_CHAR,           // type[32]
-        MPI_INT,            // src_node
-        MPI_INT,            // src_port
-        MPI_INT,            // dst_node
-        MPI_INT,            // dst_port
-        MPI_INT,            // priority
-        MPI_UNSIGNED_LONG_LONG // msg_len (uint64_t)
-    };
-    int block_lengths[num_members] = {32, 1, 1, 1, 1, 1, 1};  // 每个成员的块长度
-    // 计算每个成员的位移
-    MPI_Aint displacements[num_members];
-    FlowInfo dummy={0,0,0,0,0,0,0};  // 临时结构体实例，用于计算地址偏移
-    MPI_Get_address(&dummy.type,         &displacements[0]);
-    MPI_Get_address(&dummy.src_node,     &displacements[1]);
-    MPI_Get_address(&dummy.src_port,     &displacements[2]);
-    MPI_Get_address(&dummy.dst_node,     &displacements[3]);
-    MPI_Get_address(&dummy.dst_port,     &displacements[4]);
-    MPI_Get_address(&dummy.priority,     &displacements[5]);
-    MPI_Get_address(&dummy.msg_len,      &displacements[6]);
-    // 转换为相对于结构体起始地址的位移
-    for (int i = num_members - 1; i >= 0; i--) 
-        displacements[i] -= displacements[0];
-    // 创建 MPI 数据类型
-    MPI_Datatype MPI_FlowInfo;
-    MPI_Type_create_struct(num_members, block_lengths, displacements, types, &MPI_FlowInfo);
-    MPI_Type_commit(&MPI_FlowInfo);
-    return MPI_FlowInfo;
-}
-void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-    flowCom++;
-    kira::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<<
-        flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-    if(flowCom>=flowInfos[BatchCur].size()){
-        BatchCur++;
-        flowCom=0;
-        kira::cout<<"complete a phase"<<std::endl;
-        if(BatchCur>=flowInfos.size())
-            return ;
-        Simulator::Stop();
-        for(FlowInfo flow:flowInfos[BatchCur])
-            flowSend(flow);
-        Simulator::Run();
+bool CheckPathIntersection(
+    const std::vector<std::pair<uint32_t, uint32_t>>& path1,
+    const std::vector<std::pair<uint32_t, uint32_t>>& path2) 
+{
+    std::set<std::pair<uint32_t, uint32_t>> pathSet;
+    for (const auto& node_port : path1) {
+        pathSet.insert(node_port);
     }
-}
-void branch_read_info(uint16_t sysid){//branch process send flowInfo
-    kira::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
-    std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(systemId)+".txt";
-    flowInput.open(flowInputFileName.c_str());
-    if (!flowInput.is_open())
-        kira::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
-    std::string line;
-    int batch = -1;
-    while (std::getline(flowInput, line)) {
-        if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
-        std::stringstream ss(line);
-        std::string  type_str;
-        if (line.find("phase")!=string::npos){//phase
-            double phase;
-            ss >> type_str >> phase;
-            flowInfos.emplace_back(vector<FlowInfo> {});
-            batch++;
-            continue;
-        }
-        FlowInfo flow;
-        ss >> type_str >> flow.type;
-        ss >> type_str >> flow.src_node;
-        ss >> type_str >> flow.src_port;
-        ss >> type_str >> flow.dst_node;
-        ss >> type_str >> flow.dst_port;
-        ss >> type_str >> flow.priority;
-        ss >> type_str >> flow.msg_len;
-        flowInfos[batch].emplace_back(flow);
-    }
-    flowInput.close();//read file end
-    int length=flowInfos.size();
-    MPI_Send(&length, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-    for (auto& row : flowInfos) {
-        int cols = row.size();
-        MPI_Send(&cols, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
-        MPI_Send(row.data(), cols, MPI_FlowInfo, 0, 2, MPI_COMM_WORLD);
-    }
-}
-u_int16_t DST;
-void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
-    kira::cout<<"Reading flow info"<< std::endl;
-    std::string line;
-    int batch = 0;
-    for (int src = 1; src < DST; src++) {
-        int rows;
-        MPI_Recv(&rows, 1, MPI_INT, src, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        for (int i = 0; i < rows; i++) {
-            flowInfos.emplace_back(vector<FlowInfo> {});
-            int cols;
-            MPI_Recv(&cols, 1, MPI_INT, src, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            flowInfos[batch].resize(cols);
-            MPI_Recv(flowInfos[batch].data(), cols, MPI_FlowInfo, src, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            batch++;
-            kira::cout<<"recv flowInfo from system:"<<src<<std::endl;
-        }
-        // 处理接收到的 flowInfos
-    }
-    for(FlowInfo flow:flowInfos[BatchCur])//start first phase
-        flowSend(flow);
-}
-//written by Kira END
-
-uint32_t flowEnd = 0;
-
-void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
-    for (uint32_t i = 0; i < switches.GetN(); i++) {
-        if (switches.Get(i)->GetNodeType()) { // switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(switches.Get(i));
-            *fout->GetStream() 
-                << i
-                << " " << sw->m_mmu->totalUsed
-                << " " << sw->m_mmu->egressPoolUsed[0]
-                << " " << sw->m_mmu->egressPoolUsed[1]
-                << " " << sw->m_mmu->totalUsed - sw->m_mmu->xoffTotalUsed
-                << " " << sw->m_mmu->xoffTotalUsed
-                << " " << sw->m_mmu->sharedPoolUsed
-                << " " << Simulator::Now().GetSeconds()
-                << std::endl;
+    for (const auto& node_port : path2) {
+        if (pathSet.count(node_port) > 0) {
+            return true;
         }
     }
-    if (Simulator::Now().GetSeconds() < flowEnd)
-        Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
+    return false;
 }
-
-
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
-    MpiInterface::Enable(&argc, &argv); // 初始化MPI
-    systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
-    MPI_FlowInfo = create_MPI_FlowInfo();
-    
-    if (!kira::init_log("examples/Reverie/dump_sigcomm/system"+to_string(systemId)+".log")) {
-        std::cout << "system: " << systemId << " 日志文件创建失败" << std::endl;
+    if (!kira::init_log("examples/Reverie/dump_sigcomm/checkflow.log")) {
+        std::cout << "日志文件创建失败" << std::endl;
         return -1;
     }
-
-    if(systemId!=0){ // 分支进程
-        branch_read_info(systemId);
-        kira::cout<<"system" <<systemId<<"read end"<<std::endl;
-        MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成读取
-        kira::cout<<"system" <<systemId<<"end"<<std::endl;
-        MpiInterface::Disable(); // 禁用MPI
-        return systemId;
-    }
-    
+    uint32_t src_node1=0,src_node2=32,dst_node1=16,dst_node2=48;
+    uint16_t src_port1=0,src_port2=0,dst_port1=0,dst_port2=0;
     std::string confFile = "examples/Reverie/config-workload.txt";
-
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -591,7 +343,15 @@ int main(int argc, char *argv[]){
     unsigned randomSeed = 1;
 
     CommandLine cmd;
-    cmd.AddValue("DST", "number of system", DST);
+    cmd.AddValue("src_node1","src_node1",src_node1);
+    cmd.AddValue("src_port1","src_port1",src_port1);
+    cmd.AddValue("dst_node1","dst_node1",dst_node1);
+    cmd.AddValue("dst_port1","dst_port1",dst_port1);
+    cmd.AddValue("src_node2","src_node2",src_node2);
+    cmd.AddValue("src_port2","src_port2",src_port2);
+    cmd.AddValue("dst_node2","dst_node2",dst_node2);
+    cmd.AddValue("dst_port2","dst_port2",dst_port2);
+    cmd.AddValue("show_routing","show routing table",show_routing_table);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
@@ -642,46 +402,7 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("torOutFile", "File path for ToR statistic", torOutFile);
     std::string pfcOutFile = "./pfc.txt";
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
-
     cmd.Parse (argc, argv);
-
-    flowEnd = FLOW_LAUNCH_END_TIME;
-
-    fctOutput = asciiTraceHelper.CreateFileStream (fctOutFile);
-
-    *fctOutput->GetStream () 
-            << "timestamp"
-            << " " << "flowsize"
-            << " " << "fctus"
-            << " " << "basefctus"
-            << " " << "slowdown"
-            << " " << "baserttus"
-            << " " << "priority"
-            << " " << "incastflow"
-            << std::endl;
-
-    torStats = torTraceHelper.CreateFileStream (torOutFile);
-    *torStats->GetStream() 
-                << "switch"
-                << " " << "totalused"
-                << " " << "egressOccupancyLossless"
-                << " " << "egressOccupancyLossy"
-                << " " << "ingressPoolOccupancy"
-                << " " << "headroomOccupancy"
-                << " " << "sharedPoolOccupancy"
-                << " " << "time"
-                << std::endl;
-
-    pfc_file = asciiTraceHelperpfc.CreateFileStream(pfcOutFile);
-
-    *pfc_file->GetStream()
-        << "Time"
-        << " " << "NodeId"
-        << " " << "NodeType"
-        << " " << "IfIndex"
-        << " " << "type"
-        << std::endl;
-
     std::string line;
     std::fstream aFile;
     aFile.open(alphasFile);
@@ -875,8 +596,6 @@ int main(int argc, char *argv[]){
         fflush(stdout);
     }
     conf.close();
-    kira::cout << "config finished" << std::endl;
-
     has_win = rdmaWindowCheck;
     var_win = rdmaVarWin;
 
@@ -930,7 +649,6 @@ int main(int argc, char *argv[]){
         else
             node_type[sid] = 2;
     }
-
     for (uint32_t i = 0; i < node_num; i++) {
         if (node_type[i] == 0) {
             Ptr<Node> node = CreateObject<Node>();
@@ -953,7 +671,6 @@ int main(int argc, char *argv[]){
             }
         }
     }
-    NS_LOG_INFO("Create nodes.");
     Config::SetDefault ("ns3::Ipv4GlobalRouting::FlowEcmpRouting", BooleanValue(false));
     InternetStackHelper internet;
     Ipv4GlobalRoutingHelper globalRoutingHelper;
@@ -966,7 +683,6 @@ int main(int argc, char *argv[]){
             serverAddress[i] = node_id_to_ip(i);
         }
     }
-    NS_LOG_INFO("Create channels.");
     //
     // Explicitly create the channels required by the topology.
     //
@@ -980,8 +696,7 @@ int main(int argc, char *argv[]){
 
     QbbHelper qbb;
     Ipv4AddressHelper ipv4;
-    for (uint32_t i = 0; i < link_num; i++)
-    {
+    for (uint32_t i = 0; i < link_num; i++){
         uint32_t src, dst;
         std::string data_rate, link_delay;
         double error_rate;
@@ -1022,17 +737,12 @@ int main(int argc, char *argv[]){
             ipv4->AddInterface(d.Get(1));
             ipv4->AddAddress(1, Ipv4InterfaceAddress(serverAddress[dst], Ipv4Mask(0xff000000)));
         }
-
-
         if (!snode->GetNodeType()) {
             sourceNodes[src].Add(DynamicCast<QbbNetDevice>(d.Get(0)));
         }
-
         if (!snode->GetNodeType() && dnode->GetNodeType()) {
             switchDown[switchIdToNum[dst]].Add(DynamicCast<QbbNetDevice>(d.Get(1)));
         }
-
-
         if (snode->GetNodeType() && dnode->GetNodeType()) {
             switchToSwitchInterfaces.Add(d);
             switchUp[switchIdToNum[src]].Add(DynamicCast<QbbNetDevice>(d.Get(0)));
@@ -1058,10 +768,6 @@ int main(int argc, char *argv[]){
         ipv4.SetBase(ipstring.str().c_str(), "255.255.255.0");
         // ipv4.SetBase(ipstring, "255.255.255.0");
         ipv4.Assign(d);
-
-        // setup PFC trace
-        DynamicCast<QbbNetDevice>(d.Get(0))->TraceConnectWithoutContext("QbbPfc", MakeBoundCallback (&get_pfc, pfc_file, DynamicCast<QbbNetDevice>(d.Get(0))));
-        DynamicCast<QbbNetDevice>(d.Get(1))->TraceConnectWithoutContext("QbbPfc", MakeBoundCallback (&get_pfc, pfc_file, DynamicCast<QbbNetDevice>(d.Get(1))));
     }
     nic_rate = get_nic_rate(n);
 #if ENABLE_QP
@@ -1105,172 +811,28 @@ int main(int argc, char *argv[]){
 
             node->AggregateObject (rdma);
             rdma->Init();
-            rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (qp_finish, fctOutput));
-            rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (flowinput_cb, fctOutput));
         }
     }
-
 #endif
-
     // set ACK priority on hosts
     if (ack_high_prio)
         RdmaEgressQueue::ack_q_idx = 0;
     else
         RdmaEgressQueue::ack_q_idx = 3;
-
     // setup routing
     CalculateRoutes(n);
     SetRoutingEntries();
-    //
-    // get BDP and delay
-    //
-    maxRtt = maxBdp = 0;
-    uint64_t minRtt = 1e9;
-    for (uint32_t i = 0; i < node_num; i++) {
-        if (n.Get(i)->GetNodeType() != 0)
-            continue;
-        for (uint32_t j = 0; j < node_num; j++) {
-            if (n.Get(j)->GetNodeType() != 0)
-                continue;
-            if (i == j)
-                continue;
-            uint64_t delay = pairDelay[n.Get(i)][n.Get(j)];
-            uint64_t txDelay = pairTxDelay[n.Get(i)][n.Get(j)];
-            uint64_t rtt = delay * 2 + txDelay;
-            uint64_t bw = pairBw[i][j];
-            uint64_t bdp = rtt * bw / 1000000000 / 8;
-            pairBdp[n.Get(i)][n.Get(j)] = bdp;
-            pairRtt[i][j] = rtt;
-            if (bdp > maxBdp)
-                maxBdp = bdp;
-            if (rtt > maxRtt)
-                maxRtt = rtt;
-            if (rtt < minRtt)
-                minRtt = rtt;
-        }
-    }
-    printf("maxRtt=%lu maxBdp=%lu minRtt=%lu\n", maxRtt, maxBdp, minRtt);
-
-
-    // config switch
-    // The switch mmu runs Dynamic Thresholds (DT) by default.
-    uint64_t totalHeadroom=0;
-    for (uint32_t i = 0; i < node_num; i++) {
-        if (n.Get(i)->GetNodeType()) { // is switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(n.Get(i));
-            totalHeadroom = 0;
-            sw->m_mmu->SetIngressLossyAlg(bufferalgIngress);
-            sw->m_mmu->SetIngressLosslessAlg(bufferalgIngress);
-            sw->m_mmu->SetEgressLossyAlg(bufferalgEgress);
-            sw->m_mmu->SetEgressLosslessAlg(bufferalgEgress);
-            sw->m_mmu->SetABMalphaHigh(1024);
-            sw->m_mmu->SetABMdequeueUpdateNS(maxRtt);
-            sw->m_mmu->SetPortCount(sw->GetNDevices() - 1); // set the actual port count here so that we don't always iterate over the default 256 ports.
-            sw->m_mmu->SetBufferModel(bufferModel);
-            sw->m_mmu->SetGamma(gamma);
-            // std::cout << "ports " << sw->GetNDevices() << " node " << i << std::endl;
-            for (uint32_t j = 1; j < sw->GetNDevices(); j++) {
-                Ptr<QbbNetDevice> dev = DynamicCast<QbbNetDevice>(sw->GetDevice(j));
-                uint64_t rate = dev->GetDataRate().GetBitRate();
-                // set port bandwidth in the mmu, used by ABM.
-                sw->m_mmu->bandwidth[j] = rate;
-                for (uint32_t qu = 0; qu < 8; qu++) {
-                    if (qu == 3 || qu == 0) { // lossless
-                        sw->m_mmu->SetAlphaIngress(alpha_values[qu], j, qu);
-                        sw->m_mmu->SetAlphaEgress(10000, j, qu);
-                        // set pfc
-                        double delay = DynamicCast<QbbChannel>(dev->GetChannel())->GetDelay().GetSeconds();
-                        uint32_t headroom = (packet_payload_size + 48) * 2 + 3860 + (2 * rate * delay / 8);
-                        // std::cout << headroom << std::endl;
-                        sw->m_mmu->SetHeadroom(headroom, j, qu);
-                        totalHeadroom += headroom;
-                    }
-                    else { // lossy
-                        sw->m_mmu->SetAlphaIngress(10000, j, qu);
-                        sw->m_mmu->SetAlphaEgress(alpha_values[qu], j, qu);
-                    }
-
-                    // set ecn
-                    NS_ASSERT_MSG(rate2kmin.find(rate) != rate2kmin.end(), "must set kmin for each link speed");
-                    NS_ASSERT_MSG(rate2kmax.find(rate) != rate2kmax.end(), "must set kmax for each link speed");
-                    NS_ASSERT_MSG(rate2pmax.find(rate) != rate2pmax.end(), "must set pmax for each link speed");
-                    sw->m_mmu->ConfigEcn(j, rate2kmin[rate], rate2kmax[rate], rate2pmax[rate]);
-                }
-
-            }
-            sw->m_mmu->SetBufferPool(buffer_size);
-            sw->m_mmu->SetIngressPool(buffer_size - totalHeadroom);
-            sw->m_mmu->SetSharedPool(buffer_size  - totalHeadroom);
-            sw->m_mmu->SetEgressLosslessPool(buffer_size);
-            sw->m_mmu->SetEgressLossyPool((buffer_size - totalHeadroom) * egressLossyShare);
-            sw->m_mmu->node_id = sw->GetId();
-        }
-        if (n.Get(i)->GetNodeType())
-            kira::cout << "total headroom: " << totalHeadroom << " ingressPool " << buffer_size - totalHeadroom << " egressLosslessPool " 
-                      << buffer_size << " egressLossyPool " << (uint64_t)((buffer_size - totalHeadroom) * egressLossyShare) 
-                      << " sharedPool " << buffer_size - totalHeadroom <<  std::endl;
-    }
-    //
-    // setup switch CC
-    //
-    for (uint32_t i = 0; i < node_num; i++) {
-        if (n.Get(i)->GetNodeType()) { // switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(n.Get(i));
-            sw->SetAttribute("CcMode", UintegerValue(rdmacc));
-            sw->SetAttribute("MaxRtt", UintegerValue(maxRtt));
-            sw->SetAttribute("PowerEnabled", BooleanValue(powertcp));
-        }
-    }
-
-    Ipv4GlobalRoutingHelper::PopulateRoutingTables();
-
-    NS_LOG_INFO("Create Applications.");
-
-    Time interPacketInterval = Seconds(0.0000005 / 2);
-
-
-    // maintain port number for each host
-    for (uint32_t i = 0; i < node_num; i++) {
-        if (n.Get(i)->GetNodeType() == 0)
-            for (uint32_t j = 0; j < node_num; j++) {
-                if (n.Get(j)->GetNodeType() == 0)
-                    portNumder[i][j] = rand_range(10000, 11000); // each host pair use port number from 10000
-            }
-    }
-    DestportNumder = portNumder;
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Applications Background*/
-    double oversubRatio = static_cast<double>(SERVER_COUNT * LEAF_SERVER_CAPACITY) / (SPINE_LEAF_CAPACITY * SPINE_COUNT * LINK_COUNT);
-    kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
-    if (randomSeed == 0){
-        srand ((unsigned)time (NULL));
-    }
-    else{
-        srand (randomSeed);
-    }
-
-    for (uint32_t i = 0; i < SERVER_COUNT * LEAF_COUNT; i++)
-        PORT_START[i] = 4444;
-    long flowCount = 1;
-
-    // 主进程处理
-    workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
-
-    kira::cout << "apps finished" << std::endl;
+    kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << std::endl;
     topof.close();
-    tracef.close();
-    double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
-    Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, spineNodes, delay);
 
-    Ipv4GlobalRoutingHelper::PopulateRoutingTables();
-    NS_LOG_INFO("Run Simulation.");
-    Simulator::Stop(Seconds(END_TIME));
-    Simulator::Run();
-    Simulator::Destroy();
-    MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成模拟
-    MPI_Type_free(&MPI_FlowInfo); // 释放MPI数据类型
-    NS_LOG_INFO("Done.");
+    auto path1 = TraceActualPath(src_node1,dst_node1,src_port1,dst_port1);
+    auto path2 = TraceActualPath(src_node2,dst_node2,src_port2,dst_port2);
+    bool hasIntersection = CheckPathIntersection(path1, path2);
+    kira::cout << "Paths intersection status: " << std::boolalpha << hasIntersection << std::endl;
+
+    // Simulator::Stop(Seconds(END_TIME));
+    // Simulator::Run();
+    // Simulator::Destroy();
     kira::cout<<"Done"<<std::endl;
-    MpiInterface::Disable(); // 禁用MPI
 }
