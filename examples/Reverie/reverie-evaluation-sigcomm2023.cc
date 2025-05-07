@@ -397,7 +397,7 @@ void flowSend(FlowInfo &flow){
     appCon.Start(Seconds(0));//to be changed?
     kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
             " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
-            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len ;
+            " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" ";
     // auto paths = flowPath[{flow.src_node, flow.dst_node}];
     // for (auto& path : paths) {
     //     for (uint32_t idx = 0; idx < path.size(); idx++) {
