@@ -315,7 +315,7 @@ bool CheckPathIntersection(
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
-    if (!kira::init_log("examples/Reverie/dump_sigcomm/checkflow.log")) {
+    if (!kira::init_log("examples/Reverie/dump/checkflow.log")) {
         std::cout << "日志文件创建失败" << std::endl;
         return -1;
     }

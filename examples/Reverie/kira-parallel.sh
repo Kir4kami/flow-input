@@ -3,8 +3,8 @@ cd ../..
 cd examples/Reverie/
 source config.sh
 DIR=$(pwd)
-DUMP_DIR=$DIR/dump_sigcomm
-RESULTS_DIR=$DIR/results_sigcomm
+DUMP_DIR=$DIR/dump
+RESULTS_DIR=$DIR/results
 
 if [ ! -d "$DUMP_DIR" ];then
 	mkdir $DUMP_DIR
@@ -31,7 +31,9 @@ CUBIC=2
 DCTCP=4
 
 NUM=0
-DST=3
+DST=1
+
+PARRAL=16
 
 BUFFER_ALGS=($REVERIE)
 
@@ -78,7 +80,7 @@ for rdmaload in ${LOADS[@]};do
 		PFCFILE=$DUMP_DIR/evaluation-$alg-$RDMACC-$TCPCC-$rdmaload-$tcpload-$rdmaburst-$tcpburst-$egresslossyFrac-$gamma.pfc
 		echo $FCTFILE
 		if [[ $EXP == 1 ]];then
-			(time  mpirun -np $DST ./ns3 run "reverie-evaluation-sigcomm2023 --DST=$DST --powertcp=true --bufferalgIngress=$alg --bufferalgEgress=$alg --rdmacc=$RDMACC --rdmaload=$rdmaload --rdmarequestSize=$rdmaburst --rdmaqueryRequestRate=$RDMAREQRATE --tcpload=$tcpload --tcpcc=$TCPCC --enableEcn=true --tcpqueryRequestRate=$TCPREQRATE --tcprequestSize=$tcpburst --egressLossyShare=$egresslossyFrac --bufferModel=$BUFFERMODEL --gamma=$gamma --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --buffersize=$BUFFERSIZE --fctOutFile=$FCTFILE --torOutFile=$TORFILE --alphasFile=$ALPHAFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2> $DUMPFILE)&
+			(time  mpirun -np $DST ./ns3 run "reverie-evaluation-sigcomm2023 --PARRAL=$PARRAL --DST=$DST --powertcp=true --bufferalgIngress=$alg --bufferalgEgress=$alg --rdmacc=$RDMACC --rdmaload=$rdmaload --rdmarequestSize=$rdmaburst --rdmaqueryRequestRate=$RDMAREQRATE --tcpload=$tcpload --tcpcc=$TCPCC --enableEcn=true --tcpqueryRequestRate=$TCPREQRATE --tcprequestSize=$tcpburst --egressLossyShare=$egresslossyFrac --bufferModel=$BUFFERMODEL --gamma=$gamma --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --buffersize=$BUFFERSIZE --fctOutFile=$FCTFILE --torOutFile=$TORFILE --alphasFile=$ALPHAFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2> $DUMPFILE)&
 			sleep 5
 		fi
 		NUM=$(( $NUM+1  ))
