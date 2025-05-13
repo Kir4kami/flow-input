@@ -26,14 +26,11 @@
 #include "ns3/mpi-interface.h"
 
 #include <cmath>
-#include <fstream>
-#include <iostream>
 #include <iomanip>
 #include <map>
 #include <ctime>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
@@ -353,10 +350,12 @@ T rand_range (T min, T max)
 
 //written by Kira START
 
-vector<vector<FlowInfo>> flowInfos;
-u_int16_t systemId=0;
-u_int16_t BatchCur=0;
-u_int16_t flowCom=0;
+vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个DP][第几个phase][第几个flow]
+uint16_t systemId=0;
+uint16_t systemNum=0;
+vector<uint16_t> phaseCur;
+vector<uint16_t> flowCom;
+std::unordered_map<FlowKey,uint16_t> flowToPar;//多个DP并行
 MPI_Datatype MPI_FlowInfo;
 
 void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
@@ -447,80 +446,105 @@ MPI_Datatype create_MPI_FlowInfo() {
     return MPI_FlowInfo;
 }
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-    flowCom++;
-    kira::cout<<" system "<< systemId <<" phase "<<BatchCur<<" flow "<<
-        flowCom<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-    if(flowCom>=flowInfos[BatchCur].size()){
-        BatchCur++;
-        flowCom=0;
-        kira::cout<<"complete a phase"<<std::endl;
-        if(BatchCur>=flowInfos.size())
+    FlowKey key = {(int)ip_to_node_id(q->sip),(int)ip_to_node_id(q->dip)};
+    uint16_t par=flowToPar[key];
+    flowCom[par]++;
+    kira::cout<<" parral "<< par <<" phase "<<phaseCur[par]<<" flow "<<
+        flowCom[par]<<" "<<Simulator::Now().GetSeconds()<<std::endl;
+    if(flowCom[par]>=flowInfos[par][phaseCur[par]].size()){
+        phaseCur[par]++;
+        flowCom[par]=0;
+        kira::cout<<"parral "<<par<<" complete a phase"<<std::endl;
+        if(phaseCur[par]>=flowInfos[par].size())
             return ;
         Simulator::Stop();
-        for(FlowInfo flow:flowInfos[BatchCur])
+        for(FlowInfo flow:flowInfos[par][phaseCur[par]])
             flowSend(flow);
         Simulator::Run();
     }
 }
-void branch_read_info(uint16_t sysid){//branch process send flowInfo
-    kira::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
-    std::string flowInputFileName= "examples/Reverie/flowinputtest"+to_string(systemId)+".txt";
-    flowInput.open(flowInputFileName.c_str());
-    if (!flowInput.is_open())
-        kira::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
-    std::string line;
-    int batch = -1;
-    while (std::getline(flowInput, line)) {
-        if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
-        std::stringstream ss(line);
-        std::string  type_str;
-        if (line.find("phase")!=string::npos){//phase
-            double phase;
-            ss >> type_str >> phase;
-            flowInfos.emplace_back(vector<FlowInfo> {});
-            batch++;
-            continue;
-        }
-        FlowInfo flow;
-        ss >> type_str >> flow.type;
-        ss >> type_str >> flow.src_node;
-        ss >> type_str >> flow.src_port;
-        ss >> type_str >> flow.dst_node;
-        ss >> type_str >> flow.dst_port;
-        ss >> type_str >> flow.priority;
-        ss >> type_str >> flow.msg_len;
-        flowInfos[batch].emplace_back(flow);
-    }
-    flowInput.close();//read file end
-    int length=flowInfos.size();
-    MPI_Send(&length, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-    for (auto& row : flowInfos) {
-        int cols = row.size();
-        MPI_Send(&cols, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
-        MPI_Send(row.data(), cols, MPI_FlowInfo, 0, 2, MPI_COMM_WORLD);
-    }
-}
-u_int16_t DST;
+uint16_t DST;
+uint16_t PARRAL=1;
+// void branch_read_info(uint16_t sysid){//branch process send flowInfo
+//     kira::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
+//     for(int i=systemId-1;i<PARRAL;i+=(systemNum-1)){
+//         flowInfos.clear();
+//         std::string flowInputFileName= "examples/Reverie/rdma_operate"+to_string(i)+".txt";
+//         flowInput.open(flowInputFileName.c_str());
+//         if (!flowInput.is_open())
+//             kira::cout << "system :"<< systemId <<"unable to open flowInputFile!" << std::endl;
+//         std::string line;
+//         int batch = -1;
+//         while (std::getline(flowInput, line)) {
+//             if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
+//             std::stringstream ss(line);
+//             std::string  type_str;
+//             if (line.find("phase")!=string::npos){//phase
+//                 double phase;
+//                 ss >> type_str >> phase;
+//                 flowInfos.emplace_back(vector<FlowInfo> {});
+//                 batch++;
+//                 continue;
+//             }
+//             FlowInfo flow;
+//             ss >> type_str >> flow.type;
+//             ss >> type_str >> flow.src_node;
+//             ss >> type_str >> flow.src_port;
+//             ss >> type_str >> flow.dst_node;
+//             ss >> type_str >> flow.dst_port;
+//             ss >> type_str >> flow.priority;
+//             ss >> type_str >> flow.msg_len;
+//             flowInfos[batch].emplace_back(flow);
+//         }
+//         flowInput.close();//read file end
+//         int length=flowInfos.size();
+//         MPI_Send(&length, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+//         for (auto& row : flowInfos) {
+//             int cols = row.size();
+//             MPI_Send(&cols, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
+//             MPI_Send(row.data(), cols, MPI_FlowInfo, 0, 2, MPI_COMM_WORLD);
+//         }
+//     }
+// }
+
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
     kira::cout<<"Reading flow info"<< std::endl;
+    flowInfos.resize(PARRAL);
+    flowCom.resize(PARRAL,0);
+    phaseCur.resize(PARRAL,0);
     std::string line;
-    int batch = 0;
-    for (int src = 1; src < DST; src++) {
-        int rows;
-        MPI_Recv(&rows, 1, MPI_INT, src, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        for (int i = 0; i < rows; i++) {
-            flowInfos.emplace_back(vector<FlowInfo> {});
-            int cols;
-            MPI_Recv(&cols, 1, MPI_INT, src, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            flowInfos[batch].resize(cols);
-            MPI_Recv(flowInfos[batch].data(), cols, MPI_FlowInfo, src, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            batch++;
-            kira::cout<<"recv flowInfo from system:"<<src<<std::endl;
+    for(int i=0;i<PARRAL;i++){
+        std::string flowInputFileName= "examples/Reverie/rdma_operate"+to_string(i)+".txt";
+        flowInput.open(flowInputFileName.c_str());
+        if (!flowInput.is_open())
+            kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;
+        int phase = -1;
+        while (std::getline(flowInput, line)) {
+            if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
+            std::stringstream ss(line);
+            std::string type_str;
+            if (line.find("phase")!=string::npos){//phase
+                ss >> type_str >> type_str;
+                flowInfos[i].emplace_back(vector<FlowInfo> {});
+                phase++;
+                continue;
+            }
+            FlowInfo flow;
+            ss >> type_str >> flow.type;
+            ss >> type_str >> flow.src_node;
+            ss >> type_str >> flow.src_port;
+            ss >> type_str >> flow.dst_node;
+            ss >> type_str >> flow.dst_port;
+            ss >> type_str >> flow.priority;
+            ss >> type_str >> flow.msg_len;
+            flowInfos[i][phase].emplace_back(flow);
+            flowToPar[{flow.src_node,flow.dst_node}]=i;
         }
-        // 处理接收到的 flowInfos
+        flowInput.close();
+        for(FlowInfo flow:flowInfos[i][phaseCur[i]])//start first phase
+            flowSend(flow);
     }
-    for(FlowInfo flow:flowInfos[BatchCur])//start first phase
-        flowSend(flow);
+    
 }
 //written by Kira END
 
@@ -552,21 +576,22 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 int main(int argc, char *argv[]){
     MpiInterface::Enable(&argc, &argv); // 初始化MPI
     systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
+    systemNum = MpiInterface::GetSize();//记录当前所有进程数
     MPI_FlowInfo = create_MPI_FlowInfo();
     
-    if (!kira::init_log("examples/Reverie/dump_sigcomm/system"+to_string(systemId)+".log")) {
+    if (!kira::init_log("examples/Reverie/dump/system"+to_string(systemId)+".log")) {
         std::cout << "system: " << systemId << " 日志文件创建失败" << std::endl;
         return -1;
     }
 
-    if(systemId!=0){ // 分支进程
-        branch_read_info(systemId);
-        kira::cout<<"system" <<systemId<<"read end"<<std::endl;
-        MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成读取
-        kira::cout<<"system" <<systemId<<"end"<<std::endl;
-        MpiInterface::Disable(); // 禁用MPI
-        return systemId;
-    }
+    // if(systemId!=0){ // 分支进程
+    //     branch_read_info(systemId);
+    //     kira::cout<<"system" <<systemId<<"read end"<<std::endl;
+    //     MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成读取
+    //     kira::cout<<"system" <<systemId<<"end"<<std::endl;
+    //     MpiInterface::Disable(); // 禁用MPI
+    //     return systemId;
+    // }
     
     std::string confFile = "examples/Reverie/config-workload.txt";
 
@@ -592,6 +617,7 @@ int main(int argc, char *argv[]){
 
     CommandLine cmd;
     cmd.AddValue("DST", "number of system", DST);
+    cmd.AddValue("PARRAL", "PARRALEL DP", PARRAL);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
@@ -1023,7 +1049,6 @@ int main(int argc, char *argv[]){
             ipv4->AddAddress(1, Ipv4InterfaceAddress(serverAddress[dst], Ipv4Mask(0xff000000)));
         }
 
-
         if (!snode->GetNodeType()) {
             sourceNodes[src].Add(DynamicCast<QbbNetDevice>(d.Get(0)));
         }
@@ -1031,7 +1056,6 @@ int main(int argc, char *argv[]){
         if (!snode->GetNodeType() && dnode->GetNodeType()) {
             switchDown[switchIdToNum[dst]].Add(DynamicCast<QbbNetDevice>(d.Get(1)));
         }
-
 
         if (snode->GetNodeType() && dnode->GetNodeType()) {
             switchToSwitchInterfaces.Add(d);
@@ -1102,7 +1126,6 @@ int main(int argc, char *argv[]){
             Ptr<Node> node = n.Get(i);
             rdma->SetNode(node);
             rdma->SetRdmaHw(rdmaHw);
-
             node->AggregateObject (rdma);
             rdma->Init();
             rdma->TraceConnectWithoutContext("QpComplete", MakeBoundCallback (qp_finish, fctOutput));
@@ -1227,7 +1250,6 @@ int main(int argc, char *argv[]){
     NS_LOG_INFO("Create Applications.");
 
     Time interPacketInterval = Seconds(0.0000005 / 2);
-
 
     // maintain port number for each host
     for (uint32_t i = 0; i < node_num; i++) {
