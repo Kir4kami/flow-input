@@ -397,20 +397,6 @@ void flowSend(FlowInfo &flow){
     kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
             " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
             " time " << Simulator::Now().GetSeconds() << " flowsize "<< flow.msg_len <<" ";
-    // auto paths = flowPath[{flow.src_node, flow.dst_node}];
-    // for (auto& path : paths) {
-    //     for (uint32_t idx = 0; idx < path.size(); idx++) {
-    //         kira::cout << " " << path[idx];
-    //         if (idx < path.size() - 1) {
-    //             Ptr<Node> current = n.Get(path[idx]);
-    //             Ptr<Node> next = n.Get(path[idx+1]);
-    //             uint32_t port = nbr2if[current][next].idx;
-    //             kira::cout << ":" << port;
-    //         }
-    //         if (idx != path.size() - 1)
-    //             kira::cout << " -> ";
-    //     }
-    // }
     TraceActualPath(flow.src_node, flow.dst_node, flow.src_port, flow.dst_port);
 }
 MPI_Datatype create_MPI_FlowInfo() {
@@ -514,7 +500,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
     phaseCur.resize(PARRAL,0);
     std::string line;
     for(int i=0;i<PARRAL;i++){
-        std::string flowInputFileName= "examples/Reverie/rdma_operate"+to_string(i)+".txt";
+        std::string flowInputFileName= "examples/Reverie/rdma_operate/rdma_operate"+to_string(i)+".txt";
         flowInput.open(flowInputFileName.c_str());
         if (!flowInput.is_open())
             kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;

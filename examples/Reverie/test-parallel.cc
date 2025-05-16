@@ -261,12 +261,7 @@ uint64_t get_nic_rate(NodeContainer &n) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Applications */
-vector<vector<FlowInfo>> flowInfos;
-u_int16_t systemId=0;
-u_int16_t BatchCur=0;
-u_int16_t flowCom=0;
-MPI_Datatype MPI_FlowInfo;
-
+vector<FlowInfo> flowInfos;
 std::vector<std::pair<uint32_t, uint32_t>> TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
     Ptr<Node> current = n.Get(src_node);
     uint32_t current_id = src_node;
@@ -299,8 +294,7 @@ std::vector<std::pair<uint32_t, uint32_t>> TraceActualPath(uint32_t src_node, ui
 }
 bool CheckPathIntersection(
     const std::vector<std::pair<uint32_t, uint32_t>>& path1,
-    const std::vector<std::pair<uint32_t, uint32_t>>& path2) 
-{
+    const std::vector<std::pair<uint32_t, uint32_t>>& path2) {
     std::set<std::pair<uint32_t, uint32_t>> pathSet;
     for (const auto& node_port : path1) {
         pathSet.insert(node_port);
@@ -311,6 +305,52 @@ bool CheckPathIntersection(
         }
     }
     return false;
+}
+uint16_t operateNum=16;
+void executeFlow(std::string flowPath="examples/Reverie/rdma_operates",std::string pathPath="examples/Reverie/operate_path"){//处理流量文件，生成路径文件
+    std::ifstream flowFile;
+    std::ofstream pathFile;
+    for(int idx=0;idx<operateNum;idx++){
+        flowFile.open(flowPath+'/'+"rdma_operate"+std::to_string(idx)+".txt");
+        if (!flowFile) {
+            kira::cout << flowPath+'/'+"rdma_operate"+std::to_string(idx)+".txt" << std::endl;
+            kira::cout << "无法打开流量文件 operate" << idx << std::endl;
+            return;
+        }
+        pathFile.open(pathPath+'/'+"operate_path"+std::to_string(idx)+".txt");
+        if (!pathFile) {
+            kira::cout << "无法打开路径文件 operate" << idx << std::endl;
+            flowFile.close();
+            return;
+        }
+        std::string line;
+        while (std::getline(flowFile, line)) {
+            if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos 
+                || line.find("phase")!=string::npos) continue;
+            std::stringstream ss(line);
+            std::string type_str;
+            FlowInfo flow;
+            ss >> type_str >> flow.type;
+            ss >> type_str >> flow.src_node;
+            ss >> type_str >> flow.src_port;
+            ss >> type_str >> flow.dst_node;
+            ss >> type_str >> flow.dst_port;
+            ss >> type_str >> flow.priority;
+            ss >> type_str >> flow.msg_len;
+            auto path = TraceActualPath(flow.src_node, flow.dst_node, 
+                flow.src_port, flow.dst_port);
+            for (size_t i = 0; i < path.size(); i++) {
+                pathFile << path[i].first << ":" << path[i].second;
+                if (i != path.size() - 1) {
+                    pathFile << " -> ";
+                }
+            }    
+            pathFile << std::endl;
+        }
+        flowFile.close();
+        pathFile.close();
+        flowInfos.clear();
+    }
 }
 /******************************************************************************************************************************************************************************************************/
 
@@ -826,13 +866,6 @@ int main(int argc, char *argv[]){
     kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << std::endl;
     topof.close();
 
-    auto path1 = TraceActualPath(src_node1,dst_node1,src_port1,dst_port1);
-    auto path2 = TraceActualPath(src_node2,dst_node2,src_port2,dst_port2);
-    bool hasIntersection = CheckPathIntersection(path1, path2);
-    kira::cout << "Paths intersection status: " << std::boolalpha << hasIntersection << std::endl;
-
-    // Simulator::Stop(Seconds(END_TIME));
-    // Simulator::Run();
-    // Simulator::Destroy();
+    executeFlow();
     kira::cout<<"Done"<<std::endl;
 }
