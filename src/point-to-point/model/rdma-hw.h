@@ -8,6 +8,7 @@
 #include "qbb-net-device.h"
 #include <unordered_map>
 #include "pint.h"
+#include "flow-acc.h"
 
 namespace ns3 {
 

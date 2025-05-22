@@ -39,6 +39,7 @@
 #include<numeric> //accmulate
 // #include <ns3/rdma.h>
 // #define ENABLE_QP 1
+#include "flow-acc.h"
 
 namespace ns3 {
 
@@ -97,7 +98,8 @@ public:
   void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
   // 计算速率并输出
   void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
-  //计算剩余流量大小除以已测量的速度均值，获取最小时间
+  void exitSteadyState();
+  // 计算剩余流量大小除以已测量的速度均值，获取最小时间
   void calculateMintime();
   //计算流完成时间的子函数
   void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);

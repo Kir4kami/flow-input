@@ -107,7 +107,7 @@
                 "release",
                 "minsizerel"
             ],
-            "default": "default"
+            "default": "debug"
         }
     ]
 }

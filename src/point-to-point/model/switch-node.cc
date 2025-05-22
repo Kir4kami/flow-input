@@ -17,6 +17,7 @@
 #include "ns3/custom-priority-tag.h"
 #include "ns3/feedback-tag.h"
 #include "ns3/unsched-tag.h"
+#include "flow-acc.h"
 
 namespace ns3 {
 
@@ -367,6 +368,31 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	m_lastPktSize[ifIndex] = p->GetSize();
 	m_lastPktTs[ifIndex] = Simulator::Now().GetTimeStep();
 }
+
+void
+SwitchNode::BandWidthMonitor(Ptr<Packet> packet, CustomHeader& ch)
+{
+	uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+    uint16_t packetSize = packet->GetSize();
+    // 检查该流是否存�?
+    auto it = NodeStats.find(m_id);
+    
+    if (it == NodeStats.end()){
+        // 流不存在，创建新�?
+        NodeStat newStat = { packetSize, currentTime,0 };
+        NodeStats[m_id] = newStat;
+    }else{
+		if(currentTime-it->second.timestamp>= MONITOR_PERIOD){
+			double rate = static_cast<double>(it->second.byteCount)*8 / MONITOR_PERIOD;  // 
+			it->second.byteCount=packetSize;
+			it->second.timestamp=currentTime;
+		}else{
+			it->second.byteCount+=packetSize;
+		}
+	}
+}
+
+
 
 int SwitchNode::logres_shift(int b, int l) {
 	static int data[] = {0, 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};

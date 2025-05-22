@@ -379,8 +379,8 @@ main (int argc, char *argv[])
 	uint32_t nPrior = 2; // number queues in switch ports
 	cmd.AddValue ("nPrior", "number of priorities", nPrior);
 
-	std::string alphasFile = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/examples/ABM/alphas"; // On lakewood
-	std::string cdfFileName = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/examples/ABM/websearch.txt";
+	std::string alphasFile = "examples/ABM/alphas"; // On lakewood
+	std::string cdfFileName = "examples/ABM/websearch.txt";
 	std::string cdfName = "WS";
 	cmd.AddValue ("alphasFile", "alpha values file (should be exactly nPrior lines)", alphasFile);
 	cmd.AddValue ("cdfFileName", "File name for flow distribution", cdfFileName);
