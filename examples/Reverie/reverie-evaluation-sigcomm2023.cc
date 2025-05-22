@@ -666,7 +666,8 @@ int main(int argc, char *argv[]){
     cmd.AddValue("bufferModel", "the buffer model to be used in the switch MMU", bufferModel);
     double gamma = 0.99;
     cmd.AddValue("gamma","gamma parameter value for Reverie", gamma);
-    std::string alphasFile = "/home/vamsi/src/phd/codebase/ns3-datacenter/simulator/ns-3.35/examples/Reverie/alphas"; // On lakewood
+
+    std::string alphasFile = "examples/Reverie/alphas"; // On lakewood
     cmd.AddValue ("alphasFile", "alpha values file (should be exactly nPrior lines)", alphasFile);
     cmd.AddValue("incast", "incast", incast);
     std::string fctOutFile = "./fcts.txt";

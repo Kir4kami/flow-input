@@ -21,6 +21,7 @@
 #define SCHEDULER_H
 
 #include "object.h"
+#include "mixed-granularity.h"
 
 #include <stdint.h>
 
@@ -171,6 +172,7 @@ class Scheduler : public Object
         uint64_t m_ts;      /**< Event time stamp. */
         uint32_t m_uid;     /**< Event unique id. */
         uint32_t m_context; /**< Event context. */
+        int transition_stage;
     };
 
     /**

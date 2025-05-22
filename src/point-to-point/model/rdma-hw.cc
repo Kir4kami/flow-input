@@ -412,7 +412,14 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 	uint8_t cnp = (ch.ack.flags >> qbbHeader::FLAG_CNP) & 1;
 	int i;
 	Ptr<RdmaQueuePair> qp = GetQp(ch.sip, port, qIndex);
-	if (qp == NULL) {
+	/*std::ostringstream oss;
+	uint32_t srcId = ((ch.dip >> 8) & 0xffff);
+	uint32_t dstId = ((ch.sip >> 8) & 0xffff);
+    oss << srcId << "-" << dstId << "-" << ch.ack.dport << "-" << ch.ack.sport;
+	std::string flowid = oss.str();
+	auto it=filter.find(flowid);
+	auto it_flow_status=flowStats.find(flowid);*/
+	if (qp == NULL/*||(it==filter.end()&&it_flow_status==flowStats.end())*/) {
 		std::cout << "ERROR: " << "node:" << m_node->GetId() << ' ' << (ch.l3Prot == 0xFC ? "ACK" : "NACK") << " NIC cannot find the flow\n";
 		return 0;
 	}
@@ -429,6 +436,15 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 			qp->Acknowledge(goback_seq);
 		}
 		if (qp->IsFinished()) {
+			std::ostringstream oss;
+			oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
+			std::string flowid = oss.str();
+			auto iter=flow_fin_unack.find(flowid);
+			if(iter!=flow_fin_unack.end())
+				flow_fin_unack.erase(iter);
+			auto iter_flowStat=flowStats.find(flowid);
+			if(iter_flowStat!=flowStats.end())
+				flowStats.erase(iter_flowStat);
 			QpComplete(qp);
 		}
 	}
@@ -483,6 +499,8 @@ int RdmaHw::ReceiverCheckSeq(uint32_t seq, Ptr<RdmaRxQueuePair> q, uint32_t size
 		}
 	} else if (seq > expected) {
 		// Generate NACK
+		q->ReceiverNextExpectedSeq = seq + size;
+		return 1;
 		if (Simulator::Now() >= q->m_nackTimer || q->m_lastNACK != expected) {
 			q->m_nackTimer = Simulator::Now() + MicroSeconds(m_nack_interval);
 			q->m_lastNACK = expected;
@@ -512,7 +530,8 @@ uint16_t RdmaHw::EtherToPpp (uint16_t proto) {
 }
 
 void RdmaHw::RecoverQueue(Ptr<RdmaQueuePair> qp) {
-	qp->snd_nxt = qp->snd_una;
+	if(qp->snd_una>qp->snd_nxt)
+		qp->snd_nxt = qp->snd_una;
 }
 
 void RdmaHw::QpComplete(Ptr<RdmaQueuePair> qp) {
@@ -609,7 +628,12 @@ Ptr<Packet> RdmaHw::GetNxtPacket(Ptr<RdmaQueuePair> qp) {
 	// update state
 	qp->snd_nxt += payload_size;
 	qp->m_ipid++;
-
+	if(qp->snd_nxt==qp->m_size){
+		std::ostringstream oss;
+		oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
+		std::string flowid = oss.str();
+		flow_fin_unack.insert(flowid);
+	}
 	// return
 	return p;
 }

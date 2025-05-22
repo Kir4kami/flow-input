@@ -50,10 +50,13 @@
 #include "ns3/rdma-tag.h"
 #include "ns3/interface-tag.h"
 #include "ns3/unsched-tag.h"
-#include "flow-acc.h"
 #include "ns3/node-list.h"
 
 #include <iostream>
+#include "ns3/mixed-granularity.h"
+#include "qbb-net-device.h"
+
+bool allSteadyStateReached=false;
 
 NS_LOG_COMPONENT_DEFINE("QbbNetDevice");
 
@@ -62,18 +65,13 @@ namespace ns3 {
 uint32_t RdmaEgressQueue::ack_q_idx = 3;
 uint32_t RdmaEgressQueue::tcpip_q_idx = 1;
 
-//计算接收端口流量速率的变量
-uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
-bool isFirstOpen = true;
-std::map<std::string, FlowStat> flowStats; //flowid,size字节数,存储流的统计信息
-uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
-bool inSteadyState = false;         // 标识系统是否处于稳态
-double flowMinTime = 1.79769e+308;	//整个系统最小流完成时间
+//计算接收端口流量速率的变�?
+
 //int number_test = 0;//做一个计数实验，看判断多少次最小流完成时间
 
 // RdmaEgressQueue
-//使用 TypeId 机制来查询 RdmaEgressQueue 的类型信息
-//监听 RdmaEgressQueue 中数据包的入队 (Enqueue) 和出队 (Dequeue) 事
+//使用 TypeId 机制来查�? RdmaEgressQueue 的类型信�?
+//监听 RdmaEgressQueue 中数据包的入�? (Enqueue) 和出�? (Dequeue) �?
 TypeId RdmaEgressQueue::GetTypeId (void)
 {
 	static TypeId tid = TypeId ("ns3::RdmaEgressQueue")
@@ -119,7 +117,8 @@ Ptr<Packet> RdmaEgressQueue::DequeueQindex(int qIndex) {
 	return 0;
 }
 
-//在 RDMA 出队过程中选择下一个队列索引 (qIndex)
+
+//�? RDMA 出队过程中选择下一个队列索�? (qIndex)
 int RdmaEgressQueue::GetNextQindex(bool paused[]) {
 	bool found = false;
 	uint32_t qIndex;
@@ -191,7 +190,7 @@ uint32_t RdmaEgressQueue::GetFlowCount(void) {
 	return m_qpGrp->GetN();
 }
 
-//获取特定的 QP
+//获取特定�? QP
 Ptr<RdmaQueuePair> RdmaEgressQueue::GetQp(uint32_t i) {
 	return m_qpGrp->Get(i);
 }
@@ -314,6 +313,11 @@ QbbNetDevice::TransmitStart(Ptr<Packet> p)
 	m_phyTxBeginTrace(m_currentPkt);
 
 	Time txTime = m_bps.CalculateBytesTxTime(p->GetSize());
+	auto it = node_latency_fix.find(m_node->GetId());
+	if(it!=node_latency_fix.end()){
+		txTime+=it->second;
+		node_latency_fix.erase(it);
+	}
 	Time txCompleteTime = txTime + m_tInterframeGap;
 
 	NS_LOG_LOGIC("Schedule TransmitCompleteEvent in " << txCompleteTime.GetSeconds() << "sec");
@@ -356,7 +360,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 				p = m_rdmaEQ->DequeueQindex(qIndex);
 				m_traceDequeue(p, 0);
 				TransmitStart(p);
-				numTxBytes += p->GetSize(); //当前发送窗口的数据量
+				numTxBytes += p->GetSize(); //当前发送窗口的数据�?
 				totalBytesSent += p->GetSize(); //总发送量
 				return;
 			}
@@ -388,7 +392,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 			TransmitStart(p);
 
 			// update for the next avail time
-			m_rdmaPktSent(lastQp, p, m_tInterframeGap);//通知 QP 该数据包已发送，并设置下次可用时间 (m_tInterframeGap)
+			m_rdmaPktSent(lastQp, p, m_tInterframeGap);//通知 QP 该数据包已发送，并设置下次可用时�? (m_tInterframeGap)
 			totalBytesSent += p->GetSize();
 		} else { // no packet to send
 			NS_LOG_INFO("PAUSE prohibits send at node " << m_node->GetId());
@@ -448,7 +452,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 	return;
 }
 
-//恢复在指定队列 qIndex 上暂停的传输
+//恢复在指定队�? qIndex 上暂停的传输
 void
 QbbNetDevice::Resume(unsigned qIndex)
 {
@@ -466,8 +470,8 @@ QbbNetDevice::SetReceiveCallback (NetDevice::ReceiveCallback cb)
 	m_rxCallback = cb;
 }
 
-//从包 p 中移除 PPP头。
-//提取 PPP 协议号，并使用 PppToEther() 将其转换为以太网协议号
+//从包 p 中移�? PPP头�?
+//提取 PPP 协议号，并使�? PppToEther() 将其转换为以太网协议�?
 bool
 QbbNetDevice::ProcessHeader (Ptr<Packet> p, uint16_t& param)
 {
@@ -531,7 +535,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 
 	CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
 	ch.getInt = 1; // parse INT header
-	packet->PeekHeader(ch);//查看但不移除数据包中的头部信息
+	packet->PeekHeader(ch);//查看但不移除数据包中的头部信�?
 	if (ch.l3Prot == 0xFE) { // PFC
 		if (!m_qbbEnabled) return;
 		unsigned qIndex = ch.pfc.qIndex;
@@ -559,7 +563,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				m_phyRxEndTrace (packet);
 				Ptr<Packet> originalPacket = packet->Copy ();
 				uint16_t prot = 0;
-				ProcessHeader (packet, prot);//PPP（Point-to-Point Protocol）协议号转换为以太网协议号
+				ProcessHeader (packet, prot);//PPP（Point-to-Point Protocol）协议号转换为以太网协议�?
 
 				if (!m_promiscCallback.IsNull ())
 				{
@@ -583,7 +587,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
     			}
 				GenerateFlowId(cp,ch,flowstatsFile);
 				
-				// 如果是第一次打开，设置标志为false，后续追加
+				// 如果是第一次打开，设置标志为false，后续追�?
             	isFirstOpen = false;
 				flowstatsFile.close();
 				}
@@ -592,27 +596,33 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			// TODO we may based on the ret do something
 		}
 	}
+	if(allSteadyStateReached){
+		Simulator::ScheduleNow( &ns3::QbbNetDevice::exitSteadyState, this);
+		allSteadyStateReached=false;
+		transition_cnt++;
+	}
+
 	return;
 }
 
 //生成flowid和获取数据包大小
 void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile)
 {
-	uint8_t protocol = header.l3Prot; // 获取协议号
+	uint8_t protocol = header.l3Prot; // 获取协议�?
     uint32_t srcIp = header.sip; // 获取源IP地址
     uint32_t dstIp = header.dip; // 获取目标IP地址
 	//将IP转换成ID
 	uint32_t srcId = ((srcIp >> 8) & 0xffff);
 	uint32_t dstId = ((dstIp >> 8) & 0xffff);
     uint16_t srcPort = 0; // 源端口号
-    uint16_t dstPort = 0; // 目标端口号
-	//获取数据包大小
+    uint16_t dstPort = 0; // 目标端口�?
+	//获取数据包大�?
 	uint16_t packetSize = 0;
-	// 根据协议类型处理传输层头部
+	// 根据协议类型处理传输层头�?
     if (protocol == 0x11) // UDP协议号为17
     {
         srcPort = header.udp.sport; // 获取源端口号
-        dstPort = header.udp.dport; // 获取目标端口号
+        dstPort = header.udp.dport; // 获取目标端口�?
 		packetSize = cp->GetSize();
 		//packetSize = header.udp.payload_size;
 		//packetSize = header.m_payloadSize;
@@ -620,7 +630,7 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
     else
     {
         NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
-        return ; // 返回默认值表示不支持的协议
+        return ; // 返回默认值表示不支持的协�?
     }
 
     // 将所有信息组合成一个字符串
@@ -638,30 +648,30 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
 	}*/
 
 	//计算速率
-	onPacketReceived(flowid, packetSize,flowstatsFile);
+	//onPacketReceived(flowid, packetSize,flowstatsFile);
 }
 
 void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime = Simulator::Now().GetNanoSeconds();
     
-    // 检查该流是否存在
+    // 检查该流是否存�?
     auto it = flowStats.find(flowid);
-    
-    if (it == flowStats.end()){
-        // 流不存在，创建新流
+    auto filter_it =filter.find(flowid);
+    if (it == flowStats.end()&&filter_it==filter.end()){
+        // 流不存在，创建新�?
         FlowStat newStat = { packetSize, currentTime };
         flowStats[flowid] = newStat;
     }
 	calculateRate(flowid,packetSize,flowstatsFile);
 }
 
-// 计算每条流速率并输出
+// 计算每条流速率并输�?
 void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
 
     // 遍历所有流，找出与flowid对应的流，计算速率
     //判断系统稳态的变量
-	bool allSteadyStateReached = true;
+	allSteadyStateReached = flowStats.size()>0;
 
     // 遍历所有流，找出与flowid对应的流，计算速率
     for (auto& entry : flowStats) {
@@ -670,8 +680,8 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 
         // 判断是否超过监测周期
 		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
-			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
-				// 计算速率（单位：字节/纳秒）
+			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进�?
+				// 计算速率（单位：字节/纳秒�?
 				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
@@ -679,17 +689,17 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				stat.rate.push_back(rate);
 				if(stat.rate.size() >= stat.size){
 					stat.rate.erase(stat.rate.begin());
-					// 获取最小值和最大值
+					// 获取最小值和最大�?
 					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
 					auto minIt = result.first;
 					auto maxIt = result.second;
 					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-						stat.steadyStateReached = true;//流进入稳态
-						//cout<<"进入稳态"<<endl;
+						stat.steadyStateReached = true;//流进入稳�?
+						//cout<<"进入稳�?"<<endl;
 						
 					}else {
-						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状�?
+						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳�?
 					}
 					
 				}
@@ -712,41 +722,121 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 			break;  // 一旦发现一个流未进入稳态，直接跳出循环
 		}
 	}
-	// 判断系统是否刚刚进入稳态
-    if (allSteadyStateReached && !inSteadyState) {
+	if(flow_fin_unack.size()!=0)
+		allSteadyStateReached=false;
+	// 判断系统是否刚刚进入稳�?
+    if (allSteadyStateReached) {
         steadyStateStartTime = currentTime;
-        inSteadyState = true;
         cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
-		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间
-		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
+		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间uu
+		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时�?
 		calculateMintime();
 		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
 		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
-		//flowstatsFile <<"判断最小流完成时间的次数"<<number_test<<endl;
+		next_trans_avail=currentTime+flowMinTime;
+		//flowstatsFile <<"判断最小流完成时间的次�?"<<number_test<<endl;
+		transition_delay.push_back(transMinTime);
 		flowMinTime = 1.79769e+308;
     }
+	
 
-    // 判断系统是否退出稳态
-    if (!allSteadyStateReached && inSteadyState) {
-        uint64_t steadyStateExitTime = currentTime; //退出稳态时间
-        uint64_t duration = steadyStateExitTime - steadyStateStartTime;
-        cout << "System exited steady state at time: " << steadyStateExitTime << " ns" << endl;
-        cout << "Steady state duration: " << std::fixed << std::setprecision(6)<<duration  << " ns" << endl;
-        flowstatsFile << "System exited steady state at time: " << steadyStateExitTime << " ns, duration: " <<std::fixed << std::setprecision(6)<< duration  << " ns" << std::endl;
-        inSteadyState = false;
-    }
+    // 判断系统是否退出稳�?
+    
 }
 
-//计算剩余流量大小除以已测量的速度均值，获取最小时间
+void QbbNetDevice::exitSteadyState(){
+	
+        //更新流完成状�?
+		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+    {
+        Ptr<Node> node = *it;
+
+        // 遍历�? Node 的所�? NetDevice（设备）
+        for (uint32_t i = 0; i < node->GetNDevices(); ++i)
+        {
+            Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
+            if (!qbbDev){
+				continue;
+			}
+			else if(node->GetNodeType()!=0){
+				auto iter = NodeStats.find(node->GetId());
+				if(iter!=NodeStats.end()){
+					DataRate queue_rate(iter->second.rate);
+					queue_rate-= qbbDev->m_bps;
+					
+					Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
+					node_latency_fix[node->GetId()]=latency_fix;
+				}
+				
+			}else{
+				// 获取该设备的 RDMA 事件队列
+				Ptr<RdmaEgressQueue> rdmaEQ = qbbDev->m_rdmaEQ;
+				if (!rdmaEQ) continue;
+	
+				uint32_t qIndex;
+				uint32_t fcount = rdmaEQ->m_qpGrp->GetN();
+				for (qIndex = 0; qIndex < fcount; qIndex++) {
+					uint32_t idx = qIndex ;
+					Ptr<RdmaQueuePair> qp = rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
+	
+				//获取flowid
+					uint32_t srcIp = qp->sip.Get(); // 获取源IP地址
+					uint32_t dstIp = qp->dip.Get(); // 获取目标IP地址
+				//将IP转换成ID
+					uint32_t srcId = ((srcIp >> 8) & 0xffff);
+					uint32_t dstId = ((dstIp >> 8) & 0xffff);
+					uint16_t srcPort = qp->sport; // 源端口号
+					uint16_t dstPort = qp->dport; // 目标端口�?
+					std::ostringstream oss;
+					oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
+					std::string flowid = oss.str();
+	
+					map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
+					if(iter!=flowStats.end()){
+						double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
+						double avg = sum / iter->second.rate.size();
+						//qp->snd_nxt+=
+						qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1];
+						
+						flowStats.erase(flowid);
+						
+						/*if(qp->IsFinished()){
+							filter.insert(flowid);
+						}*/
+							
+					}
+					
+				}
+			}
+
+        }
+    }
+	allSteadyStateReached=false;
+		cout<<"System exit"<<endl;
+}
+
+//1.新流进入能否，心流进入会不会影响我们的稳态 
+//2.监视交换机上每条队列的延迟更新
+// o---0---o
+//200   100 
+// 100gbps
+//	
+//3.tr 数据包级别的事件观测 混合粒度 fin包
+// 
+//
+
+
+
+//计算剩余流量大小除以已测量的速度均值，获取最小时�?
 //每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
 void QbbNetDevice::calculateMintime(){
-	// 遍历所有 Node（网络节点）
+	// 遍历所�? Node（网络节点）
     for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
     {
         Ptr<Node> node = *it;
 
-        // 遍历该 Node 的所有 NetDevice（设备）
+        // 遍历�? Node 的所�? NetDevice（设备）
         for (uint32_t i = 0; i < node->GetNDevices(); ++i)
         {
             Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
@@ -777,7 +867,7 @@ void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 			uint32_t srcId = ((srcIp >> 8) & 0xffff);
 			uint32_t dstId = ((dstIp >> 8) & 0xffff);
 			uint16_t srcPort = qp->sport; // 源端口号
-			uint16_t dstPort = qp->dport; // 目标端口号
+			uint16_t dstPort = qp->dport; // 目标端口�?
 			std::ostringstream oss;
     		oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
 			std::string flowid = oss.str();
@@ -786,10 +876,16 @@ void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 			if(iter!=flowStats.end()){
 				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
     			double avg = sum / iter->second.rate.size();
-				double time = static_cast<double>(qp->GetBytesLeft())*8 / avg;
-				//number_test++;
-				if(time < flowMinTime)
+				double trans_time=0;
+				if(qp->GetBytesLeft()>1000)
+					trans_time = static_cast<double>(qp->GetBytesLeft()-1000) / qp->m_rate.GetBitRate()*1e9*8;//bps
+				double time=static_cast<double>(qp->GetBytesLeft())*8 / avg;
+					//number_test++;
+				if(time < flowMinTime){
 					flowMinTime =time;
+					transMinTime=trans_time;
+				}
+					
 			}
 		}
 
@@ -814,7 +910,7 @@ QbbNetDevice::GetRemote (void) const
 	return Address ();
 }
 
-//发送数据包到 dest 地址，并使用 protocolNumber 指定协议类型
+//发送数据包�? dest 地址，并使用 protocolNumber 指定协议类型
 bool QbbNetDevice::Send(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber)
 {
 	NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
@@ -910,9 +1006,9 @@ void QbbNetDevice::RdmaEnqueueHighPrioQ(Ptr<Packet> p) {
 }
 
 //在网络设备停止工作或链路失效时进行清理工作。它的主要目标包括：
-/*清除队列中的所有数据包（防止内存泄漏或残留数据）。
-通知相关模块（例如驱动程序、RDMA 硬件或交换机）链路已经断开。
-将设备状态设置为链路断开（m_linkUp = false）。*/
+/*清除队列中的所有数据包（防止内存泄漏或残留数据）�?
+通知相关模块（例如驱动程序、RDMA 硬件或交换机）链路已经断开�?
+将设备状态设置为链路断开（m_linkUp = false）�?*/
 void QbbNetDevice::TakeDown() {
 	// TODO: delete packets in the queue, set link down
 	if (m_node->GetNodeType() == 0) {
@@ -935,7 +1031,7 @@ void QbbNetDevice::TakeDown() {
 	m_linkUp = false;
 }
 
-//更新设备的下一次可用发送时间
+//更新设备的下一次可用发送时�?
 void QbbNetDevice::UpdateNextAvail(Time t) {
 	if (!m_nextSend.IsExpired() && t < Time(m_nextSend.GetTs())) {
 		Simulator::Cancel(m_nextSend);

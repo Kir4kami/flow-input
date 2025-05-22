@@ -211,6 +211,7 @@ set(source_files
     model/wall-clock-synchronizer.cc
     model/matrix-array.cc
     model/random-variable.cc
+    model/mixed-granularity.cc
 )
 
 # Define core lib headers
@@ -318,6 +319,7 @@ set(header_files
     model/val-array.h
     model/matrix-array.h
     model/random-variable.h
+    model/mixed-granularity.h
 )
 
 set(test_sources

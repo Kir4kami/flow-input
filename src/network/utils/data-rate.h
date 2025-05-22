@@ -305,7 +305,7 @@ ATTRIBUTE_HELPER_HEADER (DataRate);
  * \brief Multiply time value by a data rate
  *
  * Calculates the number of bits that have been transmitted over a period of time
-/**
+/*
  * \param lhs
  * \param rhs
  * \return Bits transmitted in rhs seconds at lhs b/s
