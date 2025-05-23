@@ -191,13 +191,13 @@ void qp_finish(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q) {
     double slowdown = double(fct)/standalone_fct;
     *fout->GetStream () 
             << Simulator::Now().GetSeconds()
-            << " " << q->m_size
-            << " " << fct 
-            << " " << standalone_fct
-            << " " << slowdown
-            << " " << base_rtt
-            << " " << 3
-            << " " << q->incastFlow
+            << '\t' << q->m_size
+            << '\t' << fct 
+            << '\t' << standalone_fct
+            << '\t' << slowdown
+            << '\t' << base_rtt
+            << '\t' << 3
+            << '\t' << q->incastFlow
             << std::endl;
 
     // remove rxQp from the receiver
@@ -353,9 +353,29 @@ T rand_range (T min, T max)
 vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个DP][第几个phase][第几个flow]
 uint16_t systemId=0;
 uint16_t systemNum=0;
+uint16_t operateNum=0;
 vector<uint16_t> phaseCur;
 vector<uint16_t> flowCom;
 std::unordered_map<FlowKey,uint16_t> flowToPar;//多个DP并行
+std::vector<vector<int>> opDependence={
+    {-1,-1},
+    {-1,-1},
+    {-1,-1},
+    {-1,-1},
+    { 0, 3},
+    { 0, 3},
+    { 0, 3},
+    { 0, 3},
+    { 4, 7},
+    { 4, 7},
+    { 4, 7},
+    { 8, 10},
+    { 8, 10},
+    { 8, 10},
+    { 8, 10},
+    { 8, 10}
+};//存储rdma_operate的依赖关系
+std::vector<bool> opStart;//记录这个operate有没有开始过,避免重复启动
 MPI_Datatype MPI_FlowInfo;
 
 void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
@@ -393,6 +413,7 @@ void flowSend(FlowInfo &flow){
         flow.msg_len, has_win ? (global_t == 1 ? maxBdp : pairBdp[n.Get(flow.src_node)][n.Get(flow.dst_node)]) : 0,
         global_t == 1 ? maxRtt : pairRtt[flow.src_node][flow.dst_node], Simulator::GetMaximumSimulationTime());    
     ApplicationContainer appCon = clientHelper.Install(n.Get(flow.src_node));
+
     appCon.Start(Seconds(0));//to be changed?
     kira::cout <<"system "<< systemId << " from " << flow.src_node << " to " << flow.dst_node <<
             " fromportNumber " << flow.src_port <<" destportNumder " << flow.dst_port <<
@@ -431,22 +452,53 @@ MPI_Datatype create_MPI_FlowInfo() {
     MPI_Type_commit(&MPI_FlowInfo);
     return MPI_FlowInfo;
 }
+
+void sendPhase(uint16_t par){//指定operate发送下一个phase
+    for(FlowInfo flow:flowInfos[par][phaseCur[par]])
+        flowSend(flow);
+};
+void checkDpd(){//检查依赖关系,该启动的启动
+    for(int i=0;i<operateNum;i++){
+        if(opStart[i])//如果这个operate已经启动了
+            continue;
+        bool flag=true;
+        for(int j=opDependence[i][0];j<=opDependence[i][1];j++){
+            if(phaseCur[j]<flowInfos[j].size()){//依赖的operate没有完成
+                flag=false;
+                break;
+            }
+        }
+        if(flag){//这个operate的依赖都完成了,那我该开始这个operate了
+            kira::cout<<"operate "<< i <<" start"<<std::endl;
+            opStart[i]=true;
+            for(FlowInfo flow:flowInfos[i][phaseCur[i]])
+                flowSend(flow);
+        }
+    }
+}
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
     FlowKey key = {(int)ip_to_node_id(q->sip),(int)ip_to_node_id(q->dip)};
-    uint16_t par=flowToPar[key];
+    auto it=flowToPar.find(key);
+    if(it==flowToPar.end()){
+        kira::cout << (int)ip_to_node_id(q->sip)<< " " << (int)ip_to_node_id(q->dip)<<std::endl;
+        kira::cout << "错误：键不存在于 unordered_map 中！" << std::endl;
+        std::exit(EXIT_FAILURE); 
+    }
+    uint16_t par=it->second;
     flowCom[par]++;
-    kira::cout<<" parral "<< par <<" phase "<<phaseCur[par]<<" flow "<<
+    kira::cout<<" operate "<< par <<" phase "<<phaseCur[par]<<" flow "<<
         flowCom[par]<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-    if(flowCom[par]>=flowInfos[par][phaseCur[par]].size()){
+
+    if(flowCom[par]>=flowInfos[par][phaseCur[par]].size()){//完成一个phase
         phaseCur[par]++;
         flowCom[par]=0;
-        kira::cout<<"parral "<<par<<" complete a phase"<<std::endl;
-        if(phaseCur[par]>=flowInfos[par].size())
-            return ;
-        Simulator::Stop();
-        for(FlowInfo flow:flowInfos[par][phaseCur[par]])
-            flowSend(flow);
-        Simulator::Run();
+        kira::cout<<"operate "<<par<<" complete a phase"<<std::endl;
+        if(phaseCur[par]>=flowInfos[par].size()){//完成一个operate
+            kira::cout<<"operate "<<par<<" complete a operate"<<std::endl;
+            Simulator::Schedule(Seconds(0),checkDpd);
+        }
+        else//这个operate没完成,继续发送下一个phase
+            Simulator::Schedule(Seconds(0),sendPhase,par);
     }
 }
 uint16_t DST;
@@ -495,12 +547,13 @@ uint16_t PARRAL=1;
 
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
     kira::cout<<"Reading flow info"<< std::endl;
-    flowInfos.resize(PARRAL);
-    flowCom.resize(PARRAL,0);
-    phaseCur.resize(PARRAL,0);
+    flowInfos.resize(operateNum);
+    flowCom.resize(operateNum,0);
+    phaseCur.resize(operateNum,0);
+    opStart.resize(operateNum,false);
     std::string line;
-    for(int i=0;i<PARRAL;i++){
-        std::string flowInputFileName= "examples/Reverie/rdma_operate/rdma_operate"+to_string(i)+".txt";
+    for(int i=0;i<operateNum;i++){
+        std::string flowInputFileName= "examples/Reverie/rdma_operates/rdma_operate"+to_string(i)+".txt";
         flowInput.open(flowInputFileName.c_str());
         if (!flowInput.is_open())
             kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;
@@ -527,6 +580,9 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             flowToPar[{flow.src_node,flow.dst_node}]=i;
         }
         flowInput.close();
+        if(opDependence[i][0]!=-1)//如果这个operate有依赖,跳过
+            continue;
+        opStart[i]=true;
         for(FlowInfo flow:flowInfos[i][phaseCur[i]])//start first phase
             flowSend(flow);
     }
@@ -603,6 +659,7 @@ int main(int argc, char *argv[]){
 
     CommandLine cmd;
     cmd.AddValue("DST", "number of system", DST);
+    cmd.AddValue("OPERATENUM", "number of operate", operateNum);
     cmd.AddValue("PARRAL", "PARRALEL DP", PARRAL);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
