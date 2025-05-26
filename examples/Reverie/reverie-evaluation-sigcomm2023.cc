@@ -357,24 +357,7 @@ uint16_t operateNum=0;
 vector<uint16_t> phaseCur;
 vector<uint16_t> flowCom;
 std::unordered_map<FlowKey,uint16_t> flowToPar;//多个DP并行
-std::vector<vector<int>> opDependence={
-    {-1,-1},
-    {-1,-1},
-    {-1,-1},
-    {-1,-1},
-    { 0, 3},
-    { 0, 3},
-    { 0, 3},
-    { 0, 3},
-    { 4, 7},
-    { 4, 7},
-    { 4, 7},
-    { 8, 10},
-    { 8, 10},
-    { 8, 10},
-    { 8, 10},
-    { 8, 10}
-};//存储rdma_operate的依赖关系
+std::vector<vector<int>> opDependence;//存储rdma_operate的依赖关系
 std::vector<bool> opStart;//记录这个operate有没有开始过,避免重复启动
 MPI_Datatype MPI_FlowInfo;
 
@@ -545,7 +528,47 @@ uint16_t PARRAL=1;
 //     }
 // }
 
+//解析范围字符串
+void parseRange(const std::string& s, int& start, int& end) {
+    size_t dash = s.find('-');
+    if (dash == string::npos)
+        start = end = stoi(s);
+    else {
+        start = stoi(s.substr(0, dash));
+        end = stoi(s.substr(dash+1));
+    }
+}
+
+//解析依赖配置文件
+void parseDependenceFile() {
+    kira::cout<<"Reading dependence"<< std::endl;
+    string filename = "examples/Reverie/rdma_operates/dependence.txt";
+    opDependence.resize(operateNum, {-1,-1});
+    ifstream fin(filename);
+    string line;
+    while (getline(fin, line)) {
+        if (line.empty() || line[0] == '#') continue;
+
+        size_t colon = line.find(':');
+        if (colon == string::npos) {
+            kira::cout << "Invalid line format: " << line << std::endl;
+            continue;
+        }
+        string dependent = line.substr(0, colon);
+        string prerequisite = line.substr(colon+1);
+        int depStart, depEnd, preStart, preEnd;
+        parseRange(dependent, depStart, depEnd);
+        parseRange(prerequisite, preStart, preEnd);
+        // 为每个依赖operate设置范围
+        for (int i = depStart; i <= depEnd; i++) {
+            opDependence[i][0] = preStart;
+            opDependence[i][1] = preEnd;
+        }
+    }
+    fin.close();
+}
 void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
+    parseDependenceFile();
     kira::cout<<"Reading flow info"<< std::endl;
     flowInfos.resize(operateNum);
     flowCom.resize(operateNum,0);
@@ -588,6 +611,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
     }
     
 }
+
 //written by Kira END
 
 uint32_t flowEnd = 0;
