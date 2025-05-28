@@ -1,0 +1,18 @@
+1 TP Root --msg_len 32*1024*1024 
+1 PP Root --msg_len 32*1024*1024  
+2 PP TP1  --msg_len 32*1024*1024  
+2 DP TP1  --dp 128 --msg_len 32*1024*1024 
+2 TP PP1  --msg_len 32*1024*1024 
+3 TP PP2  --msg_len 32*1024*1024  
+3 TP TP2  --msg_len 32*1024*1024  
+4 TP TP3  --msg_len 32*1024*1024  
+4 PP TP4  --msg_len 32*1024*1024  
+4 DP TP4  --dp 256 --msg_len 32*1024*1024  
+5 DP TP5  --dp 128 --msg_len 32*1024*1024  
+5 TP PP3  --msg_len 32*1024*1024 
+6 TP TP6  --msg_len 32*1024*1024  
+7 DP TP7  --dp 64 --msg_len 32*1024*1024  
+7 PP TP7  --msg_len 32*1024*1024  
+8 TP PP4  --msg_len 32*1024*1024  
+9 TP TP8  --msg_len 32*1024*1024 
+10 DP TP9 --dp 128 --msg_len 32*1024*1024

@@ -6,7 +6,8 @@
                 "${default}",
                 "${workspaceFolder}/../../../**",
                 "/usr/include/c++/9",
-                "/usr/lib/x86_64-linux-gnu/openmpi/include"
+                "/usr/lib/x86_64-linux-gnu/openmpi/include",
+                "${workspaceFolder}/build/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
