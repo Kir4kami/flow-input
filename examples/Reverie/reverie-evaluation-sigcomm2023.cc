@@ -1,9 +1,4 @@
-/*
- * reverie-evaluation-sigcomm2023.cc
- *
- *  Created on: Feb 02, 2023
- *      Author: vamsi
- */
+
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
@@ -349,7 +344,7 @@ T rand_range (T min, T max)
 }
 
 //written by Kira START
-
+std::string ReadFolder = "examples/Reverie/task";
 vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个DP][第几个phase][第几个flow]
 uint16_t systemId=0;
 uint16_t systemNum=0;
@@ -454,6 +449,9 @@ void checkDpd(){//检查依赖关系,该启动的启动
         if(flag){//这个operate的依赖都完成了,那我该开始这个operate了
             kira::cout<<"operate "<< i <<" start"<<std::endl;
             opStart[i]=true;
+            for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
+                for(FlowInfo flow:flowInfos[i][phase])
+                    flowToPar[{flow.src_node,flow.dst_node}]=i;
             for(FlowInfo flow:flowInfos[i][phaseCur[i]])
                 flowSend(flow);
         }
@@ -471,7 +469,6 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
     flowCom[par]++;
     kira::cout<<" operate "<< par <<" phase "<<phaseCur[par]<<" flow "<<
         flowCom[par]<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-
     if(flowCom[par]>=flowInfos[par][phaseCur[par]].size()){//完成一个phase
         phaseCur[par]++;
         flowCom[par]=0;
@@ -600,12 +597,15 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             ss >> type_str >> flow.priority;
             ss >> type_str >> flow.msg_len;
             flowInfos[i][phase].emplace_back(flow);
-            flowToPar[{flow.src_node,flow.dst_node}]=i;
+            //flowToPar[{flow.src_node,flow.dst_node}]=i;
         }
         flowInput.close();
         if(opDependence[i][0]!=-1)//如果这个operate有依赖,跳过
             continue;
         opStart[i]=true;
+        for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
+            for(FlowInfo flow:flowInfos[i][phase])
+                flowToPar[{flow.src_node,flow.dst_node}]=i;
         for(FlowInfo flow:flowInfos[i][phaseCur[i]])//start first phase
             flowSend(flow);
     }
@@ -1241,7 +1241,6 @@ int main(int argc, char *argv[]){
     }
     printf("maxRtt=%lu maxBdp=%lu minRtt=%lu\n", maxRtt, maxBdp, minRtt);
 
-
     // config switch
     // The switch mmu runs Dynamic Thresholds (DT) by default.
     uint64_t totalHeadroom=0;
@@ -1315,9 +1314,6 @@ int main(int argc, char *argv[]){
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
     NS_LOG_INFO("Create Applications.");
-
-    Time interPacketInterval = Seconds(0.0000005 / 2);
-
     // maintain port number for each host
     for (uint32_t i = 0; i < node_num; i++) {
         if (n.Get(i)->GetNodeType() == 0)
