@@ -344,7 +344,8 @@ T rand_range (T min, T max)
 }
 
 //written by Kira START
-std::string ReadFolder = "examples/Reverie/task";
+std::string workFolder = "examples/Reverie/task";
+uint16_t taskIndex=1;
 vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个DP][第几个phase][第几个flow]
 uint16_t systemId=0;
 uint16_t systemNum=0;
@@ -539,9 +540,13 @@ void parseRange(const std::string& s, int& start, int& end) {
 //解析依赖配置文件
 void parseDependenceFile() {
     kira::cout<<"Reading dependence"<< std::endl;
-    string filename = "examples/Reverie/rdma_operates/dependence.txt";
+    string filename = workFolder+"/dependence.txt";
     opDependence.resize(operateNum, {-1,-1});
     ifstream fin(filename);
+    if (!fin.is_open()) {
+        kira::cout << "dependenceFile not detcted." << std::endl;
+        return;
+    }
     string line;
     while (getline(fin, line)) {
         if (line.empty() || line[0] == '#') continue;
@@ -573,7 +578,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
     opStart.resize(operateNum,false);
     std::string line;
     for(int i=0;i<operateNum;i++){
-        std::string flowInputFileName= "examples/Reverie/rdma_operates/rdma_operate"+to_string(i)+".txt";
+        std::string flowInputFileName= workFolder+"/rdma_operate"+to_string(i)+".txt";
         flowInput.open(flowInputFileName.c_str());
         if (!flowInput.is_open())
             kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;
@@ -640,16 +645,15 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
 /******************************************************************************************************************************************************************************************************/
 
 int main(int argc, char *argv[]){
-    MpiInterface::Enable(&argc, &argv); // 初始化MPI
-    systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
-    systemNum = MpiInterface::GetSize();//记录当前所有进程数
-    MPI_FlowInfo = create_MPI_FlowInfo();
+    // MpiInterface::Enable(&argc, &argv); // 初始化MPI
+    // systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
+    // systemNum = MpiInterface::GetSize();//记录当前所有进程数
+    // MPI_FlowInfo = create_MPI_FlowInfo();
     
     if (!kira::init_log("examples/Reverie/dump/system"+to_string(systemId)+".log")) {
         std::cout << "system: " << systemId << " 日志文件创建失败" << std::endl;
         return -1;
     }
-
     // if(systemId!=0){ // 分支进程
     //     branch_read_info(systemId);
     //     kira::cout<<"system" <<systemId<<"read end"<<std::endl;
@@ -685,6 +689,7 @@ int main(int argc, char *argv[]){
     cmd.AddValue("DST", "number of system", DST);
     cmd.AddValue("OPERATENUM", "number of operate", operateNum);
     cmd.AddValue("PARRAL", "PARRALEL DP", PARRAL);
+    cmd.AddValue("TASKINDEX", "taskindex", taskIndex);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
@@ -737,6 +742,9 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
 
     cmd.Parse (argc, argv);
+    
+    workFolder += to_string(taskIndex);
+    kira::cout << "workFolder:" << workFolder << std::endl;
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
@@ -1351,11 +1359,12 @@ int main(int argc, char *argv[]){
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     NS_LOG_INFO("Run Simulation.");
     Simulator::Stop(Seconds(END_TIME));
+    kira::cout << "Run Simulation." << std::endl;
     Simulator::Run();
     Simulator::Destroy();
-    MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成模拟
-    MPI_Type_free(&MPI_FlowInfo); // 释放MPI数据类型
+    // MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成模拟
+    // MPI_Type_free(&MPI_FlowInfo); // 释放MPI数据类型
     NS_LOG_INFO("Done.");
     kira::cout<<"Done"<<std::endl;
-    MpiInterface::Disable(); // 禁用MPI
+    //MpiInterface::Disable(); // 禁用MPI
 }
