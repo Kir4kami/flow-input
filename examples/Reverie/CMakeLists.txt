@@ -2,10 +2,8 @@ build_example(
   NAME reverie-evaluation-sigcomm2023
   SOURCE_FILES 
     reverie-evaluation-sigcomm2023.cc
-    cdf.c
     kira_functions.cc
   HEADER_FILES
-    cdf.h
     kira_functions.h
   LIBRARIES_TO_LINK
     ${libpoint-to-point}
