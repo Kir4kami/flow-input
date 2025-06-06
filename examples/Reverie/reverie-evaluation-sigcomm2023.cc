@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+#include <filesystem>
+#include <algorithm>
 
 #include "kira_functions.h"
 
@@ -164,7 +166,6 @@ void TraceMsgFinish (Ptr<OutputStreamWrapper> stream, double size, double start,
     fct = Simulator::Now().GetNanoSeconds() - start;
     standalone_fct = maxRtt + (1e9*size * 8.0) / nic_rate;
     slowdown = fct / standalone_fct;
-
     *stream->GetStream ()
             << Simulator::Now().GetSeconds()
             << " " << size
@@ -687,7 +688,6 @@ int main(int argc, char *argv[]){
 
     CommandLine cmd;
     cmd.AddValue("DST", "number of system", DST);
-    cmd.AddValue("OPERATENUM", "number of operate", operateNum);
     cmd.AddValue("PARRAL", "PARRALEL DP", PARRAL);
     cmd.AddValue("TASKINDEX", "taskindex", taskIndex);
     cmd.AddValue("conf", "config file path", confFile);
@@ -743,12 +743,38 @@ int main(int argc, char *argv[]){
 
     cmd.Parse (argc, argv);
     
+    namespace fs = std::filesystem;
     workFolder += to_string(taskIndex);
     kira::cout << "workFolder:" << workFolder << std::endl;
+    int maxOperateNum = -1;
+    // 遍历工作目录
+    for (const auto& entry : fs::directory_iterator(workFolder)) {
+        if (entry.is_regular_file()) {
+            std::string filename = entry.path().filename().string();
+            // 检查文件名前缀
+            if (filename.rfind("rdma_operate", 0) == 0) { // 以rdma_operate开头
+                // 提取数字部分
+                std::string numStr = filename.substr(12); // 12是"rdma_operate"的长度
+                size_t dotPos = numStr.find('.');
+                if (dotPos != std::string::npos) {
+                    numStr = numStr.substr(0, dotPos);
+                }
+                // 转换为数字
+                try {
+                    int num = std::stoi(numStr);
+                    maxOperateNum = std::max(maxOperateNum, num);
+                } catch (const std::exception& e) {
+                    // 忽略非数字后缀的文件
+                }
+            }
+        }
+    }
+    operateNum = maxOperateNum + 1; // 编号从0开始
+    kira::cout << "Found " << operateNum << " rdma_operate files" << std::endl;
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
-    fctOutput = asciiTraceHelper.CreateFileStream (fctOutFile);
+    fctOutput = asciiTraceHelper.CreateFileStream (fctOutFile+to_string(taskIndex));
 
     *fctOutput->GetStream () 
             << "timestamp"
@@ -1247,7 +1273,7 @@ int main(int argc, char *argv[]){
                 minRtt = rtt;
         }
     }
-    printf("maxRtt=%lu maxBdp=%lu minRtt=%lu\n", maxRtt, maxBdp, minRtt);
+    //printf("maxRtt=%lu maxBdp=%lu minRtt=%lu\n", maxRtt, maxBdp, minRtt);
 
     // config switch
     // The switch mmu runs Dynamic Thresholds (DT) by default.

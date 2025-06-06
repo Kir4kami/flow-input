@@ -32,10 +32,9 @@ DCTCP=4
 
 NUM=0
 DST=1
-TASKNUM=1
+TASKNUM=4
 
 PARRAL=6
-OPERATENUM=248
 
 alg=$REVERIE
 rdmaload=0.2
@@ -71,8 +70,8 @@ for((i=1;i<=$TASKNUM;i++));do
 	DUMPFILE=$DUMP_DIR/evaluation.out
 	PFCFILE=$DUMP_DIR/evaluation.pfc
 	echo $FCTFILE
-	(time ./ns3 run "reverie-evaluation-sigcomm2023 --PARRAL=$PARRAL --TASKINDEX=$i --OPERATENUM=$OPERATENUM --DST=$DST --powertcp=true --bufferalgIngress=$alg --bufferalgEgress=$alg --rdmacc=$RDMACC --rdmaload=$rdmaload --rdmarequestSize=$rdmaburst --rdmaqueryRequestRate=$RDMAREQRATE --tcpload=$tcpload --tcpcc=$TCPCC --enableEcn=true --tcpqueryRequestRate=$TCPREQRATE --tcprequestSize=$tcpburst --egressLossyShare=$egresslossyFrac --bufferModel=$BUFFERMODEL --gamma=$gamma --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --buffersize=$BUFFERSIZE --fctOutFile=$FCTFILE --torOutFile=$TORFILE --alphasFile=$ALPHAFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2> $DUMPFILE)&
-	sleep 5
+	(time ./ns3 run "reverie-evaluation-sigcomm2023 --PARRAL=$PARRAL --TASKINDEX=$i --DST=$DST --powertcp=true --bufferalgIngress=$alg --bufferalgEgress=$alg --rdmacc=$RDMACC --rdmaload=$rdmaload --rdmarequestSize=$rdmaburst --rdmaqueryRequestRate=$RDMAREQRATE --tcpload=$tcpload --tcpcc=$TCPCC --enableEcn=true --tcpqueryRequestRate=$TCPREQRATE --tcprequestSize=$tcpburst --egressLossyShare=$egresslossyFrac --bufferModel=$BUFFERMODEL --gamma=$gamma --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --buffersize=$BUFFERSIZE --fctOutFile=$FCTFILE --torOutFile=$TORFILE --alphasFile=$ALPHAFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2> $DUMPFILE)&
+	#sleep 5
 	NUM=$(( $NUM+1  ))
 done
 
