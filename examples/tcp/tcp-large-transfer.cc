@@ -106,7 +106,7 @@ main(int argc, char* argv[])
     for (uint32_t i = 0; i < writeSize; ++i)
     {
         char m = toascii(97 + i % 26);
-        data[i] = m;
+        ::data[i] = m;
     }
 
     // Here, we will explicitly create three nodes.  The first container contains
@@ -228,7 +228,7 @@ WriteUntilBufferFull(Ptr<Socket> localSocket, uint32_t txSpace)
         uint32_t toWrite = writeSize - dataOffset;
         toWrite = std::min(toWrite, left);
         toWrite = std::min(toWrite, localSocket->GetTxAvailable());
-        int amountSent = localSocket->Send(&data[dataOffset], toWrite, 0);
+        int amountSent = localSocket->Send(&::data[dataOffset], toWrite, 0);
         if (amountSent < 0)
         {
             // we will be called again when new tx space becomes available.
