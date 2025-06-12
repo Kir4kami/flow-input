@@ -26,16 +26,16 @@ def constructTree(G, input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist")
     
     valid_modes = {'EP', 'TP', 'PP', 'DP'}
-    # Map input file node names (e.g., TP1) to generated node names (e.g., 2_TP1)
     node_name_mapping = {}
-    
+    tp_multi_parent_nodes = {}  # {(layer, parent_nodes): generated_node_name}
+    mode_counters = {'TP': 0, 'EP': 0, 'PP': 0, 'DP': 0}  # Track mode-specific counters for naming
+
     with open(input_file, 'r') as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
             
-            # Split line into components
             parts = re.split(r'\s+', line)
             if len(parts) < 3:
                 raise ValueError(f"Line {line_num}: Invalid format, expected at least layer, mode, parent_node")
@@ -43,30 +43,31 @@ def constructTree(G, input_file):
             try:
                 layer = int(parts[0])
                 mode = parts[1]
-                parent_node = parts[2]
+                parent_nodes = parts[2].split('/')
             except ValueError:
                 raise ValueError(f"Line {line_num}: Layer must be an integer")
             
             if mode not in valid_modes:
                 raise ValueError(f"Line {line_num}: Invalid mode {mode}, must be one of {valid_modes}")
             
-            # Map parent_node to the generated node name
-            if parent_node != root_node:
-                if parent_node not in node_name_mapping:
+            # Validate and map parent nodes
+            mapped_parent_nodes = []
+            for parent_node in parent_nodes:
+                if parent_node != root_node:
+                    if parent_node not in node_name_mapping:
+                        raise ValueError(f"Line {line_num}: Parent node {parent_node} does not exist")
+                    parent_node = node_name_mapping[parent_node]
+                if parent_node != root_node and parent_node not in G.nodes:
                     raise ValueError(f"Line {line_num}: Parent node {parent_node} does not exist")
-                parent_node = node_name_mapping[parent_node]
+                mapped_parent_nodes.append(parent_node)
             
-            if parent_node != root_node and parent_node not in G.nodes:
-                raise ValueError(f"Line {line_num}: Parent node {parent_node} does not exist")
-
-            # 
             node_args = {
-                'host_num': 4096,#Total number of nodes
-                'num_nodes': 16,#Number of nodes per group for TP
-                'dp': 1,#Number of groups
-                'msg_len': 32*1024*1024,#Message length in bytes
-                'num_phases': 15,#Number of phases for TP
-                'num_iterations': 1,#Number of iterations for TP
+                'host_num': 4096,
+                'num_nodes': 16,
+                'dp': 1,
+                'msg_len': 32*1024*1024,
+                'num_phases': 15,
+                'num_iterations': 1,
             }
             i = 3
             while i < len(parts):
@@ -86,15 +87,34 @@ def constructTree(G, input_file):
                         raise ValueError(f"Line {line_num}: Invalid value for {parts[i-1]}: {e}")
                 i += 1
             
-            # Add node to graph
-            generated_node_name = addCommunicationEdge(G, layer, mode, parent_node, node_args)
-            # Map the input file's expected node name (e.g., TP1) to the generated name (e.g., 2_TP1)
-            #expected_node_name = f"{mode}"
-            suffix = 1
-            expected_node_name = f"{mode}{suffix}"
-            while expected_node_name in node_name_mapping:
-                expected_node_name = f"{mode}{suffix}"
-                suffix += 1
+            # Handle TP nodes with multiple parents or same layer/parent
+            generated_node_name = None
+            if mode == 'TP' and len(parent_nodes) > 1:  # Multi-parent TP nodes
+                parent_key = (layer, tuple(sorted(parent_nodes)))
+                if parent_key in tp_multi_parent_nodes:
+                    generated_node_name = tp_multi_parent_nodes[parent_key]
+                    # Add edges for additional parents
+                    for parent_node in mapped_parent_nodes:
+                        if not G.has_edge(parent_node, generated_node_name):
+                            G.add_edge(parent_node, generated_node_name)
+                            G.nodes[parent_node]['children'].append(generated_node_name)
+                else:
+                    # Create new node for the first parent
+                    generated_node_name = addCommunicationEdge(G, layer, mode, mapped_parent_nodes[0], node_args)
+                    tp_multi_parent_nodes[parent_key] = generated_node_name
+                    # Add edges for remaining parents
+                    for parent_node in mapped_parent_nodes[1:]:
+                        if not G.has_edge(parent_node, generated_node_name):
+                            G.add_edge(parent_node, generated_node_name)
+                            G.nodes[parent_node]['children'].append(generated_node_name)
+            else:
+                # Non-TP or single-parent TP nodes
+                for parent_node in mapped_parent_nodes:
+                    generated_node_name = addCommunicationEdge(G, layer, mode, parent_node, node_args)
+            
+            # Map expected node name
+            mode_counters[mode] += 1
+            expected_node_name = f"{mode}{mode_counters[mode]}"
             node_name_mapping[expected_node_name] = generated_node_name
 
 # Traffic generator functions
