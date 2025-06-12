@@ -1,5 +1,0 @@
-stat rdma operate 
-phase 3000
-Type rdma_send  src_node 0  	src_port 0  	dst_node 1  	dst_port 0  priority 0  msg_len 1677721
-Type rdma_send  src_node 4  	src_port 0  	dst_node 1  	dst_port 0  priority 0  msg_len 16777216
-
