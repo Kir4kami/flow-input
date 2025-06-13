@@ -453,14 +453,14 @@ void checkDpd(){//检查依赖关系,该启动的启动
             opStart[i]=true;
             for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
                 for(FlowInfo flow:flowInfos[i][phase])
-                    flowToPar[{flow.src_node,flow.dst_node}]=i;
+                    flowToPar[{flow.src_node,flow.dst_node,flow.src_port,flow.dst_port}]=i;
             for(FlowInfo flow:flowInfos[i][phaseCur[i]])
                 flowSend(flow);
         }
     }
 }
 void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-    FlowKey key = {(int)ip_to_node_id(q->sip),(int)ip_to_node_id(q->dip)};
+    FlowKey key = {(int)ip_to_node_id(q->sip),(int)ip_to_node_id(q->dip),(int)q->sport,(int)q->dport};
     auto it=flowToPar.find(key);
     if(it==flowToPar.end()){
         kira::cout << (int)ip_to_node_id(q->sip)<< " " << (int)ip_to_node_id(q->dip)<<std::endl;
@@ -615,7 +615,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
         opStart[i]=true;
         for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
             for(FlowInfo flow:flowInfos[i][phase])
-                flowToPar[{flow.src_node,flow.dst_node}]=i;
+                flowToPar[{flow.src_node,flow.dst_node,flow.src_port,flow.dst_port}]=i;
         for(FlowInfo flow:flowInfos[i][phaseCur[i]])//start first phase
             flowSend(flow);
     }
