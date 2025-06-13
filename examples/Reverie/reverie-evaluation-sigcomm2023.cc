@@ -442,7 +442,7 @@ void checkDpd(){//检查依赖关系,该启动的启动
         if(opStart[i])//如果这个operate已经启动了
             continue;
         bool flag=true;
-        for(int j=opDependence[i][0];j<=opDependence[i][1];j++){
+        for(int j:opDependence[i]){
             if(phaseCur[j]<flowInfos[j].size()){//依赖的operate没有完成
                 flag=false;
                 break;
@@ -477,14 +477,19 @@ void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
         kira::cout<<"operate "<<par<<" complete a phase"<<std::endl;
         if(phaseCur[par]>=flowInfos[par].size()){//完成一个operate
             kira::cout<<"operate "<<par<<" complete a operate"<<std::endl;
+            static uint8_t complete_operate=0;
+            complete_operate++;
+            if(complete_operate>=operateNum){
+                Simulator::Stop();
+            }
             Simulator::Schedule(Seconds(0),checkDpd);
+        
         }
         else//这个operate没完成,继续发送下一个phase
             Simulator::Schedule(Seconds(0),sendPhase,par);
     }
 }
 uint16_t DST;
-uint16_t PARRAL=1;
 // void branch_read_info(uint16_t sysid){//branch process send flowInfo
 //     kira::cout<<"system :"<< systemId <<"Reading flow info"<< std::endl;
 //     for(int i=systemId-1;i<PARRAL;i+=(systemNum-1)){
@@ -542,7 +547,7 @@ void parseRange(const std::string& s, int& start, int& end) {
 void parseDependenceFile() {
     kira::cout<<"Reading dependence"<< std::endl;
     string filename = workFolder+"/dependence.txt";
-    opDependence.resize(operateNum, {-1,-1});
+    opDependence.resize(operateNum);
     ifstream fin(filename);
     if (!fin.is_open()) {
         kira::cout << "dependenceFile not detcted." << std::endl;
@@ -563,10 +568,9 @@ void parseDependenceFile() {
         parseRange(dependent, depStart, depEnd);
         parseRange(prerequisite, preStart, preEnd);
         // 为每个依赖operate设置范围
-        for (int i = depStart; i <= depEnd; i++) {
-            opDependence[i][0] = preStart;
-            opDependence[i][1] = preEnd;
-        }
+        for (int i = depStart; i <= depEnd; i++)
+            for(int j = preStart; j <= preEnd; j++)
+                opDependence[i].emplace_back(j);
     }
     fin.close();
 }
@@ -606,7 +610,7 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
             //flowToPar[{flow.src_node,flow.dst_node}]=i;
         }
         flowInput.close();
-        if(opDependence[i][0]!=-1)//如果这个operate有依赖,跳过
+        if(opDependence[i].size()!=0)//如果这个operate有依赖,跳过
             continue;
         opStart[i]=true;
         for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
@@ -638,8 +642,7 @@ void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double d
                 << std::endl;
         }
     }
-    if (Simulator::Now().GetSeconds() < flowEnd)
-        Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
+    Simulator::Schedule(Seconds(delay), printBuffer, fout, switches, delay);
 }
 
 
@@ -650,11 +653,7 @@ int main(int argc, char *argv[]){
     // systemId = MpiInterface::GetSystemId(); // 获取当前进程ID
     // systemNum = MpiInterface::GetSize();//记录当前所有进程数
     // MPI_FlowInfo = create_MPI_FlowInfo();
-    
-    if (!kira::init_log("examples/Reverie/dump/system"+to_string(systemId)+".log")) {
-        std::cout << "system: " << systemId << " 日志文件创建失败" << std::endl;
-        return -1;
-    }
+
     // if(systemId!=0){ // 分支进程
     //     branch_read_info(systemId);
     //     kira::cout<<"system" <<systemId<<"read end"<<std::endl;
@@ -663,9 +662,9 @@ int main(int argc, char *argv[]){
     //     MpiInterface::Disable(); // 禁用MPI
     //     return systemId;
     // }
-    
-    std::string confFile = "examples/Reverie/config-workload.txt";
+    auto main_start_time = std::chrono::high_resolution_clock::now();
 
+    std::string confFile = "examples/Reverie/config-workload.txt";
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -688,7 +687,6 @@ int main(int argc, char *argv[]){
 
     CommandLine cmd;
     cmd.AddValue("DST", "number of system", DST);
-    cmd.AddValue("PARRAL", "PARRALEL DP", PARRAL);
     cmd.AddValue("TASKINDEX", "taskindex", taskIndex);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
@@ -697,22 +695,8 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("START_TIME", "sim start time", START_TIME);
     cmd.AddValue ("END_TIME", "sim end time", END_TIME);
     cmd.AddValue ("FLOW_LAUNCH_END_TIME", "flow launch process end time", FLOW_LAUNCH_END_TIME);
-    uint32_t tcprequestSize = 4000000;
-    cmd.AddValue ("tcprequestSize", "Query Size in Bytes", tcprequestSize);
-    double tcpqueryRequestRate = 0;
-    cmd.AddValue("tcpqueryRequestRate", "Query request rate (poisson arrivals)", tcpqueryRequestRate);
-    uint32_t rdmarequestSize = 2000000;
-    cmd.AddValue ("rdmarequestSize", "Query Size in Bytes", rdmarequestSize);
-    double rdmaqueryRequestRate = 1;
-    cmd.AddValue("rdmaqueryRequestRate", "Query request rate (poisson arrivals)", rdmaqueryRequestRate);
     uint32_t rdmacc = 0;//DCQCNCC;
     cmd.AddValue ("rdmacc", "specify CC mode. This is added for my convinience since I prefer cmd rather than parsing files.", rdmacc);
-    uint32_t tcpcc = 2;
-    cmd.AddValue ("tcpcc", "specify CC for Tcp/Ip applications", tcpcc);
-    double rdmaload = 0.8;
-    cmd.AddValue ("rdmaload", "RDMA load", rdmaload);
-    double tcpload = 0;
-    cmd.AddValue ("tcpload", "TCP load", tcpload);
     bool enable_qcn = true;
     cmd.AddValue ("enableEcn", "enable ECN markin", enable_qcn);
     uint32_t rdmaWindowCheck = 0;
@@ -745,6 +729,11 @@ int main(int argc, char *argv[]){
     cmd.Parse (argc, argv);
     
     namespace fs = std::filesystem;
+    
+    if (!kira::init_log("examples/Reverie/dump/system"+to_string(taskIndex)+".log")) {
+        std::cout << "system: " << taskIndex << " 日志文件创建失败" << std::endl;
+        return -1;
+    }
     workFolder += to_string(taskIndex);
     kira::cout << "workFolder:" << workFolder << std::endl;
     int maxOperateNum = -1;
@@ -1362,7 +1351,7 @@ int main(int argc, char *argv[]){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Applications Background*/
     double oversubRatio = static_cast<double>(SERVER_COUNT * LEAF_SERVER_CAPACITY) / (SPINE_LEAF_CAPACITY * SPINE_COUNT * LINK_COUNT);
-    kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " RDMALOAD " << rdmaload << " TCPLOAD " << tcpload << " oversubRatio " << oversubRatio << std::endl;
+    kira::cout << "SERVER_COUNT " << SERVER_COUNT << " LEAF_COUNT " << LEAF_COUNT << " SPINE_COUNT " << SPINE_COUNT << " LINK_COUNT " << LINK_COUNT << " oversubRatio " << oversubRatio << std::endl;
     if (randomSeed == 0){
         srand ((unsigned)time (NULL));
     }
@@ -1382,13 +1371,19 @@ int main(int argc, char *argv[]){
     tracef.close();
     double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
     Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, spineNodes, delay);
-
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     NS_LOG_INFO("Run Simulation.");
-    Simulator::Stop(Seconds(END_TIME));
     kira::cout << "Run Simulation." << std::endl;
+    auto simulation_start_time = std::chrono::high_resolution_clock::now();
     Simulator::Run();
     Simulator::Destroy();
+    auto simulation_end_time = std::chrono::high_resolution_clock::now();
+    auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        simulation_end_time - main_start_time);
+    auto sim_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        simulation_end_time - simulation_start_time);
+    kira::cout << std::endl << "total time: " << total_duration.count() << " ms" << std::endl;
+    kira::cout << "simulation time: " << sim_duration.count() << " ms" << std::endl;
     // MPI_Barrier(MPI_COMM_WORLD); // 等待所有进程完成模拟
     // MPI_Type_free(&MPI_FlowInfo); // 释放MPI数据类型
     NS_LOG_INFO("Done.");

@@ -24,4 +24,4 @@ build_example(
     ${libinternet}
     ${libapplications}
 )
-set_source_files_properties(cdf.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
