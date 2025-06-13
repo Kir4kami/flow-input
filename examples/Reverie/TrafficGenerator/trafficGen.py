@@ -41,7 +41,7 @@ def constructTree(G, input_file):
                 raise ValueError(f"Line {line_num}: Invalid format, expected at least layer, mode, parent_node")
             
             try:
-                layer = int(parts[0])
+                layer = (parts[0])
                 mode = parts[1]
                 parent_nodes = parts[2].split('/')
             except ValueError:
@@ -164,7 +164,8 @@ def get_host_list(host_num, dp):
         host_list.append(host_ids)
     return host_list
 
-def set_all2all(host_list, msg_len, file_name=""):
+# 修改后的 set_all2all 函数，增加了端口参数
+def set_all2all(host_list, msg_len, port, file_name=""):
     host_num = len(host_list)
     result = []
     for step in range(1, host_num):
@@ -173,8 +174,8 @@ def set_all2all(host_list, msg_len, file_name=""):
             idy = (step + idx) % host_num
             host_id_b = host_list[idy]
             phase.append(
-                f"Type rdma_send src_node {host_id_a} src_port 0 "
-                f"dst_node {host_id_b} dst_port 0 priority 0 "
+                f"Type rdma_send src_node {host_id_a} src_port {port} "
+                f"dst_node {host_id_b} dst_port {port} priority 0 "  # 修改了端口号
                 f"msg_len {msg_len}\n"
             )
         result.append(phase)
@@ -182,7 +183,8 @@ def set_all2all(host_list, msg_len, file_name=""):
         write_file(result, file_name)
     return result
 
-def set_hypercube(host_list, msg_len, file_name=""):
+# 修改后的 set_hypercube 函数，增加了端口参数
+def set_hypercube(host_list, msg_len, port, file_name=""):
     host_num = len(host_list)
     iter_times = math.log2(host_num)
     if not iter_times.is_integer():
@@ -191,7 +193,7 @@ def set_hypercube(host_list, msg_len, file_name=""):
         while len(host_list) < target_num:
             host_list.append(random.randint(0, host_num - 1))
         host_num = len(host_list)
-        iter_times = math.log2(host_num)
+        iter_t = math.log2(host_num)
     iter_times = int(iter_times)
     result = []
     for iter in range(1, iter_times + 1):
@@ -200,18 +202,18 @@ def set_hypercube(host_list, msg_len, file_name=""):
         for idx, host in enumerate(host_list):
             nei_idx = get_neighbor(idx, host_num, iter)
             res1.append(
-                f"Type rdma_send src_node {host} src_port 0 "
-                f"dst_node {host_list[nei_idx]} dst_port 0 priority 0 "
+                f"Type rdma_send src_node {host} src_port {port} "
+                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
                 f"msg_len 64\n"
             )
             res.append(
-                f"Type rdma_send src_node {host} src_port 0 "
-                f"dst_node {host_list[nei_idx]} dst_port 0 priority 0 "
+                f"Type rdma_send src_node {host} src_port {port} "
+                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
                 f"msg_len {msg}\n"
             )
             res2.append(
-                f"Type rdma_send src_node {host} src_port 0 "
-                f"dst_node {host_list[nei_idx]} dst_port 0 priority 0 "
+                f"Type rdma_send src_node {host} src_port {port} "
+                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
                 f"msg_len 64\n"
             )
         result.extend([res1, res, res2])
@@ -220,7 +222,8 @@ def set_hypercube(host_list, msg_len, file_name=""):
         write_file(result, file_name)
     return result
 
-def set_tensor_parallel(m, num_nodes, msg_len, num_phases, file_name="", append=False):
+# 修改后的 set_tensor_parallel 函数，增加了端口参数
+def set_tensor_parallel(m, num_nodes, msg_len, num_phases, port, file_name="", append=False):
     if num_nodes <= 0 or num_phases <= 0:
         raise ValueError(f"num_nodes {num_nodes} 和 num_phases {num_phases} 必须大于 0")
     result = []
@@ -229,8 +232,8 @@ def set_tensor_parallel(m, num_nodes, msg_len, num_phases, file_name="", append=
         for i in range(m * num_nodes, (m + 1) * num_nodes):
             dst_node = i + 1 if i < (m + 1) * num_nodes - 1 else m * num_nodes
             phase.append(
-                f"Type rdma_send src_node {i} src_port 0 "
-                f"dst_node {dst_node} dst_port 0 priority 0 "
+                f"Type rdma_send src_node {i} src_port {port} "
+                f"dst_node {dst_node} dst_port {port} priority 0 "  # 修改了端口号
                 f"msg_len {msg_len}\n"
             )
         result.append(phase)
@@ -238,12 +241,13 @@ def set_tensor_parallel(m, num_nodes, msg_len, num_phases, file_name="", append=
         write_file(result, file_name, append)
     return result
 
-def set_pipeline_parallel(node_pairs, msg_len, file_name=""):
+# 修改后的 set_pipeline_parallel 函数，增加了端口参数
+def set_pipeline_parallel(node_pairs, msg_len, port, file_name=""):
     result = [[]]
     for src_node, dst_node in node_pairs:
         result[0].append(
-            f"Type rdma_send src_node {src_node} src_port 0 "
-            f"dst_node {dst_node} dst_port 0 priority 0 "
+            f"Type rdma_send src_node {src_node} src_port {port} "
+            f"dst_node {dst_node} dst_port {port} priority 0 "  # 修改了端口号
             f"msg_len {msg_len}\n"
         )
     if file_name:
@@ -255,6 +259,9 @@ def generate_pipeline_pairs(host_num):
 
 # Generate traffic based on tree
 def generate_traffic_from_tree(T):
+    # 添加端口号计数器，从1000开始
+    port_counter = 1000
+    
     # Map node types to traffic modes
     type_to_mode = {
         'EP': 'ep',
@@ -324,30 +331,33 @@ def generate_traffic_from_tree(T):
 
         # Generate configuration for each group
         for group_idx in range(num_groups):
+            # 为当前组分配端口号并递增
+            current_port = port_counter
+            port_counter += 1
+            
             index_str = "" if group_idx == 0 else str(group_idx)
             file_name = f"rdma_result/{node_name}/rdma_operate{index_str}.txt"
 
             try:
                 if mode == "ep":
-                    set_all2all(host_list[group_idx], node_args['msg_len'], file_name)
+                    set_all2all(host_list[group_idx], node_args['msg_len'], current_port, file_name)
                 elif mode == "dp":
-                    set_hypercube(host_list[group_idx], node_args['msg_len'], file_name)
+                    set_hypercube(host_list[group_idx], node_args['msg_len'], current_port, file_name)
                 elif mode == "tp":
                     for iteration in range(node_args['num_iterations']):
                         append = iteration > 0
                         set_tensor_parallel(
-                            group_idx, node_args['num_nodes'], node_args['msg_len'], node_args['num_phases'],
-                            file_name, append
+                            group_idx, node_args['num_nodes'], node_args['msg_len'], 
+                            node_args['num_phases'], current_port, file_name, append
                         )
                 elif mode == "pp":
                     start_idx = group_idx * nodes_per_group
                     end_idx = min((group_idx + 1) * nodes_per_group, node_args['host_num'])
                     group_pairs = node_pairs[start_idx:end_idx]
-                    set_pipeline_parallel(group_pairs, node_args['msg_len'], file_name)
-                print(f"Generated traffic for node {node}, group {group_idx} (mode: {mode})")
+                    set_pipeline_parallel(group_pairs, node_args['msg_len'], current_port, file_name)
+                print(f"Generated traffic for node {node}, group {group_idx} (mode: {mode}) with port {current_port}")
             except ValueError as e:
                 print(f"Error generating traffic for node {node}, group {group_idx}: {e}")
-
 def main(args):
     # Clear previous rdma_result directory
     result_dir = "rdma_result"

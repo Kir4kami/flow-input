@@ -38,9 +38,14 @@ namespace ns3{
     uint32_t EcmpHash(const uint8_t* key, size_t len, uint32_t seed);
     struct FlowKey {
         int src;
-        int dst;    
+        int dst;
+        int sport;
+        int dport;
         bool operator==(const FlowKey& o) const {
-            return src == o.src && dst == o.dst;
+            return src == o.src && 
+                dst == o.dst &&
+                sport == o.sport &&
+                dport == o.dport;
         }
     };
 }
@@ -48,7 +53,10 @@ namespace std{
     template<>
     struct hash<ns3::FlowKey> {
         size_t operator()(const ns3::FlowKey& k) const {
-             return hash<int>()(k.src) ^ (hash<int>()(k.dst) << 1);
+            return hash<int>()(k.src) ^ 
+                (hash<int>()(k.dst) << 1) ^ 
+                (hash<int>()(k.sport) << 2) ^ 
+                (hash<int>()(k.dport) << 3);
         }
     };
 }
