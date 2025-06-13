@@ -21,7 +21,7 @@ INTCC=3
 
 NUM=0
 DST=1
-TASKNUM=4
+TASKNUM=1
 
 alg=$REVERIE
 egresslossyFrac=0.8
