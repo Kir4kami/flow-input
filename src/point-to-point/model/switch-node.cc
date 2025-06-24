@@ -369,16 +369,17 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	m_lastPktTs[ifIndex] = Simulator::Now().GetTimeStep();
 }
 
+//定期监控交换节点（SwitchNode）上流量的发送速率（比特/时间）
 void
 SwitchNode::BandWidthMonitor(Ptr<Packet> packet, CustomHeader& ch)
 {
 	uint64_t currentTime = Simulator::Now().GetNanoSeconds();
     uint16_t packetSize = packet->GetSize();
-    // 检查该流是否存�?
+    // 检查该流是否存在
     auto it = NodeStats.find(m_id);
     
     if (it == NodeStats.end()){
-        // 流不存在，创建新�?
+        // 流不存在，创建新在
         NodeStat newStat = { packetSize, currentTime,0 };
         NodeStats[m_id] = newStat;
     }else{

@@ -80,9 +80,9 @@ if __name__ == '__main__':
     host_num_per_sub_pod = 32
     host_num_per_pod = sub_pod_num_per_pod * host_num_per_sub_pod
     host_num = pod_num * host_num_per_pod
-    host_num = 1024*4*4
+    host_num = 64
 
-    dp_list = [16, 64, 256, 512]
+    dp_list = [16, 32,64]
     for dp in dp_list:
         host_list = get_host_list(host_num, dp)
         for index, host_ids in enumerate(host_list):

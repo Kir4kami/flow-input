@@ -20,18 +20,43 @@ def addCommunicationEdge(G, layer, comm_type, parent_node, node_args):
     G.nodes[parent_node]['children'].append(node_name)
     return node_name
 
-# Parse input file to construct tree
+# Global variables to store model identifier and devices
+model_identifier = None
+max_devices = None  # 新增全局变量存储 devices
+
 def constructTree(G, input_file):
+    global model_identifier, max_devices
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist")
     
     valid_modes = {'EP', 'TP', 'PP', 'DP'}
     node_name_mapping = {}
-    tp_multi_parent_nodes = {}  # {(layer, parent_nodes): generated_node_name}
-    mode_counters = {'TP': 0, 'EP': 0, 'PP': 0, 'DP': 0}  # Track mode-specific counters for naming
+    tp_multi_parent_nodes = {}
+    mode_counters = {'TP': 0, 'EP': 0, 'PP': 0, 'DP': 0}
 
     with open(input_file, 'r') as f:
-        for line_num, line in enumerate(f, 1):
+        lines = f.readlines()
+        if not lines:
+            raise ValueError("Input file is empty")
+        
+        # 修改：读取并验证第一行，包含 model 和 devices
+        first_line = lines[0].strip()
+        first_line_parts = re.split(r'\s+', first_line)
+        if len(first_line_parts) != 2:
+            raise ValueError(f"First line must specify model and devices, got '{first_line}'")
+        model, devices = first_line_parts
+        if model.lower() not in {'qwen', 'deepseek'}:
+            raise ValueError(f"First line model must be 'Qwen' or 'DeepSeek', got '{model}'")
+        try:
+            max_devices = int(devices)
+            if max_devices <= 0:
+                raise ValueError("Devices must be a positive integer")
+        except ValueError:
+            raise ValueError(f"Invalid devices value: '{devices}', must be a positive integer")
+        model_identifier = model.lower()
+        
+        # Process remaining lines
+        for line_num, line in enumerate(lines[1:], 2):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
@@ -41,11 +66,11 @@ def constructTree(G, input_file):
                 raise ValueError(f"Line {line_num}: Invalid format, expected at least layer, mode, parent_node")
             
             try:
-                layer = (parts[0])
+                layer = parts[0]
                 mode = parts[1]
                 parent_nodes = parts[2].split('/')
             except ValueError:
-                raise ValueError(f"Line {line_num}: Layer must be an integer")
+                raise ValueError(f"Line {line_num}: Layer must be provided")
             
             if mode not in valid_modes:
                 raise ValueError(f"Line {line_num}: Invalid mode {mode}, must be one of {valid_modes}")
@@ -62,12 +87,14 @@ def constructTree(G, input_file):
                 mapped_parent_nodes.append(parent_node)
             
             node_args = {
-                'host_num': 4096,
-                'num_nodes': 16,
+                'host_num': 128,
+                'num_nodes': 8,
                 'dp': 1,
                 'msg_len': 32*1024*1024,
-                'num_phases': 15,
+                'num_phases': 7,
                 'num_iterations': 1,
+                'device': 0,
+                'forward': 1
             }
             i = 3
             while i < len(parts):
@@ -81,15 +108,21 @@ def constructTree(G, input_file):
                     try:
                         if key == 'msg_len':
                             node_args[key] = evaluate_expression(parts[i])
+                        elif key in {'device', 'forward'}:
+                            node_args[key] = int(parts[i])
+                            if key == 'device' and (node_args[key] < 0 or node_args[key] >= max_devices):
+                                raise ValueError(f"Line {line_num}: Device must be in [0, {max_devices-1}], got {parts[i]}")
+                            if key == 'forward' and node_args[key] not in [0, 1]:
+                                raise ValueError(f"Line {line_num}: Forward must be 0 or 1, got {parts[i]}")
                         else:
                             node_args[key] = int(parts[i])
                     except (ValueError, argparse.ArgumentTypeError) as e:
                         raise ValueError(f"Line {line_num}: Invalid value for {parts[i-1]}: {e}")
                 i += 1
             
-            # Handle TP nodes with multiple parents or same layer/parent
+            # Handle TP nodes with multiple parents
             generated_node_name = None
-            if mode == 'TP' and len(parent_nodes) > 1:  # Multi-parent TP nodes
+            if mode == 'TP' and len(parent_nodes) > 1:
                 parent_key = (layer, tuple(sorted(parent_nodes)))
                 if parent_key in tp_multi_parent_nodes:
                     generated_node_name = tp_multi_parent_nodes[parent_key]
@@ -154,18 +187,27 @@ def write_file(result, file_name, append=False):
         return 1
     return 0
 
-def get_host_list(host_num, dp):
+def get_host_list_dp(host_num, dp):
     if host_num % dp != 0:
         raise ValueError(f"host_num {host_num} 无法被 dp {dp} 整除")
     span = host_num // dp
     host_list = []
-    for start in range(span):
+    for start in range(0, span):
         host_ids = [host_id for host_id in range(start, host_num, span)]
         host_list.append(host_ids)
     return host_list
 
-# 修改后的 set_all2all 函数，增加了端口参数
-def set_all2all(host_list, msg_len, port, file_name=""):
+def get_host_list_ep(host_num, dp, device):
+    if host_num % dp != 0:
+        raise ValueError(f"host_num {host_num} 无法被 dp {dp} 整除")
+    span = host_num // max_devices // dp
+    host_list = []
+    for start in range(0 + device * span, span + device * span):
+        host_ids = [host_id for host_id in range(start, host_num, 2 * span)]
+        host_list.append(host_ids)
+    return host_list
+
+def set_all2all(host_list, msg_len, port, forward, file_name=""):
     host_num = len(host_list)
     result = []
     for step in range(1, host_num):
@@ -173,9 +215,11 @@ def set_all2all(host_list, msg_len, port, file_name=""):
         for idx, host_id_a in enumerate(host_list):
             idy = (step + idx) % host_num
             host_id_b = host_list[idy]
+            src_node, dst_node = (host_id_a, host_id_b) if forward else (host_id_b, host_id_a)
+            src_port, dst_port = (port, port) if forward else (port, port)
             phase.append(
-                f"Type rdma_send src_node {host_id_a} src_port {port} "
-                f"dst_node {host_id_b} dst_port {port} priority 0 "  # 修改了端口号
+                f"Type rdma_send src_node {src_node} src_port {src_port} "
+                f"dst_node {dst_node} dst_port {dst_port} priority 0 "
                 f"msg_len {msg_len}\n"
             )
         result.append(phase)
@@ -193,47 +237,42 @@ def set_hypercube(host_list, msg_len, port, file_name=""):
         while len(host_list) < target_num:
             host_list.append(random.randint(0, host_num - 1))
         host_num = len(host_list)
-        iter_t = math.log2(host_num)
+        iter_times = math.log2(host_num)
     iter_times = int(iter_times)
     result = []
     for iter in range(1, iter_times + 1):
-        res1, res, res2 = [], [], []
+        res = []
         msg = msg_len // (2 ** iter)
         for idx, host in enumerate(host_list):
             nei_idx = get_neighbor(idx, host_num, iter)
-            res1.append(
-                f"Type rdma_send src_node {host} src_port {port} "
-                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
-                f"msg_len 64\n"
-            )
+            
             res.append(
                 f"Type rdma_send src_node {host} src_port {port} "
-                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
+                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "
                 f"msg_len {msg}\n"
             )
-            res2.append(
-                f"Type rdma_send src_node {host} src_port {port} "
-                f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "  # 修改了端口号
-                f"msg_len 64\n"
-            )
-        result.extend([res1, res, res2])
+            
+        result.extend([ res])
     result += result[::-1]
     if file_name:
         write_file(result, file_name)
     return result
 
-# 修改后的 set_tensor_parallel 函数，增加了端口参数
-def set_tensor_parallel(m, num_nodes, msg_len, num_phases, port, file_name="", append=False):
+def set_tensor_parallel(m, num_nodes, msg_len, num_phases, device, port, forward, file_name="", append=False):
     if num_nodes <= 0 or num_phases <= 0:
         raise ValueError(f"num_nodes {num_nodes} 和 num_phases {num_phases} 必须大于 0")
     result = []
     for _ in range(num_phases):
         phase = []
-        for i in range(m * num_nodes, (m + 1) * num_nodes):
-            dst_node = i + 1 if i < (m + 1) * num_nodes - 1 else m * num_nodes
+        start = math.floor((m + 0.5 * device) * 2 * num_nodes)
+        end = math.floor(((m + 0.5 * device) * 2 + 1) * num_nodes)
+        for i in range(start, end):
+            dst_node = i + 1 if i < end - 1 else start
+            src_node, dst_node = (i, dst_node) if forward else (dst_node, i)
+            src_port, dst_port = (port, port) if forward else (port, port)
             phase.append(
-                f"Type rdma_send src_node {i} src_port {port} "
-                f"dst_node {dst_node} dst_port {port} priority 0 "  # 修改了端口号
+                f"Type rdma_send src_node {src_node} src_port {src_port} "
+                f"dst_node {dst_node} dst_port {dst_port} priority 0 "
                 f"msg_len {msg_len}\n"
             )
         result.append(phase)
@@ -241,36 +280,35 @@ def set_tensor_parallel(m, num_nodes, msg_len, num_phases, port, file_name="", a
         write_file(result, file_name, append)
     return result
 
-# 修改后的 set_pipeline_parallel 函数，增加了端口参数
-def set_pipeline_parallel(node_pairs, msg_len, port, file_name=""):
+def set_pipeline_parallel(node_pairs, msg_len, port, forward, file_name=""):
     result = [[]]
     for src_node, dst_node in node_pairs:
+        src_node, dst_node = (src_node, dst_node) if forward else (dst_node, src_node)
+        src_port, dst_port = (port, port) if forward else (port, port)
         result[0].append(
-            f"Type rdma_send src_node {src_node} src_port {port} "
-            f"dst_node {dst_node} dst_port {port} priority 0 "  # 修改了端口号
+            f"Type rdma_send src_node {src_node} src_port {src_port} "
+            f"dst_node {dst_node} dst_port {dst_port} priority 0 "
             f"msg_len {msg_len}\n"
         )
     if file_name:
         write_file(result, file_name)
     return result
 
-def generate_pipeline_pairs(host_num):
-    return [(host_num + i, i) for i in range(host_num)]
+def generate_pipeline_pairs(host_num, dp):
+    node_pairs = []
+    num_groups = max(1, (max_devices * host_num) // (max_devices * dp))
+    for k in range(num_groups):
+        for i in range(dp):
+            src_node = k * max_devices * dp + i
+            dst_node = src_node + dp
+            if src_node < host_num and dst_node < max_devices * host_num:
+                node_pairs.append((src_node, dst_node))
+    return node_pairs
 
-# Generate traffic based on tree
 def generate_traffic_from_tree(T):
-    # 添加端口号计数器，从1000开始
+    global model_identifier, max_devices
     port_counter = 1000
-    
-    # Map node types to traffic modes
-    type_to_mode = {
-        'EP': 'ep',
-        'TP': 'tp',
-        'PP': 'pp',
-        'DP': 'dp'
-    }
-
-    # Map letters to host IDs for validation
+    type_to_mode = {'EP': 'ep', 'TP': 'tp', 'PP': 'pp', 'DP': 'dp'}
     letter_to_id = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5}
 
     # Traverse tree in topological order
@@ -288,6 +326,8 @@ def generate_traffic_from_tree(T):
             continue
 
         mode = type_to_mode[comm_type]
+        if model_identifier == 'deepseek' and comm_type == 'EP':
+            mode = 'tp'
 
         # Validate nodes_passed (used for validation only, not traffic generation)
         host_list_validation = [letter_to_id[host] for host in nodes_passed if host in letter_to_id]
@@ -302,10 +342,15 @@ def generate_traffic_from_tree(T):
         node_pairs = []
         num_groups = 1
 
-        # Compute groups based on mode
         try:
-            if mode in ["ep", "dp"]:
-                host_list = get_host_list(node_args['host_num'], dp)
+            if mode == "dp":
+                host_list = get_host_list_dp(node_args['host_num'], dp)
+                num_groups = len(host_list)
+                if not host_list:
+                    print(f"Node {node}: get_host_list returned empty list: host_num={node_args['host_num']}, dp={dp}")
+                    continue
+            elif mode == "ep":
+                host_list = get_host_list_ep(node_args['host_num'], dp, node_args['device'])
                 num_groups = len(host_list)
                 if not host_list:
                     print(f"Node {node}: get_host_list returned empty list: host_num={node_args['host_num']}, dp={dp}")
@@ -314,11 +359,11 @@ def generate_traffic_from_tree(T):
                 if node_args['host_num'] % node_args['num_nodes'] != 0:
                     print(f"Node {node}: host_num {node_args['host_num']} not divisible by num_nodes {node_args['num_nodes']}")
                     continue
-                num_groups = node_args['host_num'] // node_args['num_nodes']
+                num_groups = node_args['host_num'] // max_devices // node_args['num_nodes']
                 dp = num_groups
             elif mode == "pp":
-                nodes_per_group = max(1, node_args['host_num'] // dp)
-                node_pairs = generate_pipeline_pairs(node_args['host_num'])
+                nodes_per_group = max(1, node_args['host_num'] // max_devices // dp)
+                node_pairs = generate_pipeline_pairs(node_args['host_num'], dp)
                 num_groups = dp
         except ValueError as e:
             print(f"Node {node}: {e}")
@@ -329,18 +374,16 @@ def generate_traffic_from_tree(T):
             print(f"Node {node}: num_groups={num_groups} is too large, limiting to 1000")
             num_groups = 1000
 
-        # Generate configuration for each group
         for group_idx in range(num_groups):
             # 为当前组分配端口号并递增
             current_port = port_counter
             port_counter += 1
-            
             index_str = "" if group_idx == 0 else str(group_idx)
             file_name = f"rdma_result/{node_name}/rdma_operate{index_str}.txt"
 
             try:
-                if mode == "ep":
-                    set_all2all(host_list[group_idx], node_args['msg_len'], current_port, file_name)
+                if mode == "ep" and model_identifier != 'deepseek':
+                    set_all2all(host_list[group_idx], node_args['msg_len'], current_port, node_args['forward'], file_name)
                 elif mode == "dp":
                     set_hypercube(host_list[group_idx], node_args['msg_len'], current_port, file_name)
                 elif mode == "tp":
@@ -348,18 +391,21 @@ def generate_traffic_from_tree(T):
                         append = iteration > 0
                         set_tensor_parallel(
                             group_idx, node_args['num_nodes'], node_args['msg_len'], 
-                            node_args['num_phases'], current_port, file_name, append
+                            node_args['num_phases'], node_args['device'], current_port, node_args['forward'], file_name, append
                         )
                 elif mode == "pp":
                     start_idx = group_idx * nodes_per_group
-                    end_idx = min((group_idx + 1) * nodes_per_group, node_args['host_num'])
+                    end_idx = min((group_idx + 1) * nodes_per_group, node_args['host_num'] // max_devices)
                     group_pairs = node_pairs[start_idx:end_idx]
-                    set_pipeline_parallel(group_pairs, node_args['msg_len'], current_port, file_name)
+                    set_pipeline_parallel(group_pairs, node_args['msg_len'], current_port, node_args['forward'], file_name)
                 print(f"Generated traffic for node {node}, group {group_idx} (mode: {mode}) with port {current_port}")
             except ValueError as e:
                 print(f"Error generating traffic for node {node}, group {group_idx}: {e}")
+
 def main(args):
-    # Clear previous rdma_result directory
+    global model_identifier, max_devices
+    model_identifier = None
+    max_devices = None
     result_dir = "rdma_result"
     try:
         if os.path.exists(result_dir):
@@ -369,31 +415,21 @@ def main(args):
         print(f"Error removing {result_dir}: {e}")
         return 1
 
-    # Create directed graph
     T = nx.DiGraph()
     T.add_node(root_node, name='Root', nodes_passed=[], children=[])
 
-    # Construct tree from input file
     try:
         constructTree(T, args.input_file)
     except Exception as e:
         print(f"Error constructing tree from {args.input_file}: {e}")
         return 1
 
-    # Generate traffic
+    if model_identifier is None:
+        print("Error: Model identifier not set")
+        return 1
+
     generate_traffic_from_tree(T)
-
-    # Optional: Visualize tree (uncomment to enable)
-    """
-    try:
-        pos = nx.nx_agraph.graphviz_layout(T, prog='dot')
-    except ImportError:
-        pos = nx.spring_layout(T)
-    nx.draw(T, pos, with_labels=True, node_color='lightblue', arrows=True)
-    plt.show()
-    """
-
-    print("Traffic generation completed")
+    print(f"Traffic generation completed for model {model_identifier} with {max_devices} devices")
     return 0
 
 if __name__ == "__main__":

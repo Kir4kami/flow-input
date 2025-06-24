@@ -405,6 +405,7 @@ int RdmaHw::ReceiveCnp(Ptr<Packet> p, CustomHeader &ch) {
 	return 0;
 }
 
+//退出稳态后，清理窗口以及保证fin包返回前不触发跃迁
 int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 	uint16_t qIndex = ch.ack.pg;
 	uint16_t port = ch.ack.dport;
@@ -625,7 +626,7 @@ Ptr<Packet> RdmaHw::GetNxtPacket(Ptr<RdmaQueuePair> qp) {
 	ppp.SetProtocol (0x0021); // EtherToPpp(0x800), see point-to-point-net-device.cc
 	p->AddHeader (ppp);
 
-	// update state
+	// update state 标记已发送完成的流，等待确认
 	qp->snd_nxt += payload_size;
 	qp->m_ipid++;
 	if(qp->snd_nxt==qp->m_size){

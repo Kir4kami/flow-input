@@ -56,6 +56,8 @@
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
 
+#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
+
 bool allSteadyStateReached=false;
 
 NS_LOG_COMPONENT_DEFINE("QbbNetDevice");
@@ -535,7 +537,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 
 	CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
 	ch.getInt = 1; // parse INT header
-	packet->PeekHeader(ch);//查看但不移除数据包中的头部信�?
+	packet->PeekHeader(ch);//查看但不移除数据包中的头部信息
 	if (ch.l3Prot == 0xFE) { // PFC
 		if (!m_qbbEnabled) return;
 		unsigned qIndex = ch.pfc.qIndex;
@@ -563,7 +565,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				m_phyRxEndTrace (packet);
 				Ptr<Packet> originalPacket = packet->Copy ();
 				uint16_t prot = 0;
-				ProcessHeader (packet, prot);//PPP（Point-to-Point Protocol）协议号转换为以太网协议�?
+				ProcessHeader (packet, prot);//PPP（Point-to-Point Protocol）协议号转换为以太网协议号
 
 				if (!m_promiscCallback.IsNull ())
 				{
@@ -587,7 +589,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
     			}
 				GenerateFlowId(cp,ch,flowstatsFile);
 				
-				// 如果是第一次打开，设置标志为false，后续追�?
+				// 如果是第一次打开，设置标志为false，后续追加
             	isFirstOpen = false;
 				flowstatsFile.close();
 				}
@@ -599,7 +601,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 	if(allSteadyStateReached){
 		Simulator::ScheduleNow( &ns3::QbbNetDevice::exitSteadyState, this);
 		allSteadyStateReached=false;
-		transition_cnt++;
+		transition_cnt++;//增加状态转换计数器
 	}
 
 	return;
@@ -647,25 +649,32 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
 		flowstatsFile <<header.udp.seq<<endl;
 	}*/
 
-	//计算速率
-	//onPacketReceived(flowid, packetSize,flowstatsFile);
+	// 启动跃迁逻辑
+	#ifdef ENABLE_JUMP_TRANSITION
+    //计算速率
+	onPacketReceived(flowid, packetSize,flowstatsFile); 
+	#else
+    // 可选：记录日志或保持静默
+    // NS_LOG_DEBUG("Jump transition is disabled via macro.");
+	#endif
+	
 }
 
 void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime = Simulator::Now().GetNanoSeconds();
     
-    // 检查该流是否存�?
+    // 检查该流是否存在
     auto it = flowStats.find(flowid);
     auto filter_it =filter.find(flowid);
     if (it == flowStats.end()&&filter_it==filter.end()){
-        // 流不存在，创建新�?
+        // 流不存在，创建新流
         FlowStat newStat = { packetSize, currentTime };
         flowStats[flowid] = newStat;
     }
 	calculateRate(flowid,packetSize,flowstatsFile);
 }
 
-// 计算每条流速率并输�?
+// 计算每条流速率并输出
 void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
     uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
 
@@ -680,8 +689,8 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 
         // 判断是否超过监测周期
 		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
-			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进�?
-				// 计算速率（单位：字节/纳秒�?
+			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
+				// 计算速率（单位：字节/纳秒）
 				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
@@ -689,17 +698,17 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				stat.rate.push_back(rate);
 				if(stat.rate.size() >= stat.size){
 					stat.rate.erase(stat.rate.begin());
-					// 获取最小值和最大�?
+					// 获取最小值和最大值
 					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
 					auto minIt = result.first;
 					auto maxIt = result.second;
 					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-						stat.steadyStateReached = true;//流进入稳�?
-						//cout<<"进入稳�?"<<endl;
+						stat.steadyStateReached = true;//流进入稳态
+						//cout<<"进入稳态"<<endl;
 						
 					}else {
-						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状�?
-						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳�?
+						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
 					}
 					
 				}
@@ -724,13 +733,13 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 	}
 	if(flow_fin_unack.size()!=0)
 		allSteadyStateReached=false;
-	// 判断系统是否刚刚进入稳�?
+	// 判断系统是否刚刚进入稳态
     if (allSteadyStateReached) {
         steadyStateStartTime = currentTime;
         cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间uu
-		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时�?
+		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
 		calculateMintime();
 		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
 		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
@@ -741,18 +750,18 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
     }
 	
 
-    // 判断系统是否退出稳�?
+    // 判断系统是否退出稳态
     
 }
 
 void QbbNetDevice::exitSteadyState(){
 	
-        //更新流完成状�?
+        //更新流完成状态
 		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
     {
         Ptr<Node> node = *it;
 
-        // 遍历�? Node 的所�? NetDevice（设备）
+        // 遍历�? Node 的所有NetDevice（设备）
         for (uint32_t i = 0; i < node->GetNDevices(); ++i)
         {
             Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
@@ -762,8 +771,8 @@ void QbbNetDevice::exitSteadyState(){
 			else if(node->GetNodeType()!=0){
 				auto iter = NodeStats.find(node->GetId());
 				if(iter!=NodeStats.end()){
-					DataRate queue_rate(iter->second.rate);
-					queue_rate-= qbbDev->m_bps;
+					DataRate queue_rate(iter->second.rate); //获取节点的队列速率
+					queue_rate-= qbbDev->m_bps; //减去设备的带宽
 					
 					Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
 					node_latency_fix[node->GetId()]=latency_fix;
@@ -797,8 +806,10 @@ void QbbNetDevice::exitSteadyState(){
 						double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
 						double avg = sum / iter->second.rate.size();
 						//qp->snd_nxt+=
-						qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1];
-						
+						qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1]; 
+						//transition_delay[transition_cnt - 1]（上一个稳态周期的持续时间，单位为纳秒），得到稳态期间传输的字节数，累加到 snd_nxt（已发送的下一个字节序号）
+						//即更新所有流的状态（跃迁）
+
 						flowStats.erase(flowid);
 						
 						/*if(qp->IsFinished()){
@@ -828,15 +839,15 @@ void QbbNetDevice::exitSteadyState(){
 
 
 
-//计算剩余流量大小除以已测量的速度均值，获取最小时�?
+//计算剩余流量大小除以已测量的速度均值，获取最小时间
 //每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
 void QbbNetDevice::calculateMintime(){
-	// 遍历所�? Node（网络节点）
+	// 遍历所有Node（网络节点）
     for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
     {
         Ptr<Node> node = *it;
 
-        // 遍历�? Node 的所�? NetDevice（设备）
+        // 遍历�? Node 的所有 NetDevice（设备）
         for (uint32_t i = 0; i < node->GetNDevices(); ++i)
         {
             Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
@@ -867,17 +878,20 @@ void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
 			uint32_t srcId = ((srcIp >> 8) & 0xffff);
 			uint32_t dstId = ((dstIp >> 8) & 0xffff);
 			uint16_t srcPort = qp->sport; // 源端口号
-			uint16_t dstPort = qp->dport; // 目标端口�?
+			uint16_t dstPort = qp->dport; // 目标端口号
 			std::ostringstream oss;
     		oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
 			std::string flowid = oss.str();
 
 			map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
 			if(iter!=flowStats.end()){
+				//流的实际速率（FlowStat::rate）是通过测量接收到的数据包（byteCount）计算的，单位为 Gbps
+				//m_rate 是配置速率，反映 RDMA 队列对的分配带宽，通常是稳定的、协议定义的值，适合用于更新发送进度
 				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
     			double avg = sum / iter->second.rate.size();
 				double trans_time=0;
-				if(qp->GetBytesLeft()>1000)
+				if(qp->GetBytesLeft()>1000) //至少还有一个包在发送端
+				//确保流还有足够的剩余数据需要传输，避免将接近完成的流（可能只剩控制包，如 FIN）计入主要传输时间
 					trans_time = static_cast<double>(qp->GetBytesLeft()-1000) / qp->m_rate.GetBitRate()*1e9*8;//bps
 				double time=static_cast<double>(qp->GetBytesLeft())*8 / avg;
 					//number_test++;

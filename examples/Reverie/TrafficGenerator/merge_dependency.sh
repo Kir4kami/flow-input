@@ -4,13 +4,20 @@
 INPUT_FILE="deepseek.txt"
 OUTPUT_FILE="dependence.txt"
 
-# Check if input file exists
+# Check if input file exists and is not empty
 if [ ! -f "$INPUT_FILE" ]; then
-    echo "Error: Input file $INPUT_FILE does not exist."
+    echo "Error: Input file $INPUT_FILE does not exist." >&2
+    exit 1
+fi
+if [ ! -s "$INPUT_FILE" ]; then
+    echo "Error: Input file $INPUT_FILE is empty." >&2
     exit 1
 fi
 
 # Initialize variables
+header_line=""  # Store the first line of the input file
+header_word=""  # Store the header word (e.g., deepseek)
+max_devices=0   # Store the number of devices from the header
 declare -A node_files  # Store file range for each node (node_name:start:end)
 declare -A node_parents  # Store parent nodes for each node
 declare -A node_name_map  # Map expected node names (e.g., TP1) to actual node names
@@ -25,11 +32,13 @@ parse_params() {
     local args="$1"
     local -A params=(
         ["host_num"]=4096
-        ["num_nodes"]=16
+        ["num_nodes"]=8
         ["dp"]=1
         ["msg_len"]="32*1024*1024"
-        ["num_phases"]=15
+        ["num_phases"]=7
         ["num_iterations"]=1
+        ["device"]=""
+        ["forward"]=""
     )
 
     # Parse arguments
@@ -42,7 +51,7 @@ parse_params() {
             key=${key//-/_}  # Replace - with _ (e.g., host-num -> host_num)
             ((i++))
             if [ $i -ge ${#arg_array[@]} ]; then
-                echo "Error: Missing value for ${arg_array[$((i-1))]}"
+                echo "Error: Missing value for ${arg_array[$((i-1))]}" >&2
                 exit 1
             fi
             if [ "$key" == "msg_len" ]; then
@@ -69,7 +78,14 @@ get_file_count() {
     local num_nodes=$4
 
     case $mode in
-        EP|DP)
+        EP)
+            if [ $((host_num % max_devices)) -ne 0 ] || [ $(((host_num / max_devices) % dp)) -ne 0 ]; then
+                echo "Error: host_num/max_devices ($host_num/max_devices) not divisible by dp $dp" >&2
+                exit 1
+            fi
+            echo $((host_num / max_devices / dp))
+            ;;
+        DP)
             if [ $((host_num % dp)) -ne 0 ]; then
                 echo "Error: host_num $host_num not divisible by dp $dp" >&2
                 exit 1
@@ -77,11 +93,11 @@ get_file_count() {
             echo $((host_num / dp))
             ;;
         TP)
-            if [ $((host_num % num_nodes)) -ne 0 ]; then
-                echo "Error: host_num $host_num not divisible by num_nodes $num_nodes" >&2
+            if [ $((host_num % max_devices)) -ne 0 ] || [ $(((host_num / max_devices) % num_nodes)) -ne 0 ]; then
+                echo "Error: host_num/max_devices ($host_num/max_devices) not divisible by num_nodes $num_nodes" >&2
                 exit 1
             fi
-            echo $((host_num / num_nodes))
+            echo $((host_num / max_devices / num_nodes))
             ;;
         PP)
             echo $dp
@@ -97,8 +113,31 @@ trim() {
     echo "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
 }
 
-# Read input file and process nodes
+# Read and parse the first line
+read -r header_line < "$INPUT_FILE"
+header_line=$(trim "$header_line")
+if [ -z "$header_line" ]; then
+    echo "Error: Header line is empty" >&2
+    exit 1
+fi
+
+# Parse header line (expected format: <header_word> <number>)
+read -r header_word max_devices <<< "$header_line"
+if [ -z "$header_word" ] || [ -z "$max_devices" ] || ! [[ "$max_devices" =~ ^[0-9]+$ ]]; then
+    echo "Error: Invalid header format: $header_line. Expected '<header_word> <number>'" >&2
+    exit 1
+fi
+echo "Header line: $header_line, header_word: $header_word, max_devices: $max_devices" >&2
+
+# Read input file, skipping the first line
+line_number=0
 while IFS= read -r line || [ -n "$line" ]; do
+    ((line_number++))
+    # Skip the first line (already read)
+    if [ $line_number -eq 1 ]; then
+        continue
+    fi
+
     # Skip empty lines or comments
     line=$(trim "$line")
     if [ -z "$line" ] || [[ $line == \#* ]]; then
@@ -108,13 +147,13 @@ while IFS= read -r line || [ -n "$line" ]; do
     # Parse line
     read -r layer mode parents args <<< "$line"
     if [ -z "$layer" ] || [ -z "$mode" ] || [ -z "$parents" ]; then
-        echo "Error: Invalid line format: $line"
+        echo "Error: Invalid line format at line $line_number: $line" >&2
         exit 1
     fi
 
     # Validate mode
     if ! [[ "$mode" =~ ^(TP|EP|PP|DP)$ ]]; then
-        echo "Error: Invalid mode $mode in line: $line"
+        echo "Error: Invalid mode $mode at line $line_number: $line" >&2
         exit 1
     fi
 
@@ -123,6 +162,23 @@ while IFS= read -r line || [ -n "$line" ]; do
     host_num=${host_num:-4096}
     dp=${dp:-1}
     num_nodes=${num_nodes:-16}
+    device=${device:-""}
+    forward=${forward:-""}
+
+    # Validate device parameter against max_devices
+    if [ -n "$device" ] && ! [[ "$device" =~ ^[0-9]+(/[0-9]+)*$ ]]; then
+        echo "Error: Invalid device format '$device' at line $line_number: $line" >&2
+        exit 1
+    fi
+    if [ -n "$device" ]; then
+        IFS='/' read -ra device_array <<< "$device"
+        for dev in "${device_array[@]}"; do
+            if [ "$dev" -ge "$max_devices" ]; then
+                echo "Error: Device $dev exceeds max_devices ($max_devices) at line $line_number: $line" >&2
+                exit 1
+            fi
+        done
+    fi
 
     # Increment mode counter and generate expected node name
     ((mode_counters[$mode]++))
@@ -143,7 +199,7 @@ while IFS= read -r line || [ -n "$line" ]; do
         parent=$(trim "$parent")
         if [ "$parent" != "Root" ]; then
             if [ -z "${node_name_map[$parent]}" ]; then
-                echo "Error: Parent node $parent does not exist in line: $line"
+                echo "Error: Parent node $parent does not exist at line $line_number: $line" >&2
                 exit 1
             fi
             parent=${node_name_map[$parent]}
@@ -156,7 +212,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     # Calculate file count for this node
     file_count=$(get_file_count "$mode" "$host_num" "$dp" "$num_nodes")
     if [ $file_count -eq 0 ]; then
-        echo "Error: Invalid file count for mode $mode in line: $line"
+        echo "Error: Invalid file count for mode $mode at line $line_number: $line" >&2
         exit 1
     fi
     start_index=$current_file_index
@@ -187,7 +243,7 @@ for node in "${!node_files[@]}"; do
 
         # Get parent's file range
         if [ -z "${node_files[$parent]}" ]; then
-            echo "Error: No file range found for parent $parent of node $node"
+            echo "Error: No file range found for parent $parent of node $node" >&2
             exit 1
         fi
         IFS=':' read -r dep_start dep_end <<< "${node_files[$parent]}"
