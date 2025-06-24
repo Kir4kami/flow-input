@@ -648,7 +648,7 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
 	}*/
 
 	//计算速率
-	//onPacketReceived(flowid, packetSize,flowstatsFile);
+	onPacketReceived(flowid, packetSize,flowstatsFile);
 }
 
 void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
