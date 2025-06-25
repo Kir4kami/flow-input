@@ -2,7 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import copy
 from collections import defaultdict
-from treecut.DocProcess import process_file
+from DocProcess import process_file
 import os
 
 # 根节点

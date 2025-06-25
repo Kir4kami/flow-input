@@ -51,7 +51,7 @@ for((i=1;i<=$TASKNUM;i++));do
 	DUMPFILE=$DUMP_DIR/evaluation.out
 	PFCFILE=$DUMP_DIR/evaluation.pfc
 	echo $FCTFILE
-	(time ./ns3 run "reverie-evaluation-sigcomm2023" > $DUMPFILE 2> $DUMPFILE)&
+	(time ./ns3 run "reverie-evaluation-sigcomm2023 --TASKINDEX=$i --DST=$DST --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --buffersize=$BUFFERSIZE --fctOutFile=$FCTFILE --torOutFile=$TORFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2> $DUMPFILE)&
 	#sleep 5
 	NUM=$(( $NUM+1  ))
 done

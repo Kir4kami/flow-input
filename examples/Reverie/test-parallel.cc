@@ -306,8 +306,8 @@ bool CheckPathIntersection(
     }
     return false;
 }
-uint16_t operateNum=17;
-void executeFlow(std::string flowPath="examples/Reverie/rdma_operates",std::string pathPath="examples/Reverie/operate_path"){//处理流量文件，生成路径文件
+uint16_t operateNum=176;
+void executeFlow(std::string flowPath="examples/Reverie/task1",std::string pathPath="examples/Reverie/operate_path"){//处理流量文件，生成路径文件
     std::ifstream flowFile;
     std::ofstream pathFile;
     for(int idx=0;idx<operateNum;idx++){
