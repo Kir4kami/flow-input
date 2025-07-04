@@ -1,0 +1,13 @@
+exec_prefix="/usr/local/bin"
+libdir="/usr/local/lib"
+includedir="/usr/local/include"
+
+Name: ns3-lr-wpan
+Description: 
+URL: 
+Version: 3.39
+Requires:  ns3-network ns3-core ns3-mobility ns3-spectrum ns3-propagation
+Requires.private: 
+Cflags: -I"${includedir}" -I/usr/include -I/usr; -I/usr/include/freetype2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/gtk-3.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/atk-1.0 -I/usr/include/libxml2
+Libs: -L"${libdir}" -lns3.39-lr-wpan-default  -lns3.39-network-default -lns3.39-core-default -lns3.39-mobility-default -lns3.39-spectrum-default -lns3.39-propagation-default
+Libs.private: -L"${libdir}" 

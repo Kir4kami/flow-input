@@ -1,0 +1,5 @@
+/home/kira/flow-input-test2/scratch/scratch-simulator.cc
+/home/kira/flow-input-test2/scratch/nested-subdir/scratch-nested-subdir-executable.cc
+/home/kira/flow-input-test2/scratch/nested-subdir/lib/scratch-nested-subdir-library-source.cc
+/home/kira/flow-input-test2/scratch/subdir/scratch-subdir-additional-header.cc
+/home/kira/flow-input-test2/scratch/subdir/scratch-subdir.cc
