@@ -4,13 +4,19 @@ cd examples/Reverie/
 source config.sh
 DIR=$(pwd)
 DUMP_DIR=$DIR/dump
-RESULTS_DIR=$DIR/results
+
+TASKNUM="$1"
+if [ -z "$TASKNUM" ]; then
+  echo "Error: tasknum parameter is required!"
+  exit 1
+fi
+
+if [ -d "$DUMP_DIR" ]; then
+    rm -rf "$DUMP_DIR"/*
+fi
 
 if [ ! -d "$DUMP_DIR" ];then
 	mkdir $DUMP_DIR
-fi
-if [ ! -d "$RESULTS_DIR" ];then
-	mkdir $RESULTS_DIR
 fi
 
 cd $NS3
@@ -21,7 +27,6 @@ INTCC=3
 
 NUM=0
 DST=1
-TASKNUM=1
 
 alg=$REVERIE
 egresslossyFrac=0.8

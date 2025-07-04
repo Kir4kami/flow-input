@@ -3,10 +3,14 @@ import pandas as pd
 import numpy as np
 import sys
 
+
+output_file = "leaf-spine.txt"
+sys.stdout = open(output_file, 'w') 
+
 # leaf spine topology
-serversPerTor=16
-torSwitches=16
-spineSwitches=4
+serversPerTor=8
+torSwitches=64
+spineSwitches=16
 serverTorDelay="2us"
 torSpineDelay="2us"
 serverDataRate=25
