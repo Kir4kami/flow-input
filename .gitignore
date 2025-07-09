@@ -1,0 +1,15 @@
+build
+cmake-cache/
+.lock-ns3_linux_build
+flow_stats.txt
+.vscode/
+examples/Reverie/dump_sigcomm/
+examples/Reverie/dump/
+examples/Reverie/operate_path/
+examples/Reverie/task*/
+examples/Reverie/TrafficGenerator/rdma_result/
+Traffic Generation/paralle_mode/rdma_result
+tor.txt
+pfc.txt
+fcts.txt1
+tor.txt

@@ -75,11 +75,11 @@ TraceThroughput(Ptr<FlowMonitor> monitor)
     Time curTime = Now();
     std::ofstream thr(dir + "/throughput.dat", std::ios::out | std::ios::app);
     thr << curTime << " "
-        << 8 * (itr->second.txBytes - prev) /
+        << 8 * (itr->second.txBytes - ::prev) /
                (1000 * 1000 * (curTime.GetSeconds() - prevTime.GetSeconds()))
         << std::endl;
     prevTime = curTime;
-    prev = itr->second.txBytes;
+    ::prev = itr->second.txBytes;
     Simulator::Schedule(Seconds(0.2), &TraceThroughput, monitor);
 }
 

@@ -220,7 +220,7 @@ WriteUntilBufferFull(Ptr<Socket> localSocket, uint32_t txSpace)
         uint32_t toWrite = writeSize - dataOffset;
         toWrite = std::min(toWrite, left);
         toWrite = std::min(toWrite, localSocket->GetTxAvailable());
-        int amountSent = localSocket->Send(&data[dataOffset], toWrite, 0);
+        int amountSent = localSocket->Send(&::data[dataOffset], toWrite, 0);
         if (amountSent < 0)
         {
             // we will be called again when new tx space becomes available.
