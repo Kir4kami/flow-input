@@ -6,13 +6,17 @@
 
 using namespace std;
 
-// 构造函数，初始化监测周�?
+// 构造函数，初始化监测周期
 std::map<uint32_t, NodeStat>NodeStats;
 uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
+
+
+std::map<uint32_t,SwitchStat> SwitchStats;
+
 bool isFirstOpen = true;
-std::map<std::string, FlowStat> flowStats; //flowid,size字节�?,存储流的统计信息
-uint64_t steadyStateStartTime = 0;  // 记录稳态进入时�?
-bool inSteadyState = false;         // 标识系统是否处于稳�?
+std::map<std::string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
+uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
+bool inSteadyState = false;         // 标识系统是否处于稳态
 double flowMinTime = 1.79769e+308;	//整个系统最小流完成时间
 double transMinTime=0;
 double next_trans_avail=0; //更新下一次状态转换时间

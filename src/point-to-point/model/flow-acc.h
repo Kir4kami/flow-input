@@ -25,17 +25,29 @@ struct NodeStat{
     double rate;
 };
 
-extern uint64_t MONITOR_PERIOD; // 监测周期（us�?
-extern std::map<string, FlowStat> flowStats; //flowid,size字节�?,存储流的统计信息
-extern std::map<uint32_t, NodeStat>NodeStats; //flowid,size字节�?,存储流的统计信息
+constexpr uint32_t pCnt = 257;  // 端口数量
+constexpr uint32_t qCnt = 8;    // 队列数量
+struct SwitchStat
+{
+    uint64_t ingressLpf_bytes[pCnt][qCnt];//入口队列当前占用的字节数
+	uint64_t egressLpf_bytes[pCnt][qCnt];//出口队列当前占用的字节数
+    uint64_t ingress_bytes[pCnt][qCnt];//入口队列的低通滤波（LPF）占用字节数
+	uint64_t egress_bytes[pCnt][qCnt];//出口队列的低通滤波占用字节数
+};
+
+extern std::map<uint32_t,SwitchStat> SwitchStats;
+
+extern uint64_t MONITOR_PERIOD; // 监测周期（us）
+extern std::map<string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
+extern std::map<uint32_t, NodeStat>NodeStats; //flowid,size字节大小,存储流的统计信息
 extern bool isFirstOpen;
-extern uint64_t steadyStateStartTime;  // 记录稳态进入时�?
-extern bool inSteadyState;         // 标识系统是否处于稳�?
+extern uint64_t steadyStateStartTime;  // 记录稳态进入时间
+extern bool inSteadyState;         // 标识系统是否处于稳态
 extern double flowMinTime;	//整个系统最小流完成时间
 extern double transMinTime;	//整个系统最小流完成时间
 extern std::map<uint32_t,ns3::Time> node_latency_fix;
 extern std::set<string> filter;
-extern double next_trans_avail;
+extern double next_trans_avail;//更新下一次状态转换时间
 
 extern std::set<string> flow_fin_unack; //已发送待确认的流
 //extern std::set<string> flow_fin_ack;

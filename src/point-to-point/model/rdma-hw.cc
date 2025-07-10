@@ -446,7 +446,7 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 			auto iter_flowStat=flowStats.find(flowid);
 			if(iter_flowStat!=flowStats.end())
 				flowStats.erase(iter_flowStat);
-			QpComplete(qp);
+			QpComplete(qp);//释放队列对资源，通知应用层流完成
 		}
 	}
 	if (ch.l3Prot == 0xFD) // NACK
@@ -486,6 +486,7 @@ int RdmaHw::Receive(Ptr<Packet> p, CustomHeader &ch) {
 	return 0;
 }
 
+//确保数据包按序接收
 int RdmaHw::ReceiverCheckSeq(uint32_t seq, Ptr<RdmaRxQueuePair> q, uint32_t size) {
 	uint32_t expected = q->ReceiverNextExpectedSeq;
 	if (seq == expected) {
@@ -629,6 +630,7 @@ Ptr<Packet> RdmaHw::GetNxtPacket(Ptr<RdmaQueuePair> qp) {
 	// update state 标记已发送完成的流，等待确认
 	qp->snd_nxt += payload_size;
 	qp->m_ipid++;
+	//发送队列对已发送所有数据（即流的最后一个数据包已发送，相当于 FIN 包）
 	if(qp->snd_nxt==qp->m_size){
 		std::ostringstream oss;
 		oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
