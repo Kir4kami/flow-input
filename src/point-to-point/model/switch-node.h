@@ -12,20 +12,21 @@ namespace ns3 {
 class Packet;
 
 class SwitchNode : public Node{
-	static const uint32_t pCnt = 257;	// Number of ports used
-	static const uint32_t qCnt = 8;	// Number of queues/priorities used
-	uint32_t m_ecmpSeed;
+	static const uint32_t pCnt = 257;	// Number of ports used 支持的端口数
+	static const uint32_t qCnt = 8;	// Number of queues/priorities used 优先级队列数
+	uint32_t m_ecmpSeed; //哈希种子
 	std::unordered_map<uint32_t, std::vector<int> > m_rtTable; // map from ip address (u32) to possible ECMP port (index of dev)
 
 	// monitor of PFC
+	//记录从 inDev 入端口流入的、准备从 outDev 出端口发出的、排队在第 qidx 队列的字节数，用于触发 PFC Pause
 	uint32_t m_bytes[pCnt][pCnt][qCnt]; // m_bytes[inDev][outDev][qidx] is the bytes from inDev enqueued for outDev at qidx
 	
-	uint64_t m_txBytes[pCnt]; // counter of tx bytes
+	uint64_t m_txBytes[pCnt]; // counter of tx bytes 每个端口发出的总字节数
 
 
 	uint32_t m_lastPktSize[pCnt];
 	uint64_t m_lastPktTs[pCnt]; // ns
-	double m_u[pCnt];
+	double m_u[pCnt]; // 估算的带宽利用率
 
 protected:
 	bool m_ecnEnabled;
@@ -41,8 +42,8 @@ private:
 	int GetOutDev(Ptr<const Packet>, CustomHeader &ch);
 	void SendToDev(Ptr<Packet>p, CustomHeader &ch);
 	static uint32_t EcmpHash(const uint8_t* key, size_t len, uint32_t seed);
-	void CheckAndSendPfc(uint32_t inDev, uint32_t qIndex);
-	void CheckAndSendResume(uint32_t inDev, uint32_t qIndex);
+	void CheckAndSendPfc(uint32_t inDev, uint32_t qIndex);//检查是否需要向 inDev 发 Pause Frame
+	void CheckAndSendResume(uint32_t inDev, uint32_t qIndex);//释放流控
 public:
 	Ptr<SwitchMmu> m_mmu;
 
@@ -51,7 +52,9 @@ public:
 	void SetEcmpSeed(uint32_t seed);
 	void AddTableEntry(Ipv4Address &dstAddr, uint32_t intf_idx);
 	void ClearTable();
+	//交换机从某个设备收到包的入口，决定转发路径并入队
 	bool SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> packet, CustomHeader &ch);
+	//从某个端口队列出队时的回调，可能更新 m_bytes、检测 Resume 条件
 	void SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p);
 
 	void BandWidthMonitor(Ptr<Packet> packet, CustomHeader &ch);

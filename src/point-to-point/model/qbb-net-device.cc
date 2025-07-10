@@ -51,6 +51,8 @@
 #include "ns3/interface-tag.h"
 #include "ns3/unsched-tag.h"
 #include "ns3/node-list.h"
+#include "ns3/switch-node.h"
+
 
 #include <iostream>
 #include "ns3/mixed-granularity.h"
@@ -847,10 +849,24 @@ void QbbNetDevice::calculateMintime(){
     {
         Ptr<Node> node = *it;
 
+		if(node->GetNodeType()==1){//交换机
+				Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(node);
+				Ptr<SwitchMmu> mmu = sw->m_mmu;
+				int iiiiii=1;
+				//sw->GetId()
+				//uint64_t ingressQueueLength = mmu->ingress_bytes[port][qIndex];
+    			//uint64_t egressQueueLength = mmu->egress_bytes[port][qIndex];
+				//uint64_t ingressLpfQueueLength = mmu->ingressLpf_bytes[port][qIndex];
+				//uint64_t egressLpfQueueLength = mmu->egressLpf_bytes[port][qIndex];
+				//uint64_t headroomUsed = mmu->GetHdrmBytes(port, qIndex);
+		}
+
         // 遍历�? Node 的所有 NetDevice（设备）
         for (uint32_t i = 0; i < node->GetNDevices(); ++i)
         {
             Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
+
+
             if (!qbbDev|| node->GetNodeType()!=0) continue; // 如果不是 QbbNetDevice或者主机端，则跳过
 
             // 获取该设备的 RDMA 事件队列

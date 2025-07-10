@@ -72,6 +72,7 @@ SwitchNode::SwitchNode() {
 		m_u[i] = 0;
 }
 
+//ECMP 路由与出端口选择
 int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch) {
 	// look up entries
 	Ptr<Packet> cp = p->Copy();
@@ -125,8 +126,9 @@ void SwitchNode::CheckAndSendResume(uint32_t inDev, uint32_t qIndex) {
 	}
 }
 
+//发送数据包
 void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
-	int idx = GetOutDev(p, ch);
+	int idx = GetOutDev(p, ch);//选出出端口
 	if (idx >= 0) {
 		NS_ASSERT_MSG(m_devices[idx]->IsLinkUp(), "The routing table look up should return link that is up");
 
@@ -169,8 +171,9 @@ void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
 			}
 			CheckAndSendPfc(inDev, qIndex);
 		}
-		m_bytes[inDev][idx][qIndex] += p->GetSize();
-		m_devices[idx]->SwitchSend(qIndex, p, ch);
+		m_bytes[inDev][idx][qIndex] += p->GetSize();//记录入队字节数
+		m_devices[idx]->SwitchSend(qIndex, p, ch);//实际转发数据到目标端口的目标队列
+		//记录 egress（出端口）接收了多少数据
 		DynamicCast<QbbNetDevice>(m_devices[idx])->totalBytesRcvd += p->GetSize(); // Attention: this is the egress port's total received packets. Not the ingress port.
 	} else
 		std::cout << "outdev not found! Dropped. This should not happen. Debugging required!" << std::endl;
@@ -215,10 +218,12 @@ uint32_t SwitchNode::EcmpHash(const uint8_t* key, size_t len, uint32_t seed) {
 	return h;
 }
 
+//设置 ECMP 哈希的种子值
 void SwitchNode::SetEcmpSeed(uint32_t seed) {
 	m_ecmpSeed = seed;
 }
 
+//向路由表添加目的 IP 和输出接口的映射
 void SwitchNode::AddTableEntry(Ipv4Address &dstAddr, uint32_t intf_idx) {
 	uint32_t dip = dstAddr.Get();
 	m_rtTable[dip].push_back(intf_idx);
@@ -229,6 +234,7 @@ void SwitchNode::ClearTable() {
 }
 
 // This function can only be called in switch mode
+//从设备接收数据包并调用 SendToDev 进行转发
 bool SwitchNode::SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> packet, CustomHeader &ch) {
 	SendToDev(packet, ch);
 	return true;
@@ -236,10 +242,10 @@ bool SwitchNode::SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> pack
 
 void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p) {
 	InterfaceTag t;
-	p->PeekPacketTag(t);
+	p->PeekPacketTag(t);//该包是从哪个入端口进入交换机的
 
 	MyPriorityTag priotag;
-	bool found = p->PeekPacketTag(priotag);
+	bool found = p->PeekPacketTag(priotag);//是否为带 MyPriorityTag 的 lossy 流量
 
 	if (qIndex != 0) {
 		uint32_t inDev = t.GetPortId();

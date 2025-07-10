@@ -130,7 +130,7 @@ DefaultSimulatorImpl::GetSystemId() const
 }
 
 void
-DefaultSimulatorImpl::ProcessOneEvent()
+DefaultSimulatorImpl::ProcessOneEvent()//处理下一个事件
 {
     Scheduler::Event next = m_events->RemoveNext();
 
@@ -143,6 +143,7 @@ DefaultSimulatorImpl::ProcessOneEvent()
         if(!flag)
             flag=true;
     }
+    //果事件的时间戳被调整（flag == true），则整个事件列表中的所有事件都需要检查和更新其 transition_stage 和 m_ts
     if(flag){
         std::deque<Scheduler::Event> l;
         while(!m_events->IsEmpty()){
@@ -251,6 +252,7 @@ DefaultSimulatorImpl::Stop(const Time& delay)
 //
 // Schedule an event for a _relative_ time in the future.
 //
+//新调度的事件默认处于“最后一个阶段”，不会在 ProcessOneEvent 中进一步调整时间戳，除非 transition_cnt 在后续被修改
 EventId
 DefaultSimulatorImpl::Schedule(const Time& delay, EventImpl* event)
 {
