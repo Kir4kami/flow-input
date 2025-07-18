@@ -1,9 +1,4 @@
-/*
- * reverie-evaluation-sigcomm2023.cc
- *
- *  Created on: Feb 02, 2023
- *      Author: vamsi
- */
+
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
