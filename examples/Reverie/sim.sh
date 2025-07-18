@@ -3,7 +3,7 @@
 #请小写
 LLM="deepseek"
 #1是完整通信树，4是任务切分并行
-TASKNUM=4
+TASKNUM=1
 
 # 切换到 TrafficGenerator 目录
 cd "$(dirname "$0")/TrafficGenerator" || exit 1
