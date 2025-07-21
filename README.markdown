@@ -15,12 +15,7 @@ Ensure the following are installed on your system:
 
 ## Installation and Building NS-3
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Kir4kami/flow-input.git
-   ```
-
-2. Configure and build NS-3:
+1. Configure and build NS-3:
    ```bash
    ./ns3 configure --enable-examples --enable-tests
    ./ns3
@@ -89,6 +84,28 @@ The traffic generator is located in `examples/Reverie/TrafficGenerator/`. It sup
 3. Results will be generated in `examples/Reverie/dump/`:
    - `evaluation.out`
    - `system1.log`
+
+4. Hybrid Granularity Acceleration:
+
+   Enable hybrid granularity acceleration by uncommenting `#define ENABLE_JUMP_TRANSITION` in:
+   ```cpp
+   // File: src/point-to-point/model/qbb-net-device.cc (around line 59)
+   #define ENABLE_JUMP_TRANSITION  // Uncomment to enable hybrid granularity
+
+5. Network Topology Customization:
+
+   Modify leaf-spine topology parameters in `examples/Reverie/generate_topology_leafspine.py`
+
+6. Dependency Tree Processing (TreeCut):
+
+   The TreeCut tool processes communication dependency trees and splits them into sub-components. It is located in `examples/Reverie/TreeCut/`.  
+   Modify Communication Tree Definition
+   Edit the [constructTree()](file:///home/kira/flow-input/examples/Reverie/TreeCut/TreeCut.py#L33-L46) function in [TreeCut.py](file:///home/kira/flow-input/examples/Reverie/TreeCut/TreeCut.py)  
+
+   Generate Flow Path Files
+   ```bash
+   ./test-parallel.sh
+   ```
 
 ## License
 
