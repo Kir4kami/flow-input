@@ -1,4 +1,4 @@
-qwen 2
+qwen 2 2
 1	TP	Root	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
 2	EP	TP1	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
 3	PP	EP1	--host_num 512	--msg_len 8*(1024*1024)	--dp 8 --device 0 --forward 1

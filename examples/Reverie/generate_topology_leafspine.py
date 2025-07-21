@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 import os
-import pandas as pd
+#import pandas as pd
 import numpy as np
 import sys
 
@@ -9,7 +10,7 @@ sys.stdout = open(output_file, 'w')
 
 # leaf spine topology
 serversPerTor=8
-torSwitches=64
+torSwitches=128
 spineSwitches=16
 serverTorDelay="2us"
 torSpineDelay="2us"

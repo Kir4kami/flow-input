@@ -58,7 +58,7 @@
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
 
-#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
+//#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
 
 bool allSteadyStateReached=false;
 
@@ -515,6 +515,72 @@ QbbNetDevice::EtherToPpp (uint16_t proto)
 	return 0;
 }
 
+//打印swicthStats信息
+void QbbNetDevice::PrintAllSwitchStats(std::map<uint32_t,SwitchStat>& stats,std::ofstream& flowstatsFile) {
+    for (const auto& pair : stats) {
+        uint32_t sw_id = pair.first;
+        const SwitchStat& stat = pair.second;
+
+        // 写入文件而不是输出到终端
+        flowstatsFile << "===== Switch ID: " << sw_id << " =====\n";
+		for(int k=0;k<pCnt;++k){
+			for (int i = 0; i < pCnt; ++i) {
+            for (int j = 0; j < qCnt; ++j) {
+                flowstatsFile 
+                    << "Port " << i << ", Queue " << j << ": "
+					<<stat.m_bytes[k][i][j]<<", "
+                    /*<< "Egress Bytes = " << stat.egress_bytes[i][j] << ", "
+                    << "Ingress Bytes = " << stat.ingress_bytes[i][j] << ", "
+                    << "Egress LPF = " << stat.egressLpf_bytes[i][j] << ", "
+                    << "Ingress LPF = " << stat.ingressLpf_bytes[i][j]*/
+                    << "\n";
+				/*cout 
+                    << "Port " << i << ", Queue " << j << ": "
+                    << "Egress Bytes = " << stat.egress_bytes[i][j] << ", "
+                    << "Ingress Bytes = " << stat.ingress_bytes[i][j] << ", "
+                    << "Egress LPF = " << stat.egressLpf_bytes[i][j] << ", "
+                    << "Ingress LPF = " << stat.ingressLpf_bytes[i][j]
+                    << "\n";*/
+            }
+        }
+		}
+        
+    }
+}
+
+bool QbbNetDevice::IsAllZero(const SwitchStat& stat) {
+    if (stat.totalUsed != 0 ||
+        stat.egressPoolUsed[0] != 0 ||
+        stat.egressPoolUsed[1] != 0 ||
+        stat.xoffTotalUsed != 0 ||
+        stat.totalIngressReservedUsed != 0 ||
+        stat.sharedPoolUsed != 0) {
+        return false;
+    }
+
+    for (int i = 0; i < pCnt; ++i) {
+        for (int j = 0; j < pCnt; ++j) {
+            for (int k = 0; k < qCnt; ++k) {
+                if (stat.m_bytes[i][j][k] != 0)
+                    return false;
+            }
+        }
+    }
+
+    for (int i = 0; i < pCnt; ++i) {
+        for (int j = 0; j < qCnt; ++j) {
+            if (stat.ingressLpf_bytes[i][j] != 0 ||
+                stat.egressLpf_bytes[i][j] != 0 ||
+                stat.ingress_bytes[i][j] != 0 ||
+                stat.egress_bytes[i][j] != 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void
 QbbNetDevice::Receive(Ptr<Packet> packet)
 {
@@ -589,6 +655,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				if (!flowstatsFile.is_open()) {
         			throw std::runtime_error("Unable to open file for writing flow statistics.");
     			}
+
 				GenerateFlowId(cp,ch,flowstatsFile);
 				
 				// 如果是第一次打开，设置标志为false，后续追加
@@ -602,6 +669,74 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 	}
 	if(allSteadyStateReached){
 		Simulator::ScheduleNow( &ns3::QbbNetDevice::exitSteadyState, this);
+
+		/*
+		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+    	{
+			Ptr<Node> node = *it;
+
+			// 遍历�? Node 的所有NetDevice（设备）
+			for (uint32_t i = 0; i < node->GetNDevices(); ++i)
+			{
+				Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
+				if (!qbbDev){
+					continue;
+				}
+				else if(node->GetNodeType()!=0){
+					auto iter = NodeStats.find(node->GetId());
+					if(iter!=NodeStats.end()){
+						DataRate queue_rate(iter->second.rate); //获取节点的队列速率
+						queue_rate-= qbbDev->m_bps; //减去设备的带宽
+						
+						Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
+						node_latency_fix[node->GetId()]=latency_fix;
+					}
+					
+				}
+			}
+		}*/
+			/*
+		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+    	{
+			Ptr<Node> node = *it;
+
+			if(node->GetNodeType()==1){//交换机
+					Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(node);
+					Ptr<SwitchMmu> mmu = sw->m_mmu;
+					uint32_t sw_id = sw->GetId();
+					auto it = exit_SwitchStats.find(sw_id);
+					if (it == exit_SwitchStats.end()){
+						SwitchStat newswstat;
+						for(int k=0;k<mmu->pCnt;k++){
+							for(int i=0;i<mmu->pCnt;i++){
+								for(int j=0;j<mmu->qCnt;j++){
+									newswstat.m_bytes[k][i][j]=sw->m_bytes[k][i][j];
+									newswstat.egress_bytes[i][j]=mmu->egress_bytes[i][j];//入口队列当前占用的字节数
+									newswstat.ingress_bytes[i][j]=mmu->ingress_bytes[i][j];//出口队列当前占用的字节数
+									newswstat.egressLpf_bytes[i][j]=mmu->egressLpf_bytes[i][j];//入口队列的低通滤波（LPF）占用字节数
+									newswstat.ingressLpf_bytes[i][j]=mmu->ingressLpf_bytes[i][j];//出口队列的低通滤波占用字节数
+								}
+						}
+						}
+						
+						if(!IsAllZero(newswstat))
+							exit_SwitchStats[sw_id]=newswstat;
+					}
+			}
+		}
+		std::ofstream flowstatsFile;
+		// 根据是否是第一次打开文件来选择文件打开模式
+        std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
+		flowstatsFile.open("flow_stats.txt", mode);	
+		if (!flowstatsFile.is_open()) {
+        	throw std::runtime_error("Unable to open file for writing flow statistics.");
+    	}
+		// 如果是第一次打开，设置标志为false，后续追加
+        isFirstOpen = false;
+		PrintAllSwitchStats(SwitchStats,flowstatsFile);
+		PrintAllSwitchStats(exit_SwitchStats,flowstatsFile);
+		flowstatsFile.close();
+		*/
 		allSteadyStateReached=false;
 		transition_cnt++;//增加状态转换计数器
 	}
@@ -691,6 +826,71 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 
         // 判断是否超过监测周期
 		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
+		
+		/*
+		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+    	{
+			Ptr<Node> node = *it;
+
+			// 遍历�? Node 的所有NetDevice（设备）
+			for (uint32_t i = 0; i < node->GetNDevices(); ++i)
+			{
+				Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
+				if (!qbbDev){
+					continue;
+				}
+				else if(node->GetNodeType()!=0){
+					auto iter = NodeStats.find(node->GetId());
+					if(iter!=NodeStats.end()){
+						DataRate queue_rate(iter->second.rate); //获取节点的队列速率
+						queue_rate-= qbbDev->m_bps; //减去设备的带宽
+						
+						Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
+						node_latency_fix[node->GetId()]=latency_fix;
+					}
+					
+				}
+			}
+		}*/
+
+			/*
+			for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
+			{
+				Ptr<Node> node = *it;
+
+				if(node->GetNodeType()==1){//交换机
+						Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(node);
+						Ptr<SwitchMmu> mmu = sw->m_mmu;
+						uint32_t sw_id = sw->GetId();
+						auto it_1 = SwitchStats.find(sw_id);
+						SwitchStat newswstat;
+						if (it_1 == SwitchStats.end()){
+							for(int k=0;k<mmu->pCnt;k++){
+								for(int i=0;i<mmu->pCnt;i++){
+									for(int j=0;j<mmu->qCnt;j++){
+										newswstat.m_bytes[k][i][j]=sw->m_bytes[k][i][j];
+										if(sw->m_bytes[k][i][j]!=0){
+											i=1;
+										}
+										newswstat.egress_bytes[i][j]=mmu->egress_bytes[i][j];//入口队列当前占用的字节数
+										newswstat.ingress_bytes[i][j]=mmu->ingress_bytes[i][j];//出口队列当前占用的字节数
+										newswstat.egressLpf_bytes[i][j]=mmu->egressLpf_bytes[i][j];//入口队列的低通滤波（LPF）占用字节数
+										newswstat.ingressLpf_bytes[i][j]=mmu->ingressLpf_bytes[i][j];//出口队列的低通滤波占用字节数
+									}
+								}
+								newswstat.totalUsed = mmu->totalUsed;
+                				newswstat.egressPoolUsed[0] = mmu->egressPoolUsed[0];
+                				newswstat.egressPoolUsed[1] = mmu->egressPoolUsed[1];
+                				//mmu->totalUsed - mmu->xoffTotalUsed;
+                				newswstat.xoffTotalUsed =mmu->xoffTotalUsed;
+                				newswstat.sharedPoolUsed = mmu->sharedPoolUsed;
+							}
+							if(!IsAllZero(newswstat))
+								SwitchStats[sw_id]=newswstat;
+						}
+				}
+			}*/
+
 			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
 				// 计算速率（单位：字节/纳秒）
 				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
@@ -849,17 +1049,28 @@ void QbbNetDevice::calculateMintime(){
     {
         Ptr<Node> node = *it;
 
-		if(node->GetNodeType()==1){//交换机
+		/*if(node->GetNodeType()==1){//交换机
 				Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(node);
 				Ptr<SwitchMmu> mmu = sw->m_mmu;
-				int iiiiii=1;
-				//sw->GetId()
-				//uint64_t ingressQueueLength = mmu->ingress_bytes[port][qIndex];
-    			//uint64_t egressQueueLength = mmu->egress_bytes[port][qIndex];
-				//uint64_t ingressLpfQueueLength = mmu->ingressLpf_bytes[port][qIndex];
-				//uint64_t egressLpfQueueLength = mmu->egressLpf_bytes[port][qIndex];
-				//uint64_t headroomUsed = mmu->GetHdrmBytes(port, qIndex);
-		}
+ 				uint32_t sw_id = sw->GetId();
+				auto it = SwitchStats.find(sw_id);
+				if (it == SwitchStats.end()){
+					SwitchStat newswstat;
+					for(int k=0;k<mmu->pCnt;k++){
+							for(int i=0;i<mmu->pCnt;i++){
+								for(int j=0;j<mmu->qCnt;j++){
+									newswstat.m_bytes[k][i][j]=sw->m_bytes[k][i][j];
+									newswstat.egress_bytes[i][j]=mmu->egress_bytes[i][j];//入口队列当前占用的字节数
+									newswstat.ingress_bytes[i][j]=mmu->ingress_bytes[i][j];//出口队列当前占用的字节数
+									newswstat.egressLpf_bytes[i][j]=mmu->egressLpf_bytes[i][j];//入口队列的低通滤波（LPF）占用字节数
+									newswstat.ingressLpf_bytes[i][j]=mmu->ingressLpf_bytes[i][j];//出口队列的低通滤波占用字节数
+								}
+						}
+					}
+					if(!IsAllZero(newswstat))
+						SwitchStats[sw_id]=newswstat;
+				}
+		}*/
 
         // 遍历�? Node 的所有 NetDevice（设备）
         for (uint32_t i = 0; i < node->GetNDevices(); ++i)
@@ -868,6 +1079,10 @@ void QbbNetDevice::calculateMintime(){
 
 
             if (!qbbDev|| node->GetNodeType()!=0) continue; // 如果不是 QbbNetDevice或者主机端，则跳过
+
+			if (node->GetNodeType()==1){
+				int i=1;
+			}
 
             // 获取该设备的 RDMA 事件队列
             Ptr<RdmaEgressQueue> rdmaEQ = qbbDev->m_rdmaEQ;

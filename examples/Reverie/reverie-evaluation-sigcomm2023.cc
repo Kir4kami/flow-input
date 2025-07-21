@@ -1334,8 +1334,9 @@ int main(int argc, char *argv[]){
             sw->SetAttribute("PowerEnabled", BooleanValue(powertcp));
         }
     }
-
+    kira::cout<<"calculate routing"<<std::endl;
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
+    kira::cout<<"calculate routing end"<<std::endl;
 
     NS_LOG_INFO("Create Applications.");
     // maintain port number for each host
@@ -1371,7 +1372,6 @@ int main(int argc, char *argv[]){
     tracef.close();
     double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
     //Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, spineNodes, delay);
-    Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     NS_LOG_INFO("Run Simulation.");
     kira::cout << "Run Simulation." << std::endl;
     auto simulation_start_time = std::chrono::high_resolution_clock::now();

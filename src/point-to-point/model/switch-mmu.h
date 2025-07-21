@@ -119,37 +119,39 @@ public:
 	std::string bufferModel;
 
 	// Buffer pools
-	uint64_t bufferPool;
-	uint64_t ingressPool ;
-	uint64_t egressPool[2];
+	uint64_t bufferPool;//总共享缓冲区（默认 24MB）
+	uint64_t ingressPool ;//入端口共享缓冲区（默认 18MB）
+	uint64_t egressPool[2];//出端口缓冲区，分别用于无损（24MB）和有损（14MB）流量。
 	uint64_t egressPoolAll;
-	uint64_t sharedPool;
-	uint64_t xoffTotal;
+	uint64_t sharedPool;//Reverie 模型的共享缓冲区（18MB）
+	uint64_t xoffTotal;//为无损流量保留的额外缓冲区，用于在队列超过阈值时吸收数据包
 	uint64_t totalIngressReserved;
 
 	// aggregate run time
-	uint64_t totalUsed;
-	uint64_t egressPoolUsed[2];
-	uint64_t xoffTotalUsed;
+	uint64_t totalUsed;//总缓冲区使用量
+	uint64_t egressPoolUsed[2];//无损/有损出端口缓冲区使用量
+	uint64_t xoffTotalUsed;//总 headroom 使用量
 	uint64_t totalIngressReservedUsed;
-	uint64_t sharedPoolUsed;
+	uint64_t sharedPoolUsed;//Reverie 模型共享缓冲区使用量
 
 
 	// buffer configuration.
-	uint64_t reserveIngress[pCnt][qCnt];
+	uint64_t reserveIngress[pCnt][qCnt];//为每个入站端口和队列预留的专用缓冲区，保证最小容量
 	uint64_t reserveEgress[pCnt][qCnt];
 	double 	 alphaEgress[pCnt][qCnt];
 	double 	 alphaIngress[pCnt][qCnt];
-	uint64_t xoff[pCnt][qCnt];
+	uint64_t xoff[pCnt][qCnt];//队列 headroom 限制
+	//PFC 恢复阈值（默认 1248 和 2496 字节）
 	uint64_t xon[pCnt][qCnt];
 	uint64_t xon_offset[pCnt][qCnt];
 
 	// per queue run time
-	uint64_t ingress_bytes[pCnt][qCnt];
+	uint64_t ingress_bytes[pCnt][qCnt];//入端口队列占用量
 	uint64_t hdrm_bytes[pCnt][qCnt];
-	uint32_t paused[pCnt][qCnt];
-	uint64_t egress_bytes[pCnt][qCnt];
-	uint64_t xoffUsed[pCnt][qCnt];
+	uint32_t paused[pCnt][qCnt];//队列 PFC 暂停状态
+	uint64_t egress_bytes[pCnt][qCnt];//出端口队列占用量
+	uint64_t xoffUsed[pCnt][qCnt];//队列使用的 headroom
+	//低通滤波（LPF）后的队列占用量（Reverie 模型）
 	uint64_t ingressLpf_bytes[pCnt][qCnt];
 	uint64_t egressLpf_bytes[pCnt][qCnt];
 

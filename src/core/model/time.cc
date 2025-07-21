@@ -331,7 +331,7 @@ Time::Mark(Time* const time)
 
     // Repeat the g_markingTimes test here inside the CriticalSection,
     // since earlier test was outside and might be stale.
-    if (g_markingTimes)
+    if (g_markingTimes!= nullptr)
     {
         std::pair<MarkedTimes::iterator, bool> ret;
 

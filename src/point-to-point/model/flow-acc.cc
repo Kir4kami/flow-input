@@ -12,6 +12,9 @@ uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
 
 
 std::map<uint32_t,SwitchStat> SwitchStats;
+std::map<uint32_t,SwitchStat> exit_SwitchStats;
+
+
 
 bool isFirstOpen = true;
 std::map<std::string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息

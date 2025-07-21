@@ -10,3 +10,4 @@ examples/Reverie/TrafficGenerator/rdma_result
 Traffic Generation/paralle_mode/rdma_result/
 cmake-cache
 tor.txt
+scratch/first.cc
