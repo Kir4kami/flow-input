@@ -29,6 +29,13 @@ constexpr uint32_t pCnt = 257;  // 端口数量
 constexpr uint32_t qCnt = 8;    // 队列数量
 struct SwitchStat
 {
+    uint64_t totalUsed;//总缓冲区使用量（包括预留、headroom 和共享缓冲区）
+	uint64_t egressPoolUsed[2];//lossless 和 lossy 出端口缓冲区使用量
+	uint64_t xoffTotalUsed;//总 headroom 使用量
+	uint64_t totalIngressReservedUsed;//更新预留缓冲区使用量
+	uint64_t sharedPoolUsed;//Reverie 模型的共享缓冲区使用量
+    
+    uint32_t m_bytes[pCnt][pCnt][qCnt];
     uint64_t ingressLpf_bytes[pCnt][qCnt];//入口队列当前占用的字节数
 	uint64_t egressLpf_bytes[pCnt][qCnt];//出口队列当前占用的字节数
     uint64_t ingress_bytes[pCnt][qCnt];//入口队列的低通滤波（LPF）占用字节数
@@ -36,6 +43,8 @@ struct SwitchStat
 };
 
 extern std::map<uint32_t,SwitchStat> SwitchStats;
+
+extern std::map<uint32_t,SwitchStat> exit_SwitchStats;
 
 extern uint64_t MONITOR_PERIOD; // 监测周期（us）
 extern std::map<string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息

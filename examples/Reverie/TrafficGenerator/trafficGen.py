@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import networkx as nx
 import random
-import matplotlib.pyplot as plt
 import os
 import math
 import argparse
@@ -11,21 +10,26 @@ import re
 # Root node
 root_node = 'Root'
 
+# Global variables
+model_identifier = None
+max_devices = None
+max_iterations = None
+global_node_counter = 1  # 从1开始计数
+first_tp_args = None  # 存储第一行 TP 节点的参数
+
 # Define node addition method
 def addCommunicationEdge(G, layer, comm_type, parent_node, node_args):
-    node_name = f"{len(G.nodes)}_{comm_type}{layer}"
+    global global_node_counter
+    node_name = f"{global_node_counter}_{comm_type}{layer}"
     nodes_passed = [random.choice(['A', 'B', 'C', 'D', 'E']) for _ in range(random.randint(1, 3))]
     G.add_node(node_name, name=node_name, type=comm_type, layer=layer, nodes_passed=nodes_passed, children=[], isBurr=False, args=node_args)
     G.add_edge(parent_node, node_name)
     G.nodes[parent_node]['children'].append(node_name)
+    global_node_counter += 1
     return node_name
 
-# Global variables to store model identifier and devices
-model_identifier = None
-max_devices = None  # 新增全局变量存储 devices
-
-def constructTree(G, input_file):
-    global model_identifier, max_devices
+def constructTree(G, input_file, iteration=0, prev_dp_node=None, prev_dp_args=None):
+    global model_identifier, max_devices, max_iterations, first_tp_args
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist")
     
@@ -34,26 +38,36 @@ def constructTree(G, input_file):
     tp_multi_parent_nodes = {}
     mode_counters = {'TP': 0, 'EP': 0, 'PP': 0, 'DP': 0}
 
+    # 如果有prev_dp_node，添加到当前图
+    if prev_dp_node and iteration > 0:
+        layer = str(17 + (iteration - 1) * 17)  # 前一迭代的DP层级
+        G.add_node(prev_dp_node, name=prev_dp_node, type='DP', layer=layer, nodes_passed=[], children=[], isBurr=False, args=prev_dp_args)
+
     with open(input_file, 'r') as f:
         lines = f.readlines()
         if not lines:
             raise ValueError("Input file is empty")
         
-        # 修改：读取并验证第一行，包含 model 和 devices
+        # 解析第一行：model devices iterations
         first_line = lines[0].strip()
         first_line_parts = re.split(r'\s+', first_line)
-        if len(first_line_parts) != 2:
-            raise ValueError(f"First line must specify model and devices, got '{first_line}'")
-        model, devices = first_line_parts
+        if len(first_line_parts) != 3:
+            raise ValueError(f"First line must specify model, devices, and iterations, got '{first_line}'")
+        model, devices, iterations = first_line_parts
         if model.lower() not in {'qwen', 'deepseek'}:
             raise ValueError(f"First line model must be 'Qwen' or 'DeepSeek', got '{model}'")
         try:
             max_devices = int(devices)
             if max_devices <= 0:
                 raise ValueError("Devices must be a positive integer")
+            max_iterations = int(iterations)
+            if max_iterations <= 0:
+                raise ValueError("Iterations must be a positive integer")
         except ValueError:
-            raise ValueError(f"Invalid devices value: '{devices}', must be a positive integer")
+            raise ValueError(f"Invalid devices or iterations value: '{devices}', '{iterations}', must be positive integers")
         model_identifier = model.lower()
+        
+        print(f"Iteration {iteration}: Parsed model={model_identifier}, devices={max_devices}, iterations={max_iterations}")
         
         # Process remaining lines
         for line_num, line in enumerate(lines[1:], 2):
@@ -66,7 +80,7 @@ def constructTree(G, input_file):
                 raise ValueError(f"Line {line_num}: Invalid format, expected at least layer, mode, parent_node")
             
             try:
-                layer = parts[0]
+                layer = str(int(parts[0]) + iteration * 17)  # 调整层级
                 mode = parts[1]
                 parent_nodes = parts[2].split('/')
             except ValueError:
@@ -120,35 +134,52 @@ def constructTree(G, input_file):
                         raise ValueError(f"Line {line_num}: Invalid value for {parts[i-1]}: {e}")
                 i += 1
             
+            # 存储第一行 TP 节点的参数
+            if line_num == 2 and mode == 'TP' and iteration == 0:
+                first_tp_args = node_args.copy()
+                print(f"Iteration {iteration}: Stored first TP args: {first_tp_args}")
+            
             # Handle TP nodes with multiple parents
             generated_node_name = None
             if mode == 'TP' and len(parent_nodes) > 1:
                 parent_key = (layer, tuple(sorted(parent_nodes)))
                 if parent_key in tp_multi_parent_nodes:
                     generated_node_name = tp_multi_parent_nodes[parent_key]
-                    # Add edges for additional parents
                     for parent_node in mapped_parent_nodes:
                         if not G.has_edge(parent_node, generated_node_name):
                             G.add_edge(parent_node, generated_node_name)
                             G.nodes[parent_node]['children'].append(generated_node_name)
                 else:
-                    # Create new node for the first parent
                     generated_node_name = addCommunicationEdge(G, layer, mode, mapped_parent_nodes[0], node_args)
                     tp_multi_parent_nodes[parent_key] = generated_node_name
-                    # Add edges for remaining parents
                     for parent_node in mapped_parent_nodes[1:]:
                         if not G.has_edge(parent_node, generated_node_name):
                             G.add_edge(parent_node, generated_node_name)
                             G.nodes[parent_node]['children'].append(generated_node_name)
             else:
-                # Non-TP or single-parent TP nodes
                 for parent_node in mapped_parent_nodes:
                     generated_node_name = addCommunicationEdge(G, layer, mode, parent_node, node_args)
             
-            # Map expected node name
             mode_counters[mode] += 1
             expected_node_name = f"{mode}{mode_counters[mode]}"
             node_name_mapping[expected_node_name] = generated_node_name
+
+        # 添加额外的TP节点
+        if prev_dp_node and iteration > 0:
+            if first_tp_args is None:
+                raise ValueError(f"Iteration {iteration}: first_tp_args is None, cannot create extra TP node")
+            layer = str(17 + iteration * 17)
+            mode = 'TP'
+            node_args = first_tp_args.copy()  # 使用第一行 TP 节点的参数
+            print(f"Iteration {iteration}: Adding extra TP node with args: {node_args}")
+            generated_node_name = addCommunicationEdge(G, layer, mode, prev_dp_node, node_args)
+            mode_counters['TP'] += 1
+            expected_node_name = f"TP{mode_counters['TP']}"
+            node_name_mapping[expected_node_name] = generated_node_name
+
+    dp_node = node_name_mapping.get('DP1', None)
+    dp_args = G.nodes[dp_node]['args'] if dp_node else None
+    return dp_node, dp_args
 
 # Traffic generator functions
 def evaluate_expression(value):
@@ -227,12 +258,10 @@ def set_all2all(host_list, msg_len, port, forward, file_name=""):
         write_file(result, file_name)
     return result
 
-# 修改后的 set_hypercube 函数，增加了端口参数
 def set_hypercube(host_list, msg_len, port, file_name=""):
     host_num = len(host_list)
     iter_times = math.log2(host_num)
     if not iter_times.is_integer():
-        # Pad host_list to the next power of 2
         target_num = 2 ** math.ceil(math.log2(host_num))
         while len(host_list) < target_num:
             host_list.append(random.randint(0, host_num - 1))
@@ -245,14 +274,12 @@ def set_hypercube(host_list, msg_len, port, file_name=""):
         msg = msg_len // (2 ** iter)
         for idx, host in enumerate(host_list):
             nei_idx = get_neighbor(idx, host_num, iter)
-            
             res.append(
                 f"Type rdma_send src_node {host} src_port {port} "
                 f"dst_node {host_list[nei_idx]} dst_port {port} priority 0 "
                 f"msg_len {msg}\n"
             )
-            
-        result.extend([ res])
+        result.extend([res])
     result += result[::-1]
     if file_name:
         write_file(result, file_name)
@@ -305,13 +332,12 @@ def generate_pipeline_pairs(host_num, dp):
                 node_pairs.append((src_node, dst_node))
     return node_pairs
 
-def generate_traffic_from_tree(T):
+def generate_traffic_from_tree(T, iteration=0):
     global model_identifier, max_devices
-    port_counter = 1000
+    port_counter = 1000 + iteration * 1000
     type_to_mode = {'EP': 'ep', 'TP': 'tp', 'PP': 'pp', 'DP': 'dp'}
     letter_to_id = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5}
 
-    # Traverse tree in topological order
     for node in nx.topological_sort(T):
         if node == root_node:
             continue
@@ -329,14 +355,12 @@ def generate_traffic_from_tree(T):
         if model_identifier == 'deepseek' and comm_type == 'EP':
             mode = 'tp'
 
-        # Validate nodes_passed (used for validation only, not traffic generation)
         host_list_validation = [letter_to_id[host] for host in nodes_passed if host in letter_to_id]
         host_list_validation = [h for h in host_list_validation if h < node_args['host_num']]
         if not host_list_validation:
             print(f"Node {node}: No valid hosts in nodes_passed {nodes_passed}")
             continue
 
-        # Initialize grouping variables
         dp = max(1, node_args['dp'])
         host_list = []
         node_pairs = []
@@ -369,13 +393,11 @@ def generate_traffic_from_tree(T):
             print(f"Node {node}: {e}")
             continue
 
-        # Limit num_groups to prevent excessive file generation
         if num_groups > 1000:
             print(f"Node {node}: num_groups={num_groups} is too large, limiting to 1000")
             num_groups = 1000
 
         for group_idx in range(num_groups):
-            # 为当前组分配端口号并递增
             current_port = port_counter
             port_counter += 1
             index_str = "" if group_idx == 0 else str(group_idx)
@@ -387,8 +409,8 @@ def generate_traffic_from_tree(T):
                 elif mode == "dp":
                     set_hypercube(host_list[group_idx], node_args['msg_len'], current_port, file_name)
                 elif mode == "tp":
-                    for iteration in range(node_args['num_iterations']):
-                        append = iteration > 0
+                    for iter_idx in range(node_args['num_iterations']):
+                        append = iter_idx > 0
                         set_tensor_parallel(
                             group_idx, node_args['num_nodes'], node_args['msg_len'], 
                             node_args['num_phases'], node_args['device'], current_port, node_args['forward'], file_name, append
@@ -398,14 +420,17 @@ def generate_traffic_from_tree(T):
                     end_idx = min((group_idx + 1) * nodes_per_group, node_args['host_num'] // max_devices)
                     group_pairs = node_pairs[start_idx:end_idx]
                     set_pipeline_parallel(group_pairs, node_args['msg_len'], current_port, node_args['forward'], file_name)
-                print(f"Generated traffic for node {node}, group {group_idx} (mode: {mode}) with port {current_port}")
+                print(f"Generated traffic for node {node}, group {group_idx} (mode: {mode}, iteration: {iteration}) with port {current_port}")
             except ValueError as e:
                 print(f"Error generating traffic for node {node}, group {group_idx}: {e}")
 
 def main(args):
-    global model_identifier, max_devices
+    global model_identifier, max_devices, max_iterations, global_node_counter, first_tp_args
     model_identifier = None
     max_devices = None
+    max_iterations = None
+    global_node_counter = 1
+    first_tp_args = None
     result_dir = "rdma_result"
     try:
         if os.path.exists(result_dir):
@@ -415,21 +440,37 @@ def main(args):
         print(f"Error removing {result_dir}: {e}")
         return 1
 
+    # 先解析输入文件以获取max_iterations
     T = nx.DiGraph()
     T.add_node(root_node, name='Root', nodes_passed=[], children=[])
-
     try:
-        constructTree(T, args.input_file)
+        constructTree(T, args.input_file)  # 第一次调用仅用于设置max_iterations和first_tp_args
+        print(f"max_iterations after initial parse: {max_iterations}")
     except Exception as e:
-        print(f"Error constructing tree from {args.input_file}: {e}")
+        print(f"Error parsing input file {args.input_file}: {e}")
         return 1
 
-    if model_identifier is None:
-        print("Error: Model identifier not set")
-        return 1
+    # 重置计数器并开始迭代
+    global_node_counter = 1
+    prev_dp_node = None
+    prev_dp_args = None
+    for iteration in range(max_iterations):
+        print(f"Starting iteration {iteration}")
+        T = nx.DiGraph()
+        T.add_node(root_node, name='Root', nodes_passed=[], children=[])
+        try:
+            dp_node, dp_args = constructTree(T, args.input_file, iteration, prev_dp_node, prev_dp_args)
+            if dp_node is None:
+                print(f"Iteration {iteration}: No DP node found")
+                return 1
+            generate_traffic_from_tree(T, iteration)
+            prev_dp_node = dp_node
+            prev_dp_args = dp_args
+        except Exception as e:
+            print(f"Error in iteration {iteration} with file {args.input_file}: {e}")
+            return 1
 
-    generate_traffic_from_tree(T)
-    print(f"Traffic generation completed for model {model_identifier} with {max_devices} devices")
+    print(f"Traffic generation completed for model {model_identifier} with {max_devices} devices and {max_iterations} iterations")
     return 0
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ class SwitchNode : public Node{
 
 	// monitor of PFC
 	//记录从 inDev 入端口流入的、准备从 outDev 出端口发出的、排队在第 qidx 队列的字节数，用于触发 PFC Pause
-	uint32_t m_bytes[pCnt][pCnt][qCnt]; // m_bytes[inDev][outDev][qidx] is the bytes from inDev enqueued for outDev at qidx
+	 // m_bytes[inDev][outDev][qidx] is the bytes from inDev enqueued for outDev at qidx
 	
 	uint64_t m_txBytes[pCnt]; // counter of tx bytes 每个端口发出的总字节数
 
@@ -46,7 +46,8 @@ private:
 	void CheckAndSendResume(uint32_t inDev, uint32_t qIndex);//释放流控
 public:
 	Ptr<SwitchMmu> m_mmu;
-
+	uint32_t m_bytes[pCnt][pCnt][qCnt];//这里把私变成了public
+	
 	static TypeId GetTypeId (void);
 	SwitchNode();
 	void SetEcmpSeed(uint32_t seed);
