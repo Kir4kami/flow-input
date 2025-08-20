@@ -101,6 +101,9 @@ public:
   void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
   // 计算速率并输出
   void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
+  void UpdateSwitchStats();
+  void TimeDelaySwitchStats();
+  void ContinueAfterDelay(double max_time);
   void exitSteadyState();
   // 计算剩余流量大小除以已测量的速度均值，获取最小时间
   void calculateMintime();

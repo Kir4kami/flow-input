@@ -10,8 +10,8 @@ sys.stdout = open(output_file, 'w')
 
 # leaf spine topology
 serversPerTor=8
-torSwitches=128
-spineSwitches=16
+torSwitches=8
+spineSwitches=4
 serverTorDelay="2us"
 torSpineDelay="2us"
 serverDataRate=25
