@@ -423,6 +423,18 @@ bool Node::SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> packet, Cu
 void Node::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p){
   NS_ASSERT_MSG(false, "Calling NotifyDequeue() on a non-switch node or this function is not implemented");
 }
+
+void Node::SwitchStatsCount(int flag){
+    NS_ASSERT_MSG(false, "Calling SwitchStatsCount() on a non-switch node or this function is not implemented");
+}
+
+void Node::SwitchStatsUpdate(int flag,uint32_t switchid){
+    NS_ASSERT_MSG(false, "Calling SwitchStatsUpdate() on a non-switch node or this function is not implemented");
+}
+
+void Node::SwitchTimeDelay(int flag){
+    NS_ASSERT_MSG(false, "Calling SwitchTimeDelay() on a non-switch node or this function is not implemented");
+}
 /* Modification */ 
 
 } // namespace ns3

@@ -58,6 +58,15 @@ public:
 	//从某个端口队列出队时的回调，可能更新 m_bytes、检测 Resume 条件
 	void SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p);
 
+	//补偿
+	void SwitchStatsUpdate(int flag, uint32_t switchid);
+
+	//时延
+	void SwitchTimeDelay(int flag);
+
+	//统计交换机上的数据
+	void SwitchStatsCount(int flag);
+
 	void BandWidthMonitor(Ptr<Packet> packet, CustomHeader &ch);
 	void Caculate(Ptr<Packet> packet, CustomHeader &ch);
 

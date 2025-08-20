@@ -17,7 +17,6 @@
 #include "ns3/custom-priority-tag.h"
 #include "ns3/feedback-tag.h"
 #include "ns3/unsched-tag.h"
-#include "flow-acc.h"
 
 namespace ns3 {
 
@@ -374,6 +373,109 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	m_lastPktSize[ifIndex] = p->GetSize();
 	m_lastPktTs[ifIndex] = Simulator::Now().GetTimeStep();
 }
+
+
+//补偿
+void SwitchNode::SwitchStatsUpdate(int flag, uint32_t switchid){
+	auto& exitStatsMap = multiSwitchStats[flag].exitStats;
+	auto it_1 = exitStatsMap.find(switchid);
+	uint32_t firstKey,secondKey;
+	SwitchStat firstValue,secondValue;
+	if (it_1 != exitStatsMap.end()) {
+		firstKey = it_1->first;
+		firstValue = it_1->second;
+	}
+
+	auto& normalStatsMap = multiSwitchStats[flag].normalStats;
+	auto it_2 = normalStatsMap.find(switchid);
+	if (it_2 != normalStatsMap.end()) {
+		secondKey = it_2->first;
+		secondValue = it_2->second;
+	}
+
+	for(int k=0;k<m_mmu->pCnt;k++){	
+		for (int i = 0; i < m_mmu->pCnt; ++i) {
+			for (int j = 0; j < m_mmu->qCnt; ++j) {
+				if(firstValue.ingress_bytes[i][j]||firstValue.ingressLpf_bytes[i][j]||firstValue.egress_bytes[i][j]||firstValue.egressLpf_bytes[i][j]
+				||firstValue.m_bytes[k][i][j]||secondValue.ingress_bytes[i][j]||secondValue.ingressLpf_bytes[i][j]||secondValue.egress_bytes[i][j]||secondValue.egressLpf_bytes[i][j]
+				||secondValue.m_bytes[k][i][j]){
+					m_mmu->ingress_bytes[i][j] = firstValue.ingress_bytes[i][j];
+					m_mmu->ingressLpf_bytes[i][j]=firstValue.ingressLpf_bytes[i][j];
+					m_mmu->egress_bytes[i][j]=firstValue.egress_bytes[i][j];
+					m_mmu->egressLpf_bytes[i][j]=firstValue.egressLpf_bytes[i][j];
+					m_bytes[k][i][j]=firstValue.m_bytes[k][i][j];
+				}
+				/*if(firstValue.ingress_bytes[i][j]){
+					m_mmu->ingress_bytes[i][j] = firstValue.ingress_bytes[i][j];
+				}
+				if(firstValue.ingressLpf_bytes[i][j]){
+					m_mmu->ingressLpf_bytes[i][j]=firstValue.ingressLpf_bytes[i][j];
+				}*/
+			}
+		}
+	}
+}
+
+//时延
+void SwitchNode::SwitchTimeDelay(int flag){
+
+}
+
+//统计交换机上的数据
+void SwitchNode::SwitchStatsCount(int flag){
+	uint32_t sw_id = m_id;
+	if(flag==1){
+		auto it = SwitchStats.find(sw_id);
+		if (it == SwitchStats.end()){
+			SwitchStat newswstat;
+			for(int k=0;k<m_mmu->pCnt;k++){
+					for(int i=0;i<m_mmu->pCnt;i++){
+						for(int j=0;j<m_mmu->qCnt;j++){
+							newswstat.m_bytes[k][i][j]=m_bytes[k][i][j];
+							newswstat.egress_bytes[i][j]=m_mmu->egress_bytes[i][j];//入口队列当前占用的字节数
+							newswstat.ingress_bytes[i][j]=m_mmu->ingress_bytes[i][j];//出口队列当前占用的字节数
+							newswstat.egressLpf_bytes[i][j]=m_mmu->egressLpf_bytes[i][j];//入口队列的低通滤波（LPF）占用字节数
+							newswstat.ingressLpf_bytes[i][j]=m_mmu->ingressLpf_bytes[i][j];//出口队列的低通滤波占用字节数
+							newswstat.bandwidth[j]=m_mmu->bandwidth[j];
+							newswstat.dequeueRateIngress[i][j]=m_mmu->dequeueRateIngress[i][j];
+						}
+				}
+				/*newswstat.totalUsed = mmu->totalUsed;
+                newswstat.egressPoolUsed[0] = mmu->egressPoolUsed[0];
+                newswstat.egressPoolUsed[1] = mmu->egressPoolUsed[1];
+                //mmu->totalUsed - mmu->xoffTotalUsed;
+                newswstat.xoffTotalUsed =mmu->xoffTotalUsed;
+                newswstat.sharedPoolUsed = mmu->sharedPoolUsed;*/
+			}
+			if(!IsAllZero(newswstat)){
+					SwitchStats[sw_id]=newswstat;
+			}
+		}
+	}
+	else{
+		auto it = exit_SwitchStats.find(sw_id);
+		if (it == exit_SwitchStats.end()){
+			SwitchStat newswstat;
+			for(int k=0;k<m_mmu->pCnt;k++){
+					for(int i=0;i<m_mmu->pCnt;i++){
+						for(int j=0;j<m_mmu->qCnt;j++){
+							newswstat.m_bytes[k][i][j]=m_bytes[k][i][j];
+							newswstat.egress_bytes[i][j]=m_mmu->egress_bytes[i][j];//出口队列当前占用的字节数
+							newswstat.ingress_bytes[i][j]=m_mmu->ingress_bytes[i][j];//入口队列当前占用的字节数
+							newswstat.egressLpf_bytes[i][j]=m_mmu->egressLpf_bytes[i][j];//出口队列的低通滤波（LPF）占用字节数
+							newswstat.ingressLpf_bytes[i][j]=m_mmu->ingressLpf_bytes[i][j];//入口队列的低通滤波占用字节数
+							newswstat.bandwidth[j]=m_mmu->bandwidth[j];
+							newswstat.dequeueRateIngress[i][j]=m_mmu->dequeueRateIngress[i][j];
+						}
+				}
+			}
+			if(!IsAllZero(newswstat)){
+				exit_SwitchStats[sw_id]=newswstat;
+			}
+		}
+	}
+}
+
 
 //定期监控交换节点（SwitchNode）上流量的发送速率（比特/时间）
 void
