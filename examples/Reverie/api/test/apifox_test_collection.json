@@ -1,0 +1,306 @@
+{
+  "name": "拓扑切分API测试集合",
+  "description": "完整的拓扑切分API测试用例集合",
+  "base_url": "http://localhost:8002",
+  "tests": [
+    {
+      "name": "1. 健康检查",
+      "method": "GET",
+      "url": "{{base_url}}/health",
+      "expected_status": 200,
+      "assertions": [
+        "响应包含status字段",
+        "status值为healthy"
+      ]
+    },
+    {
+      "name": "2. 获取示例树",
+      "method": "GET",
+      "url": "{{base_url}}/example-tree",
+      "expected_status": 200,
+      "assertions": [
+        "响应包含tree_data字段",
+        "tree_data包含nodes和edges"
+      ]
+    },
+    {
+      "name": "3. 拓扑切分-简单数据",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {
+              "name": "Root",
+              "type": "Root",
+              "layer": 0,
+              "nodes_passed": [],
+              "children": [],
+              "isBurr": false
+            },
+            {
+              "name": "DP1_0",
+              "type": "DP",
+              "layer": 1,
+              "nodes_passed": ["A", "B"],
+              "children": [],
+              "isBurr": false
+            }
+          ],
+          "edges": [
+            {
+              "from_node": "Root",
+              "to_node": "DP1_0"
+            }
+          ]
+        },
+        "output_dir": "apifox_simple_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups大于0",
+        "包含json_overview"
+      ]
+    },
+    {
+      "name": "4. 拓扑切分-复杂数据",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {
+              "name": "Root",
+              "type": "Root",
+              "layer": 0,
+              "nodes_passed": [],
+              "children": [],
+              "isBurr": false
+            },
+            {
+              "name": "DP1_0",
+              "type": "DP",
+              "layer": 1,
+              "nodes_passed": ["A", "B", "C"],
+              "children": [],
+              "isBurr": false
+            },
+            {
+              "name": "PP1_1",
+              "type": "PP",
+              "layer": 1,
+              "nodes_passed": ["D", "E"],
+              "children": [],
+              "isBurr": false
+            },
+            {
+              "name": "TP2_2",
+              "type": "TP",
+              "layer": 2,
+              "nodes_passed": ["F", "G", "H"],
+              "children": [],
+              "isBurr": false
+            }
+          ],
+          "edges": [
+            {
+              "from_node": "Root",
+              "to_node": "DP1_0"
+            },
+            {
+              "from_node": "Root",
+              "to_node": "PP1_1"
+            },
+            {
+              "from_node": "PP1_1",
+              "to_node": "TP2_2"
+            }
+          ]
+        },
+        "output_dir": "apifox_complex_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups大于等于3"
+      ]
+    },
+    {
+      "name": "5. 错误处理-空节点",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [],
+          "edges": []
+        },
+        "output_dir": "apifox_error_test"
+      },
+      "expected_status": 400,
+      "assertions": [
+        "响应包含detail字段",
+        "错误信息包含'节点'"
+      ]
+    },
+    {
+      "name": "6. 错误处理-空边",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {
+              "name": "Root",
+              "type": "Root",
+              "layer": 0,
+              "nodes_passed": [],
+              "children": [],
+              "isBurr": false
+            }
+          ],
+          "edges": []
+        },
+        "output_dir": "apifox_error_test"
+      },
+      "expected_status": 400,
+      "assertions": [
+        "响应包含detail字段",
+        "错误信息包含'边'"
+      ]
+    },
+    {
+      "name": "7. 线性树结构",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {"name": "Root", "type": "Root", "layer": 0, "nodes_passed": [], "children": [], "isBurr": false},
+            {"name": "A", "type": "DP", "layer": 1, "nodes_passed": ["H1"], "children": [], "isBurr": false},
+            {"name": "B", "type": "PP", "layer": 2, "nodes_passed": ["H2"], "children": [], "isBurr": false},
+            {"name": "C", "type": "TP", "layer": 3, "nodes_passed": ["H3"], "children": [], "isBurr": false}
+          ],
+          "edges": [
+            {"from_node": "Root", "to_node": "A"},
+            {"from_node": "A", "to_node": "B"},
+            {"from_node": "B", "to_node": "C"}
+          ]
+        },
+        "output_dir": "apifox_linear_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups大于等于3"
+      ]
+    },
+    {
+      "name": "8. 并行结构树",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {"name": "Root", "type": "Root", "layer": 0, "nodes_passed": [], "children": [], "isBurr": false},
+            {"name": "Branch1", "type": "DP", "layer": 1, "nodes_passed": ["H1"], "children": [], "isBurr": false},
+            {"name": "Branch2", "type": "DP", "layer": 1, "nodes_passed": ["H2"], "children": [], "isBurr": false},
+            {"name": "Branch3", "type": "DP", "layer": 1, "nodes_passed": ["H3"], "children": [], "isBurr": false}
+          ],
+          "edges": [
+            {"from_node": "Root", "to_node": "Branch1"},
+            {"from_node": "Root", "to_node": "Branch2"},
+            {"from_node": "Root", "to_node": "Branch3"}
+          ]
+        },
+        "output_dir": "apifox_parallel_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups等于1（同类型节点合并）"
+      ]
+    },
+    {
+      "name": "9. 冲突节点处理",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {"name": "Root", "type": "Root", "layer": 0, "nodes_passed": [], "children": [], "isBurr": false},
+            {"name": "Node_A", "type": "DP", "layer": 1, "nodes_passed": ["H1", "H2"], "children": [], "isBurr": false},
+            {"name": "Node_B", "type": "DP", "layer": 1, "nodes_passed": ["H2", "H3"], "children": [], "isBurr": false}
+          ],
+          "edges": [
+            {"from_node": "Root", "to_node": "Node_A"},
+            {"from_node": "Root", "to_node": "Node_B"}
+          ]
+        },
+        "output_dir": "apifox_conflict_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups等于1（冲突节点合并）"
+      ]
+    },
+    {
+      "name": "10. 混合类型树",
+      "method": "POST",
+      "url": "{{base_url}}/tree-cut",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tree_data": {
+          "nodes": [
+            {"name": "Root", "type": "Root", "layer": 0, "nodes_passed": [], "children": [], "isBurr": false},
+            {"name": "DP1", "type": "DP", "layer": 1, "nodes_passed": ["H1"], "children": [], "isBurr": false},
+            {"name": "PP1", "type": "PP", "layer": 1, "nodes_passed": ["H2"], "children": [], "isBurr": false},
+            {"name": "TP1", "type": "TP", "layer": 2, "nodes_passed": ["H3"], "children": [], "isBurr": false}
+          ],
+          "edges": [
+            {"from_node": "Root", "to_node": "DP1"},
+            {"from_node": "Root", "to_node": "PP1"},
+            {"from_node": "PP1", "to_node": "TP1"}
+          ]
+        },
+        "output_dir": "apifox_mixed_test",
+        "show_graphs": false
+      },
+      "expected_status": 200,
+      "assertions": [
+        "success为true",
+        "tree_groups大于1"
+      ]
+    }
+  ]
+}
+

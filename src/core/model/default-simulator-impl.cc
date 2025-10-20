@@ -19,10 +19,13 @@
 
 #include "default-simulator-impl.h"
 
+#include <deque>
+
 #include "assert.h"
 #include "log.h"
 #include "scheduler.h"
 #include "simulator.h"
+#include "mixed-granularity.h"
 
 #include <cmath>
 
@@ -127,12 +130,41 @@ DefaultSimulatorImpl::GetSystemId() const
 }
 
 void
-DefaultSimulatorImpl::ProcessOneEvent()
+DefaultSimulatorImpl::ProcessOneEvent()//处理下一个事件
 {
     Scheduler::Event next = m_events->RemoveNext();
 
     PreEventHook(EventId(next.impl, next.key.m_ts, next.key.m_context, next.key.m_uid));
 
+    bool flag=false;
+    while(next.key.transition_stage<transition_cnt){
+        next.key.m_ts+=transition_delay[next.key.transition_stage];
+        next.key.transition_stage++;
+        if(!flag)
+            flag=true;
+    }
+    //果事件的时间戳被调整（flag == true），则整个事件列表中的所有事件都需要检查和更新其 transition_stage 和 m_ts
+    if(flag){
+        std::deque<Scheduler::Event> l;
+        while(!m_events->IsEmpty()){
+            Scheduler::Event evt= m_events->RemoveNext();
+            while(evt.key.transition_stage<transition_cnt){
+                evt.key.m_ts+=transition_delay[evt.key.transition_stage];
+                evt.key.transition_stage++;
+                if(!flag)
+                    flag=true;
+            }
+            l.push_back(evt);
+        }
+        while (l.size()!=0)
+        {
+            m_events->Insert(l.at(0));
+            l.pop_front();
+        }
+        
+    }
+    
+    
     NS_ASSERT(next.key.m_ts >= m_currentTs);
     m_unscheduledEvents--;
     m_eventCount++;
@@ -177,6 +209,7 @@ DefaultSimulatorImpl::ProcessEventsWithContext()
         ev.key.m_ts = m_currentTs + event.timestamp;
         ev.key.m_context = event.context;
         ev.key.m_uid = m_uid;
+        //ev.key.transition_stage=event.;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
@@ -219,6 +252,7 @@ DefaultSimulatorImpl::Stop(const Time& delay)
 //
 // Schedule an event for a _relative_ time in the future.
 //
+//新调度的事件默认处于“最后一个阶段”，不会在 ProcessOneEvent 中进一步调整时间戳，除非 transition_cnt 在后续被修改
 EventId
 DefaultSimulatorImpl::Schedule(const Time& delay, EventImpl* event)
 {
@@ -234,6 +268,7 @@ DefaultSimulatorImpl::Schedule(const Time& delay, EventImpl* event)
     ev.key.m_ts = (uint64_t)tAbsolute.GetTimeStep();
     ev.key.m_context = GetContext();
     ev.key.m_uid = m_uid;
+    ev.key.transition_stage=transition_cnt;
     m_uid++;
     m_unscheduledEvents++;
     m_events->Insert(ev);
@@ -253,6 +288,7 @@ DefaultSimulatorImpl::ScheduleWithContext(uint32_t context, const Time& delay, E
         ev.key.m_ts = (uint64_t)tAbsolute.GetTimeStep();
         ev.key.m_context = context;
         ev.key.m_uid = m_uid;
+        ev.key.transition_stage=transition_cnt;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
@@ -338,6 +374,7 @@ DefaultSimulatorImpl::Remove(const EventId& id)
     event.key.m_ts = id.GetTs();
     event.key.m_context = id.GetContext();
     event.key.m_uid = id.GetUid();
+    event.key.transition_stage=transition_cnt;
     m_events->Remove(event);
     event.impl->Cancel();
     // whenever we remove an event from the event list, we have to unref it.

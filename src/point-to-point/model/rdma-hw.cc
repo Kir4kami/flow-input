@@ -405,6 +405,7 @@ int RdmaHw::ReceiveCnp(Ptr<Packet> p, CustomHeader &ch) {
 	return 0;
 }
 
+//退出稳态后，清理窗口以及保证fin包返回前不触发跃迁
 int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 	uint16_t qIndex = ch.ack.pg;
 	uint16_t port = ch.ack.dport;
@@ -412,7 +413,14 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 	uint8_t cnp = (ch.ack.flags >> qbbHeader::FLAG_CNP) & 1;
 	int i;
 	Ptr<RdmaQueuePair> qp = GetQp(ch.sip, port, qIndex);
-	if (qp == NULL) {
+	/*std::ostringstream oss;
+	uint32_t srcId = ((ch.dip >> 8) & 0xffff);
+	uint32_t dstId = ((ch.sip >> 8) & 0xffff);
+    oss << srcId << "-" << dstId << "-" << ch.ack.dport << "-" << ch.ack.sport;
+	std::string flowid = oss.str();
+	auto it=filter.find(flowid);
+	auto it_flow_status=flowStats.find(flowid);*/
+	if (qp == NULL/*||(it==filter.end()&&it_flow_status==flowStats.end())*/) {
 		std::cout << "ERROR: " << "node:" << m_node->GetId() << ' ' << (ch.l3Prot == 0xFC ? "ACK" : "NACK") << " NIC cannot find the flow\n";
 		return 0;
 	}
@@ -429,7 +437,16 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 			qp->Acknowledge(goback_seq);
 		}
 		if (qp->IsFinished()) {
-			QpComplete(qp);
+			std::ostringstream oss;
+			oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
+			std::string flowid = oss.str();
+			auto iter=flow_fin_unack.find(flowid);
+			if(iter!=flow_fin_unack.end())
+				flow_fin_unack.erase(iter);
+			auto iter_flowStat=flowStats.find(flowid);
+			if(iter_flowStat!=flowStats.end())
+				flowStats.erase(iter_flowStat);
+			QpComplete(qp);//释放队列对资源，通知应用层流完成
 		}
 	}
 	if (ch.l3Prot == 0xFD) // NACK
@@ -469,6 +486,7 @@ int RdmaHw::Receive(Ptr<Packet> p, CustomHeader &ch) {
 	return 0;
 }
 
+//确保数据包按序接收
 int RdmaHw::ReceiverCheckSeq(uint32_t seq, Ptr<RdmaRxQueuePair> q, uint32_t size) {
 	uint32_t expected = q->ReceiverNextExpectedSeq;
 	if (seq == expected) {
@@ -483,6 +501,8 @@ int RdmaHw::ReceiverCheckSeq(uint32_t seq, Ptr<RdmaRxQueuePair> q, uint32_t size
 		}
 	} else if (seq > expected) {
 		// Generate NACK
+		q->ReceiverNextExpectedSeq = seq + size;
+		return 1;
 		if (Simulator::Now() >= q->m_nackTimer || q->m_lastNACK != expected) {
 			q->m_nackTimer = Simulator::Now() + MicroSeconds(m_nack_interval);
 			q->m_lastNACK = expected;
@@ -512,7 +532,8 @@ uint16_t RdmaHw::EtherToPpp (uint16_t proto) {
 }
 
 void RdmaHw::RecoverQueue(Ptr<RdmaQueuePair> qp) {
-	qp->snd_nxt = qp->snd_una;
+	if(qp->snd_una>qp->snd_nxt)
+		qp->snd_nxt = qp->snd_una;
 }
 
 void RdmaHw::QpComplete(Ptr<RdmaQueuePair> qp) {
@@ -606,10 +627,16 @@ Ptr<Packet> RdmaHw::GetNxtPacket(Ptr<RdmaQueuePair> qp) {
 	ppp.SetProtocol (0x0021); // EtherToPpp(0x800), see point-to-point-net-device.cc
 	p->AddHeader (ppp);
 
-	// update state
+	// update state 标记已发送完成的流，等待确认
 	qp->snd_nxt += payload_size;
 	qp->m_ipid++;
-
+	//发送队列对已发送所有数据（即流的最后一个数据包已发送，相当于 FIN 包）
+	if(qp->snd_nxt==qp->m_size){
+		std::ostringstream oss;
+		oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
+		std::string flowid = oss.str();
+		flow_fin_unack.insert(flowid);
+	}
 	// return
 	return p;
 }

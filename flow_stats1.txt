@@ -1,0 +1,67 @@
+Flow ID: 0-1-1000-1000 - Rate: 12.9792 Gbps currentTime: 14720
+Flow ID: 2-1-1000-1000 - Rate: 12.9792 Gbps currentTime: 15055
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 24770
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 25105
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 34820
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 35155
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 44870
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 45205
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 54920
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 55255
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 64970
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 65305
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 75020
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 75355
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 85070
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 85405
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 95120
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 95455
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 105170
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 105505
+System entered steady state at time: 105505 ns
+最小流完成时间: 21336620.644313
+System exit
+Flow ID: 0-1-1000-1000 - Rate: 12.9792 Gbps currentTime: 10500530
+Flow ID: 2-1-1000-1000 - Rate: 12.9792 Gbps currentTime: 10500865
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10510580
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10510915
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10520630
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10520965
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10530680
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10531015
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10540730
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10541065
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10550780
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10551115
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10560830
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10561165
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10570880
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10571215
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10580930
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10581265
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10590980
+Flow ID: 2-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10591315
+Flow ID: 0-1-1000-1000 - Rate: 12.168 Gbps currentTime: 10601030
+Flow ID: 2-1-1000-1000 - Rate: 12.9792 Gbps currentTime: 10601365
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10611415
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10621465
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10631515
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10641565
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10651615
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10661665
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10671715
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10681765
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 10691815
+System entered steady state at time: 10691815 ns
+最小流完成时间: 96749178.172255
+System exit
+Flow ID: 2-1-1000-1000 - Rate: 25.1472 Gbps currentTime: 104881400
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104891450
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104901500
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104911550
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104921600
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104931650
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104941700
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104951750
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104961800
+Flow ID: 2-1-1000-1000 - Rate: 24.336 Gbps currentTime: 104971850

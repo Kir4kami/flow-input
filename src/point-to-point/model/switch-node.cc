@@ -71,6 +71,7 @@ SwitchNode::SwitchNode() {
 		m_u[i] = 0;
 }
 
+//ECMP 路由与出端口选择
 int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch) {
 	// look up entries
 	Ptr<Packet> cp = p->Copy();
@@ -124,8 +125,9 @@ void SwitchNode::CheckAndSendResume(uint32_t inDev, uint32_t qIndex) {
 	}
 }
 
+//发送数据包
 void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
-	int idx = GetOutDev(p, ch);
+	int idx = GetOutDev(p, ch);//选出出端口
 	if (idx >= 0) {
 		NS_ASSERT_MSG(m_devices[idx]->IsLinkUp(), "The routing table look up should return link that is up");
 
@@ -168,8 +170,9 @@ void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
 			}
 			CheckAndSendPfc(inDev, qIndex);
 		}
-		m_bytes[inDev][idx][qIndex] += p->GetSize();
-		m_devices[idx]->SwitchSend(qIndex, p, ch);
+		m_bytes[inDev][idx][qIndex] += p->GetSize();//记录入队字节数
+		m_devices[idx]->SwitchSend(qIndex, p, ch);//实际转发数据到目标端口的目标队列
+		//记录 egress（出端口）接收了多少数据
 		DynamicCast<QbbNetDevice>(m_devices[idx])->totalBytesRcvd += p->GetSize(); // Attention: this is the egress port's total received packets. Not the ingress port.
 	} else
 		std::cout << "outdev not found! Dropped. This should not happen. Debugging required!" << std::endl;
@@ -214,10 +217,12 @@ uint32_t SwitchNode::EcmpHash(const uint8_t* key, size_t len, uint32_t seed) {
 	return h;
 }
 
+//设置 ECMP 哈希的种子值
 void SwitchNode::SetEcmpSeed(uint32_t seed) {
 	m_ecmpSeed = seed;
 }
 
+//向路由表添加目的 IP 和输出接口的映射
 void SwitchNode::AddTableEntry(Ipv4Address &dstAddr, uint32_t intf_idx) {
 	uint32_t dip = dstAddr.Get();
 	m_rtTable[dip].push_back(intf_idx);
@@ -228,6 +233,7 @@ void SwitchNode::ClearTable() {
 }
 
 // This function can only be called in switch mode
+//从设备接收数据包并调用 SendToDev 进行转发
 bool SwitchNode::SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> packet, CustomHeader &ch) {
 	SendToDev(packet, ch);
 	return true;
@@ -235,10 +241,10 @@ bool SwitchNode::SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> pack
 
 void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p) {
 	InterfaceTag t;
-	p->PeekPacketTag(t);
+	p->PeekPacketTag(t);//该包是从哪个入端口进入交换机的
 
 	MyPriorityTag priotag;
-	bool found = p->PeekPacketTag(priotag);
+	bool found = p->PeekPacketTag(priotag);//是否为带 MyPriorityTag 的 lossy 流量
 
 	if (qIndex != 0) {
 		uint32_t inDev = t.GetPortId();
@@ -367,6 +373,135 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	m_lastPktSize[ifIndex] = p->GetSize();
 	m_lastPktTs[ifIndex] = Simulator::Now().GetTimeStep();
 }
+
+
+//补偿
+void SwitchNode::SwitchStatsUpdate(int flag, uint32_t switchid){
+	auto& exitStatsMap = multiSwitchStats[flag].exitStats;
+	auto it_1 = exitStatsMap.find(switchid);
+	uint32_t firstKey,secondKey;
+	SwitchStat firstValue,secondValue;
+	if (it_1 != exitStatsMap.end()) {
+		firstKey = it_1->first;
+		firstValue = it_1->second;
+	}
+
+	auto& normalStatsMap = multiSwitchStats[flag].normalStats;
+	auto it_2 = normalStatsMap.find(switchid);
+	if (it_2 != normalStatsMap.end()) {
+		secondKey = it_2->first;
+		secondValue = it_2->second;
+	}
+
+	for(int k=0;k<m_mmu->pCnt;k++){	
+		for (int i = 0; i < m_mmu->pCnt; ++i) {
+			for (int j = 0; j < m_mmu->qCnt; ++j) {
+				if(firstValue.ingress_bytes[i][j]||firstValue.ingressLpf_bytes[i][j]||firstValue.egress_bytes[i][j]||firstValue.egressLpf_bytes[i][j]
+				||firstValue.m_bytes[k][i][j]||secondValue.ingress_bytes[i][j]||secondValue.ingressLpf_bytes[i][j]||secondValue.egress_bytes[i][j]||secondValue.egressLpf_bytes[i][j]
+				||secondValue.m_bytes[k][i][j]){
+					m_mmu->ingress_bytes[i][j] = firstValue.ingress_bytes[i][j];
+					m_mmu->ingressLpf_bytes[i][j]=firstValue.ingressLpf_bytes[i][j];
+					m_mmu->egress_bytes[i][j]=firstValue.egress_bytes[i][j];
+					m_mmu->egressLpf_bytes[i][j]=firstValue.egressLpf_bytes[i][j];
+					m_bytes[k][i][j]=firstValue.m_bytes[k][i][j];
+				}
+				/*if(firstValue.ingress_bytes[i][j]){
+					m_mmu->ingress_bytes[i][j] = firstValue.ingress_bytes[i][j];
+				}
+				if(firstValue.ingressLpf_bytes[i][j]){
+					m_mmu->ingressLpf_bytes[i][j]=firstValue.ingressLpf_bytes[i][j];
+				}*/
+			}
+		}
+	}
+}
+
+//时延
+void SwitchNode::SwitchTimeDelay(int flag){
+
+}
+
+//统计交换机上的数据
+void SwitchNode::SwitchStatsCount(int flag){
+	uint32_t sw_id = m_id;
+	if(flag==1){
+		auto it = SwitchStats.find(sw_id);
+		if (it == SwitchStats.end()){
+			SwitchStat newswstat;
+			for(int k=0;k<m_mmu->pCnt;k++){
+					for(int i=0;i<m_mmu->pCnt;i++){
+						for(int j=0;j<m_mmu->qCnt;j++){
+							newswstat.m_bytes[k][i][j]=m_bytes[k][i][j];
+							newswstat.egress_bytes[i][j]=m_mmu->egress_bytes[i][j];//入口队列当前占用的字节数
+							newswstat.ingress_bytes[i][j]=m_mmu->ingress_bytes[i][j];//出口队列当前占用的字节数
+							newswstat.egressLpf_bytes[i][j]=m_mmu->egressLpf_bytes[i][j];//入口队列的低通滤波（LPF）占用字节数
+							newswstat.ingressLpf_bytes[i][j]=m_mmu->ingressLpf_bytes[i][j];//出口队列的低通滤波占用字节数
+							newswstat.bandwidth[j]=m_mmu->bandwidth[j];
+							newswstat.dequeueRateIngress[i][j]=m_mmu->dequeueRateIngress[i][j];
+						}
+				}
+				/*newswstat.totalUsed = mmu->totalUsed;
+                newswstat.egressPoolUsed[0] = mmu->egressPoolUsed[0];
+                newswstat.egressPoolUsed[1] = mmu->egressPoolUsed[1];
+                //mmu->totalUsed - mmu->xoffTotalUsed;
+                newswstat.xoffTotalUsed =mmu->xoffTotalUsed;
+                newswstat.sharedPoolUsed = mmu->sharedPoolUsed;*/
+			}
+			if(!IsAllZero(newswstat)){
+					SwitchStats[sw_id]=newswstat;
+			}
+		}
+	}
+	else{
+		auto it = exit_SwitchStats.find(sw_id);
+		if (it == exit_SwitchStats.end()){
+			SwitchStat newswstat;
+			for(int k=0;k<m_mmu->pCnt;k++){
+					for(int i=0;i<m_mmu->pCnt;i++){
+						for(int j=0;j<m_mmu->qCnt;j++){
+							newswstat.m_bytes[k][i][j]=m_bytes[k][i][j];
+							newswstat.egress_bytes[i][j]=m_mmu->egress_bytes[i][j];//出口队列当前占用的字节数
+							newswstat.ingress_bytes[i][j]=m_mmu->ingress_bytes[i][j];//入口队列当前占用的字节数
+							newswstat.egressLpf_bytes[i][j]=m_mmu->egressLpf_bytes[i][j];//出口队列的低通滤波（LPF）占用字节数
+							newswstat.ingressLpf_bytes[i][j]=m_mmu->ingressLpf_bytes[i][j];//入口队列的低通滤波占用字节数
+							newswstat.bandwidth[j]=m_mmu->bandwidth[j];
+							newswstat.dequeueRateIngress[i][j]=m_mmu->dequeueRateIngress[i][j];
+						}
+				}
+			}
+			if(!IsAllZero(newswstat)){
+				exit_SwitchStats[sw_id]=newswstat;
+			}
+		}
+	}
+}
+
+
+//定期监控交换节点（SwitchNode）上流量的发送速率（比特/时间）
+void
+SwitchNode::BandWidthMonitor(Ptr<Packet> packet, CustomHeader& ch)
+{
+	uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+    uint16_t packetSize = packet->GetSize();
+    // 检查该流是否存在
+    auto it = NodeStats.find(m_id);
+    
+    if (it == NodeStats.end()){
+        // 流不存在，创建新在
+        NodeStat newStat = { packetSize, currentTime,0 };
+        NodeStats[m_id] = newStat;
+    }else{
+		if(currentTime-it->second.timestamp>= MONITOR_PERIOD){
+			double rate = static_cast<double>(it->second.byteCount)*8 / MONITOR_PERIOD;  // 
+			it->second.byteCount=packetSize;
+			it->second.timestamp=currentTime;
+		}else{
+			it->second.byteCount+=packetSize;
+		}
+	}
+}
+
+
 
 int SwitchNode::logres_shift(int b, int l) {
 	static int data[] = {0, 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};

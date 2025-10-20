@@ -327,6 +327,9 @@ class Node : public Object
 public:
   virtual bool SwitchReceiveFromDevice(Ptr<NetDevice> device, Ptr<Packet> packet, CustomHeader &ch);
   virtual void SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Packet> p);
+  virtual void SwitchStatsCount(int flag);
+  virtual void SwitchStatsUpdate(int flag,uint32_t switchid);
+  virtual void SwitchTimeDelay(int flag);
 /* Modification */
 };
 

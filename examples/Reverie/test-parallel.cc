@@ -1,9 +1,4 @@
-/*
- * reverie-evaluation-sigcomm2023.cc
- *
- *  Created on: Feb 02, 2023
- *      Author: vamsi
- */
+
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
@@ -23,7 +18,7 @@
 #include <ns3/rdma-driver.h>
 #include <ns3/switch-node.h>
 #include <ns3/sim-setting.h>
-#include "ns3/mpi-interface.h"
+//#include "ns3/mpi-interface.h"
 
 #include <cmath>
 #include <fstream>
@@ -306,8 +301,8 @@ bool CheckPathIntersection(
     }
     return false;
 }
-uint16_t operateNum=17;
-void executeFlow(std::string flowPath="examples/Reverie/rdma_operates",std::string pathPath="examples/Reverie/operate_path"){//处理流量文件，生成路径文件
+uint16_t operateNum=176;
+void executeFlow(std::string flowPath="examples/Reverie/task1",std::string pathPath="examples/Reverie/operate_path"){//处理流量文件，生成路径文件
     std::ifstream flowFile;
     std::ofstream pathFile;
     for(int idx=0;idx<operateNum;idx++){

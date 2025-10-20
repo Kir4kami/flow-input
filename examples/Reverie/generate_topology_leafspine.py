@@ -1,11 +1,16 @@
+#!/usr/bin/env python3
 import os
-import pandas as pd
+#import pandas as pd
 import numpy as np
 import sys
 
+
+output_file = "leaf-spine.txt"
+sys.stdout = open(output_file, 'w') 
+
 # leaf spine topology
-serversPerTor=16
-torSwitches=16
+serversPerTor=8
+torSwitches=8
 spineSwitches=4
 serverTorDelay="2us"
 torSpineDelay="2us"

@@ -39,18 +39,19 @@
 #include<numeric> //accmulate
 // #include <ns3/rdma.h>
 // #define ENABLE_QP 1
+#include "flow-acc.h"
 
 namespace ns3 {
 
 class RdmaEgressQueue : public Object{
 public:
-	static const uint32_t qCnt = 8;
-	static uint32_t ack_q_idx;
-	static uint32_t tcpip_q_idx;
+	static const uint32_t qCnt = 8; //8 个优先级队列
+	static uint32_t ack_q_idx;  //ACK 队列
+	static uint32_t tcpip_q_idx;  //TCP/IP 队列
 	int m_qlast;
 	uint32_t m_rrlast;
-	Ptr<DropTailQueue<Packet>> m_ackQ; // highest priority queue
-	Ptr<RdmaQueuePairGroup> m_qpGrp; // queue pairs
+	Ptr<DropTailQueue<Packet>> m_ackQ; // highest priority queue 高优先级队列，用于处理 ACK 包
+	Ptr<RdmaQueuePairGroup> m_qpGrp; // queue pairs RDMA 队列对组，管理多个 RDMA 队列对
 
 	// callback for get next packet
 	typedef Callback<Ptr<Packet>, Ptr<RdmaQueuePair> > RdmaGetNxtPkt;
@@ -62,8 +63,8 @@ public:
 	int GetNextQindex(bool paused[]);
 	int GetLastQueue();
 	uint32_t GetNBytes(uint32_t qIndex);
-	uint32_t GetFlowCount(void);
-	Ptr<RdmaQueuePair> GetQp(uint32_t i);
+	uint32_t GetFlowCount(void);  //返回当前队列对的数量
+	Ptr<RdmaQueuePair> GetQp(uint32_t i);//获取指定索引的队列对
 	void RecoverQueue(uint32_t i);
 	void EnqueueHighPrioQ(Ptr<Packet> p);
 	void CleanHighPrio(TracedCallback<Ptr<const Packet>, uint32_t> dropCb);
@@ -72,8 +73,8 @@ public:
 	TracedCallback<Ptr<const Packet>, uint32_t> m_traceRdmaDequeue;
 
 	Ptr<QbbNetDevice> qb_dev;
-	bool dummy_paused[8];
-	uint64_t hostDequeueIndex;
+	bool dummy_paused[8]; //用于模拟暂停状态的数组
+	uint64_t hostDequeueIndex;  //记录主机出队索引
 };
 
 /**
@@ -89,7 +90,10 @@ public:
 
   QbbNetDevice ();
   virtual ~QbbNetDevice ();
-
+  
+  //打印swicthStats信息
+  void PrintAllSwitchStats(std::map<uint32_t,SwitchStat>& stats,std::ofstream& flowstatsFile);
+  bool IsAllZero(const SwitchStat& stat);
   //计算接收端流量速率
   //生成flowid和获取数据包大小
   void GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile);
@@ -97,7 +101,11 @@ public:
   void onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
   // 计算速率并输出
   void calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile);
-  //计算剩余流量大小除以已测量的速度均值，获取最小时间
+  void UpdateSwitchStats();
+  void TimeDelaySwitchStats();
+  void ContinueAfterDelay(double max_time);
+  void exitSteadyState();
+  // 计算剩余流量大小除以已测量的速度均值，获取最小时间
   void calculateMintime();
   //计算流完成时间的子函数
   void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);
@@ -123,7 +131,7 @@ public:
    * @param protocolNumber Protocol used in packet
    */
   virtual bool Send(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber);
-  virtual bool SwitchSend (uint32_t qIndex, Ptr<Packet> packet, CustomHeader &ch);
+  virtual bool SwitchSend (uint32_t qIndex, Ptr<Packet> packet, CustomHeader &ch);//按优先级队列发送数据包
   Address GetRemote (void) const;
   virtual void SetReceiveCallback (NetDevice::ReceiveCallback cb);
 
@@ -200,10 +208,10 @@ protected:
   virtual void DoDispose(void);
 
   /// Reset the channel into READY state and try transmit again
-  virtual void TransmitComplete(void);
+  virtual void TransmitComplete(void);//传输完成，尝试重新发送
 
   /// Look for an available packet and send it using TransmitStart(p)
-  virtual void DequeueAndTransmit(void);
+  virtual void DequeueAndTransmit(void);//出队并发送数据包
 
   /// Resume a paused queue and call DequeueAndTransmit()
   virtual void Resume(unsigned qIndex);
@@ -219,7 +227,7 @@ protected:
    * @see class Queue
    * @see class InfiniteQueue
    */
-  Ptr<BEgressQueue> m_queue;
+  Ptr<BEgressQueue> m_queue;//优先级队列
 
   Ptr<DropTailQueue<Packet>> m_queueFifo;
 

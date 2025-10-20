@@ -2,8 +2,10 @@
 #define FLOW_ACC_H
 
 #include<map>
+#include<set>
 #include<string>
 #include<vector>
+#include "ns3/nstime.h"
 
 using namespace std;
 
@@ -14,12 +16,63 @@ struct FlowStat {
     std::vector<double> rate;   //用来存储速率的队列
     bool ifnewpacket = true; //新的周期内是否有新数据包进入
     int size = 10;//队列大小(判断是否进入稳态)
-    bool steadyStateReached = false; //是否进入稳态的标志位
+    bool steadyStateReached = false; //是否进入稳态的标志
 };
 
+struct NodeStat{
+    uint64_t byteCount;    // 累计的字节数
+    uint64_t timestamp;
+    double rate;
+};
+
+constexpr uint32_t pCnt = 257;  // 端口数量
+constexpr uint32_t qCnt = 8;    // 队列数量
+struct SwitchStat
+{
+    uint64_t totalUsed;//总缓冲区使用量（包括预留、headroom 和共享缓冲区）
+	uint64_t egressPoolUsed[2];//lossless 和 lossy 出端口缓冲区使用量
+	uint64_t xoffTotalUsed;//总 headroom 使用量
+	uint64_t totalIngressReservedUsed;//更新预留缓冲区使用量
+	uint64_t sharedPoolUsed;//Reverie 模型的共享缓冲区使用量
+    double dequeueRateIngress[pCnt][qCnt];
+    uint64_t bandwidth[pCnt];
+
+    uint32_t m_bytes[pCnt][pCnt][qCnt];
+    uint64_t ingressLpf_bytes[pCnt][qCnt];//入口队列当前占用的字节数
+	uint64_t egressLpf_bytes[pCnt][qCnt];//出口队列当前占用的字节数
+    uint64_t ingress_bytes[pCnt][qCnt];//入口队列的低通滤波（LPF）占用字节数
+	uint64_t egress_bytes[pCnt][qCnt];//出口队列的低通滤波占用字节数
+};
+
+extern std::map<uint32_t,SwitchStat> SwitchStats;
+extern std::map<uint32_t,SwitchStat> exit_SwitchStats;
+
+struct SwitchStatsPair
+{
+    std::map<uint32_t, SwitchStat> normalStats; // 对应 SwitchStats
+    std::map<uint32_t, SwitchStat> exitStats;   // 对应 exit_SwitchStats
+};
+
+// 包含多个 pair
+extern std::vector<SwitchStatsPair> multiSwitchStats;
+
 extern uint64_t MONITOR_PERIOD; // 监测周期（us）
-extern std::map<string, FlowStat> flowStats; //flowid,size字节数,存储流的统计信息
+extern std::map<string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
+extern std::map<uint32_t, NodeStat>NodeStats; //flowid,size字节大小,存储流的统计信息
+extern bool isFirstOpen;
+extern bool isFirstOpen_SwitchStats;
+extern uint64_t steadyStateStartTime;  // 记录稳态进入时间
+extern bool inSteadyState;         // 标识系统是否处于稳态
+extern double flowMinTime;	//整个系统最小流完成时间
+extern double transMinTime;	//整个系统最小流完成时间
+extern std::map<uint32_t,ns3::Time> node_latency_fix;
+extern std::set<string> filter;
+extern double next_trans_avail;//更新下一次状态转换时间
+
+extern std::set<string> flow_fin_unack; //已发送待确认的流
+//extern std::set<string> flow_fin_ack;
 
 
-
+bool IsAllZero(const SwitchStat& stat);
+void loadFlowSwitchStats(const std::string &filename);
 #endif

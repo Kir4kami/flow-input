@@ -1,0 +1,52 @@
+{
+  "tree_data": {
+    "nodes": [
+      {
+        "name": "Root",
+        "type": "Root",
+        "layer": 0,
+        "nodes_passed": [],
+        "children": [],
+        "isBurr": false
+      },
+      {
+        "name": "DP1_0",
+        "type": "DP",
+        "layer": 1,
+        "nodes_passed": ["A", "B", "C"],
+        "children": [],
+        "isBurr": false
+      },
+      {
+        "name": "PP1_1",
+        "type": "PP",
+        "layer": 1,
+        "nodes_passed": ["D", "E"],
+        "children": [],
+        "isBurr": false
+      },
+      {
+        "name": "TP2_2",
+        "type": "TP",
+        "layer": 2,
+        "nodes_passed": ["F", "G", "H"],
+        "children": [],
+        "isBurr": false
+      }
+    ],
+    "edges": [
+      {
+        "from_node": "Root",
+        "to_node": "DP1_0"
+      },
+      {
+        "from_node": "Root",
+        "to_node": "PP1_1"
+      },
+      {
+        "from_node": "PP1_1",
+        "to_node": "TP2_2"
+      }
+    ]
+  }
+}

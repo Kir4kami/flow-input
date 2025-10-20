@@ -1,0 +1,12 @@
+SwitchStats0
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 0, Ingress Bytes = 161392, Egress LPF = 0, Ingress LPF = 78843, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 2, Queue 3: Egress Bytes = 322784, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 161392, Egress LPF = 0, Ingress LPF = 79668, DequeueRateIngress = 1, Bandwidth = 25000000000
+iPort 1, ePort 2, Queue 3: 161392, 
+iPort 3, ePort 2, Queue 3: 161392, 
+exit_SwitchStats0
+===== Switch ID: 64 =====
+Port 2, Queue 3: Egress Bytes = 1067912, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 1067912, Egress LPF = 0, Ingress LPF = 1034393, DequeueRateIngress = 1, Bandwidth = 25000000000
+iPort 3, ePort 2, Queue 3: 1067912, 

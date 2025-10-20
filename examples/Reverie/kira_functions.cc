@@ -18,7 +18,7 @@
 #include <ns3/rdma-driver.h>
 #include <ns3/switch-node.h>
 #include <ns3/sim-setting.h>
-#include "ns3/mpi-interface.h"
+//#include "ns3/mpi-interface.h"
 
 #include <cmath>
 #include <fstream>
