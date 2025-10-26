@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拓扑切分测试 - 新版本</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .test-section {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .api-status {
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .api-status.success { background: #f6ffed; color: #52c41a; border: 2px solid #b7eb8f; }
+    .api-status.error { background: #fff1f0; color: #ff4d4f; border: 2px solid #ffa39e; }
+    .api-status.checking { background: #e6f7ff; color: #1890ff; border: 2px solid #91d5ff; }
+    .button-group { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .log-area {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .log-entry {
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .log-entry.success { background: rgba(82, 196, 26, 0.1); color: #52c41a; }
+    .log-entry.error { background: rgba(255, 77, 79, 0.1); color: #ff4d4f; }
+    .log-entry.info { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+    .config-display {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .config-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .config-item:last-child { border-bottom: none; }
+    .config-label { font-weight: 600; color: #666; }
+    .config-value { color: #667eea; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="header">
+        <h1>🧪 拓扑切分 API 测试</h1>
+        <p style="color: #666; margin-top: 10px;">实时检测 API 连接状态</p>
+      </div>
+
+      <div class="test-section">
+        <h3 style="margin-bottom: 20px;">当前配置</h3>
+        <div class="config-display">
+          <div class="config-item">
+            <span class="config-label">API 地址:</span>
+            <span class="config-value">{{ apiUrl }}</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">当前时间:</span>
+            <span class="config-value">{{ currentTime }}</span>
+          </div>
+          <div class="config-item">
+            <span class="config-label">浏览器:</span>
+            <span class="config-value">{{ browserInfo }}</span>
+          </div>
+        </div>
+
+        <div :class="['api-status', apiStatusClass]">
+          {{ apiStatusMessage }}
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-primary" @click="testApi" :disabled="isTesting">
+            {{ isTesting ? '测试中...' : '🔍 测试 API 连接' }}
+          </button>
+          <button class="btn btn-primary" @click="performCut" :disabled="!apiOk || isCutting">
+            {{ isCutting ? '切分中...' : '✂️ 执行切分' }}
+          </button>
+          <button class="btn" style="background: #e8e8e8;" @click="clearLogs">
+            🗑️ 清空日志
+          </button>
+        </div>
+
+        <div class="log-area">
+          <div v-if="logs.length === 0" style="text-align: center; opacity: 0.5;">
+            暂无日志记录
+          </div>
+          <div 
+            v-for="(log, index) in logs" 
+            :key="index"
+            :class="['log-entry', log.type]"
+          >
+            <span style="opacity: 0.6;">[{{ log.time }}]</span>
+            {{ log.message }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+
+    createApp({
+      data() {
+        return {
+          apiUrl: 'http://localhost:8002',
+          logs: [],
+          apiOk: false,
+          isTesting: false,
+          isCutting: false,
+          apiStatusMessage: '正在检查 API 状态...',
+          apiStatusClass: 'checking',
+          currentTime: '',
+          browserInfo: navigator.userAgent.split(' ').slice(-2).join(' ')
+        }
+      },
+      mounted() {
+        this.addLog('系统', '页面已加载', 'info')
+        this.addLog('配置', `API 地址: ${this.apiUrl}`, 'info')
+        this.updateTime()
+        setInterval(this.updateTime, 1000)
+        // 自动测试 API
+        setTimeout(() => this.testApi(), 500)
+      },
+      methods: {
+        updateTime() {
+          this.currentTime = new Date().toLocaleTimeString('zh-CN')
+        },
+        
+        addLog(category, message, type = 'info') {
+          const time = new Date().toLocaleTimeString('zh-CN')
+          this.logs.unshift({ category, message, type, time })
+          if (this.logs.length > 50) this.logs = this.logs.slice(0, 50)
+        },
+        
+        async testApi() {
+          this.isTesting = true
+          this.apiStatusMessage = '正在测试 API 连接...'
+          this.apiStatusClass = 'checking'
+          this.addLog('API测试', `正在连接 ${this.apiUrl}...`, 'info')
+          
+          try {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 5000)
+            
+            const response = await fetch(`${this.apiUrl}/health`, {
+              signal: controller.signal,
+              cache: 'no-cache',
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              }
+            })
+            
+            clearTimeout(timeoutId)
+            
+            if (response.ok) {
+              const data = await response.json()
+              this.apiOk = true
+              this.apiStatusMessage = `✓ API 服务正常 - ${data.message}`
+              this.apiStatusClass = 'success'
+              this.addLog('API测试', `连接成功！${data.message}`, 'success')
+            } else {
+              throw new Error(`HTTP ${response.status}`)
+            }
+          } catch (error) {
+            this.apiOk = false
+            this.apiStatusMessage = `✗ API 连接失败 - ${error.message}`
+            this.apiStatusClass = 'error'
+            
+            if (error.name === 'AbortError') {
+              this.addLog('API测试', '连接超时（5秒），请检查 API 服务是否运行', 'error')
+            } else {
+              this.addLog('API测试', `连接失败: ${error.message}`, 'error')
+            }
+            
+            // 提供诊断建议
+            this.addLog('建议', '请检查: 1) API 是否在运行 2) 端口是否正确 3) 防火墙设置', 'error')
+          } finally {
+            this.isTesting = false
+          }
+        },
+        
+        async performCut() {
+          if (!this.apiOk) {
+            this.addLog('切分', '请先确保 API 连接正常', 'error')
+            return
+          }
+          
+          this.isCutting = true
+          this.addLog('切分', '开始获取示例数据...', 'info')
+          
+          try {
+            // 获取示例数据
+            const exampleRes = await fetch(`${this.apiUrl}/example-tree`, {
+              cache: 'no-cache'
+            })
+            
+            if (!exampleRes.ok) {
+              throw new Error('无法获取示例数据')
+            }
+            
+            const exampleData = await exampleRes.json()
+            this.addLog('切分', '示例数据获取成功', 'success')
+            
+            // 执行切分
+            this.addLog('切分', '正在执行拓扑切分...', 'info')
+            const cutRes = await fetch(`${this.apiUrl}/tree-cut`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+              },
+              body: JSON.stringify({
+                tree_data: exampleData.tree_data,
+                output_dir: 'TreeGroup',
+                show_graphs: false
+              }),
+              cache: 'no-cache'
+            })
+            
+            if (!cutRes.ok) {
+              const errorData = await cutRes.json()
+              throw new Error(errorData.detail || '切分失败')
+            }
+            
+            const result = await cutRes.json()
+            this.addLog('切分', `✓ 切分成功！生成了 ${result.tree_groups} 个树组`, 'success')
+            this.addLog('切分', `输出目录: ${result.output_directory}`, 'success')
+            this.addLog('切分', `生成文件: ${result.result_files.length} 个`, 'success')
+            
+            alert(`切分成功！\n\n树组数量: ${result.tree_groups}\n输出目录: ${result.output_directory}\n生成文件: ${result.result_files.length} 个`)
+            
+          } catch (error) {
+            this.addLog('切分', `✗ 切分失败: ${error.message}`, 'error')
+            alert(`切分失败: ${error.message}`)
+          } finally {
+            this.isCutting = false
+          }
+        },
+        
+        clearLogs() {
+          this.logs = []
+          this.addLog('系统', '日志已清空', 'info')
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
+
+

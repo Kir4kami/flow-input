@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>拓扑切分演示</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+        'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 42px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .content {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .section {
+      margin-bottom: 32px;
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #667eea;
+    }
+
+    .info-box {
+      background: #f9fafb;
+      border-left: 4px solid #667eea;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .info-box h3 {
+      font-size: 16px;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+
+    .info-box p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .info-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-box code {
+      background: #e8e8e8;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      color: #d63384;
+    }
+
+    .button-demo {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 24px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .status-section {
+      margin-top: 24px;
+      padding: 20px;
+      background: #f0f9ff;
+      border-radius: 8px;
+      border: 1px solid #bae6fd;
+    }
+
+    .status-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0369a1;
+      margin-bottom: 12px;
+    }
+
+    .status-item {
+      padding: 8px 0;
+      color: #0c4a6e;
+      font-size: 14px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #e8e8e8;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .feature-card h3 {
+      color: #667eea;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .code-block {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    .code-block pre {
+      margin: 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-warning {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .alert-info {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="demo-container">
+      <div class="header">
+        <h1>🌳 拓扑切分演示系统</h1>
+        <p>通信树拓扑智能切分工具</p>
+      </div>
+
+      <div class="content">
+        <!-- 使用说明 -->
+        <div class="section">
+          <h2 class="section-title">📖 使用说明</h2>
+          <div class="info-box">
+            <h3>快速开始</h3>
+            <p>1. 确保拓扑切分API服务已启动: <code>python start_tree_cut_api.py</code></p>
+            <p>2. 默认API地址: <code>http://localhost:8001</code></p>
+            <p>3. 点击下方"拓扑切分"按钮开始切分</p>
+            <p>4. 切分完成后将弹出窗口展示结果文件</p>
+          </div>
+
+          <div class="alert alert-warning">
+            ⚠️ 请确保API服务正常运行，否则切分操作将失败
+          </div>
+        </div>
+
+        <!-- 功能演示 -->
+        <div class="section">
+          <h2 class="section-title">🚀 功能演示</h2>
+          
+          <div class="button-demo">
+            <!-- 使用默认配置 -->
+            <tree-cut-button
+              @cut-complete="onCutComplete"
+              @cut-error="onCutError"
+            ></tree-cut-button>
+
+            <!-- 自定义配置 -->
+            <tree-cut-button
+              :api-url="apiUrl"
+              :output-dir="outputDir"
+              :tree-data="customTreeData"
+              @cut-complete="onCutComplete"
+              @cut-error="onCutError"
+            ></tree-cut-button>
+          </div>
+
+          <div v-if="lastResult" class="status-section">
+            <div class="status-title">📊 最新切分结果</div>
+            <div class="status-item">✓ 成功生成 {{ lastResult.tree_groups }} 个树组</div>
+            <div class="status-item">✓ 输出目录: {{ lastResult.output_directory }}</div>
+            <div class="status-item">✓ 生成文件数: {{ lastResult.result_files.length }}</div>
+          </div>
+
+          <div v-if="lastError" class="alert alert-warning">
+            ❌ 切分失败: {{ lastError }}
+          </div>
+        </div>
+
+        <!-- 组件特性 -->
+        <div class="section">
+          <h2 class="section-title">✨ 组件特性</h2>
+          <div class="features">
+            <div class="feature-card">
+              <h3>🎯 一键切分</h3>
+              <p>简单易用的按钮组件，点击即可执行拓扑切分操作</p>
+            </div>
+            <div class="feature-card">
+              <h3>📊 结果展示</h3>
+              <p>美观的弹窗展示切分结果，包括统计信息和文件列表</p>
+            </div>
+            <div class="feature-card">
+              <h3>⚙️ 灵活配置</h3>
+              <p>支持自定义API地址、输出目录和树数据</p>
+            </div>
+            <div class="feature-card">
+              <h3>🔔 事件通知</h3>
+              <p>提供完整的事件回调，方便集成到其他系统</p>
+            </div>
+            <div class="feature-card">
+              <h3>🎨 精美UI</h3>
+              <p>现代化的设计风格，响应式布局支持移动端</p>
+            </div>
+            <div class="feature-card">
+              <h3>⚡ 加载状态</h3>
+              <p>清晰的加载状态指示，提升用户体验</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 使用示例 -->
+        <div class="section">
+          <h2 class="section-title">💻 代码示例</h2>
+          
+          <div class="alert alert-info">
+            💡 以下是在Vue项目中使用该组件的示例代码
+          </div>
+
+          <div class="code-block">
+            <pre>&lt;template&gt;
+  &lt;div&gt;
+    &lt;!-- 基础用法 --&gt;
+    &lt;tree-cut-button /&gt;
+
+    &lt;!-- 完整配置 --&gt;
+    &lt;tree-cut-button
+      api-url="http://localhost:8001"
+      output-dir="MyTreeGroup"
+      :tree-data="myTreeData"
+      @cut-complete="handleComplete"
+      @cut-error="handleError"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+import TreeCutButton from './TreeCutButton.vue'
+
+export default {
+  components: {
+    TreeCutButton
+  },
+  data() {
+    return {
+      myTreeData: {
+        nodes: [...],
+        edges: [...]
+      }
+    }
+  },
+  methods: {
+    handleComplete(result) {
+      console.log('切分完成:', result)
+    },
+    handleError(error) {
+      console.error('切分失败:', error)
+    }
+  }
+}
+&lt;/script&gt;</pre>
+          </div>
+        </div>
+
+        <!-- API参数说明 -->
+        <div class="section">
+          <h2 class="section-title">📝 组件参数</h2>
+          <div class="info-box">
+            <h3>Props (属性)</h3>
+            <p><code>apiUrl</code> - API服务地址，默认: http://localhost:8001</p>
+            <p><code>treeData</code> - 树数据对象，默认使用示例数据</p>
+            <p><code>outputDir</code> - 输出目录名称，默认: TreeGroup</p>
+          </div>
+          <div class="info-box">
+            <h3>Events (事件)</h3>
+            <p><code>@cut-complete</code> - 切分完成时触发，返回结果对象</p>
+            <p><code>@cut-error</code> - 切分失败时触发，返回错误信息</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+
+    // 定义 TreeCutButton 组件（内联版本，实际项目中应该导入单文件组件）
+    const TreeCutButton = {
+      name: 'TreeCutButton',
+      props: {
+        apiUrl: {
+          type: String,
+          default: 'http://localhost:8001'
+        },
+        treeData: {
+          type: Object,
+          default: null
+        },
+        outputDir: {
+          type: String,
+          default: 'TreeGroup'
+        }
+      },
+      data() {
+        return {
+          isLoading: false,
+          showModal: false,
+          cutResult: null,
+          errorMessage: ''
+        }
+      },
+      methods: {
+        async performCut() {
+          this.isLoading = true
+          this.errorMessage = ''
+          
+          try {
+            let dataToUse = this.treeData
+            if (!dataToUse) {
+              const exampleResponse = await fetch(`${this.apiUrl}/example-tree`)
+              if (!exampleResponse.ok) {
+                throw new Error('无法获取示例数据')
+              }
+              const exampleData = await exampleResponse.json()
+              dataToUse = exampleData.tree_data
+            }
+
+            const response = await fetch(`${this.apiUrl}/tree-cut`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                tree_data: dataToUse,
+                output_dir: this.outputDir,
+                show_graphs: false
+              })
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              throw new Error(errorData.detail || '切分失败')
+            }
+
+            const result = await response.json()
+            this.cutResult = result
+            this.showModal = true
+
+            this.$emit('cut-complete', result)
+          } catch (error) {
+            console.error('拓扑切分错误:', error)
+            this.errorMessage = error.message || '拓扑切分失败，请检查API服务是否正常运行'
+            
+            setTimeout(() => {
+              this.errorMessage = ''
+            }, 3000)
+            
+            this.$emit('cut-error', error)
+          } finally {
+            this.isLoading = false
+          }
+        },
+        closeModal() {
+          this.showModal = false
+        }
+      },
+      template: `
+        <div class="tree-cut-container">
+          <button 
+            class="cut-button" 
+            @click="performCut"
+            :disabled="isLoading"
+          >
+            <span v-if="!isLoading">
+              <svg class="icon" viewBox="0 0 1024 1024" width="20" height="20">
+                <path d="M512 85.333333c235.648 0 426.666667 191.018667 426.666667 426.666667s-191.018667 426.666667-426.666667 426.666667S85.333333 747.648 85.333333 512 276.352 85.333333 512 85.333333z m0 85.333334a341.333333 341.333333 0 1 0 0 682.666666 341.333333 341.333333 0 0 0 0-682.666666z m42.666667 170.666666v213.333334h213.333333v85.333333h-213.333333v213.333333h-85.333334v-213.333333H256v-85.333333h213.333333V341.333333h85.333334z" fill="currentColor"/>
+              </svg>
+              拓扑切分
+            </span>
+            <span v-else>
+              <svg class="loading-icon" viewBox="0 0 1024 1024" width="20" height="20">
+                <path d="M512 74.667C270.933 74.667 74.667 270.933 74.667 512S270.933 949.333 512 949.333 949.333 753.067 949.333 512H874.667c0 200.298-162.368 362.667-362.667 362.667S149.333 712.299 149.333 512 311.701 149.333 512 149.333V74.667z" fill="currentColor"/>
+              </svg>
+              切分中...
+            </span>
+          </button>
+
+          <div v-if="showModal" class="modal-overlay" @click="closeModal">
+            <div class="modal-content" @click.stop>
+              <div class="modal-header">
+                <h2>拓扑切分结果</h2>
+                <button class="close-button" @click="closeModal">
+                  <svg viewBox="0 0 1024 1024" width="24" height="24">
+                    <path d="M563.8 512l262.5-312.9c4.4-5.2.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 0 0 203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="modal-body">
+                <div v-if="cutResult" class="result-summary">
+                  <div class="summary-item">
+                    <span class="label">切分状态：</span>
+                    <span :class="['value', cutResult.success ? 'success' : 'error']">
+                      {{ cutResult.success ? '✓ 成功' : '✗ 失败' }}
+                    </span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">树组数量：</span>
+                    <span class="value highlight">{{ cutResult.tree_groups }}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="label">输出目录：</span>
+                    <span class="value">{{ cutResult.output_directory }}</span>
+                  </div>
+                  <div class="summary-item message">
+                    <span class="label">消息：</span>
+                    <span class="value">{{ cutResult.message }}</span>
+                  </div>
+                </div>
+
+                <div v-if="cutResult && cutResult.result_files.length > 0" class="files-section">
+                  <h3>生成的文件 ({{ cutResult.result_files.length }})</h3>
+                  <div class="files-list">
+                    <div 
+                      v-for="(file, index) in cutResult.result_files" 
+                      :key="index"
+                      class="file-item"
+                    >
+                      <svg class="file-icon" viewBox="0 0 1024 1024" width="16" height="16">
+                        <path d="M854.6 288.6L639.4 73.4c-6-6-14.1-9.4-22.6-9.4H192c-17.7 0-32 14.3-32 32v832c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V311.3c0-8.5-3.4-16.7-9.4-22.7zM790.2 326H602V137.8L790.2 326z m1.8 562H232V136h302v216a42 42 0 0 0 42 42h216v494z" fill="currentColor"/>
+                      </svg>
+                      <span class="file-path">{{ file }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="cutResult && cutResult.json_overview" class="json-overview">
+                  <h3>切分详情</h3>
+                  <pre class="json-content">{{ JSON.stringify(cutResult.json_overview, null, 2) }}</pre>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button class="btn btn-primary" @click="closeModal">确定</button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="errorMessage" class="error-toast" @click="errorMessage = ''">
+            <svg viewBox="0 0 1024 1024" width="20" height="20">
+              <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" fill="currentColor"/>
+              <path d="M464 688a48 48 0 1 0 96 0 48 48 0 1 0-96 0zm8-304v184c0 4.4 3.6 8 8 8h64c4.4 0 8-3.6 8-8V384c0-4.4-3.6-8-8-8h-64c-4.4 0-8 3.6-8 8z" fill="currentColor"/>
+            </svg>
+            {{ errorMessage }}
+          </div>
+        </div>
+      `
+    }
+
+    // 创建Vue应用
+    createApp({
+      components: {
+        TreeCutButton
+      },
+      data() {
+        return {
+          apiUrl: 'http://localhost:8002',
+          outputDir: 'CustomTreeGroup',
+          customTreeData: null,
+          lastResult: null,
+          lastError: null
+        }
+      },
+      methods: {
+        onCutComplete(result) {
+          console.log('切分完成:', result)
+          this.lastResult = result
+          this.lastError = null
+        },
+        onCutError(error) {
+          console.error('切分错误:', error)
+          this.lastError = error.message
+          this.lastResult = null
+        }
+      }
+    }).mount('#app')
+  </script>
+
+  <style>
+    /* TreeCutButton组件样式 */
+    .tree-cut-container {
+      position: relative;
+    }
+
+    .cut-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .cut-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .cut-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .loading-icon {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .close-button:hover {
+      background: #f5f5f5;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .result-summary {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .summary-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .summary-item .label {
+      font-weight: 500;
+      color: #666;
+      min-width: 100px;
+    }
+
+    .summary-item .value.success {
+      color: #52c41a;
+      font-weight: 600;
+    }
+
+    .summary-item .value.highlight {
+      color: #667eea;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .files-section h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .files-list {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .file-path {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .json-overview h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .json-content {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #e8e8e8;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .error-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff4d4f;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(255, 77, 79, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 2000;
+      cursor: pointer;
+    }
+  </style>
+</body>
+</html>
+
+
