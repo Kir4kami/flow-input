@@ -1,0 +1,64 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 40 src_port 2050 dst_node 41 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 41 src_port 2050 dst_node 42 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 42 src_port 2050 dst_node 43 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 43 src_port 2050 dst_node 44 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 44 src_port 2050 dst_node 45 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 45 src_port 2050 dst_node 46 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 46 src_port 2050 dst_node 47 dst_port 2050 priority 0 msg_len 32768
+Type rdma_send src_node 47 src_port 2050 dst_node 40 dst_port 2050 priority 0 msg_len 32768

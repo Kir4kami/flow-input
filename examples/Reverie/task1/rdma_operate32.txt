@@ -1,0 +1,6 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 0 src_port 1032 dst_node 8 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 1 src_port 1032 dst_node 9 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 2 src_port 1032 dst_node 10 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 3 src_port 1032 dst_node 11 dst_port 1032 priority 0 msg_len 8192

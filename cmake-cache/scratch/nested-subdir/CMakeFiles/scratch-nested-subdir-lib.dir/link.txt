@@ -1,0 +1,2 @@
+/usr/bin/ar qc /mnt/hgfs/flow-input-yf/build/lib/libscratch-nested-subdir-lib.a "CMakeFiles/scratch-nested-subdir-lib.dir/lib/scratch-nested-subdir-library-source.cc.o"
+/usr/bin/ranlib /mnt/hgfs/flow-input-yf/build/lib/libscratch-nested-subdir-lib.a

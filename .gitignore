@@ -1,0 +1,13 @@
+.vscode
+.lock-ns3_linux_build
+fcts.txt1
+flow_stats.txt
+pfc.txt
+build
+examples/Reverie/dump
+examples/Reverie/task1
+examples/Reverie/TrafficGenerator/rdma_result
+Traffic Generation/paralle_mode/rdma_result/
+cmake-cache
+tor.txt
+scratch/first.cc

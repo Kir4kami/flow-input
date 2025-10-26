@@ -1,0 +1,1 @@
+/usr/bin/c++ -O2 -g -DNDEBUG "CMakeFiles/perf-io.dir/perf/perf-io.cc.o" -o /mnt/hgfs/flow-input-yf/build/utils/perf/ns3.39-perf-io-default   -L/mnt/hgfs/flow-input-yf/build/lib  -Wl,-rpath,/mnt/hgfs/flow-input-yf/build/lib -Wl,--no-as-needed /mnt/hgfs/flow-input-yf/build/lib/libns3.39-core-default.so -Wl,--as-needed -Wl,--no-as-needed 

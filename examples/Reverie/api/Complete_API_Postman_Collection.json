@@ -1,0 +1,211 @@
+{
+    "info": {
+        "name": "Complete Six-Function API Tests",
+        "description": "测试完整六功能API的所有接口",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health Check",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/health",
+                    "host": ["{{base_url}}"],
+                    "path": ["health"]
+                }
+            }
+        },
+        {
+            "name": "Root Path",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/",
+                    "host": ["{{base_url}}"],
+                    "path": [""]
+                }
+            }
+        },
+        {
+            "name": "Tree Cut",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"tree_data\": {\n        \"nodes\": [\n            {\n                \"name\": \"Root\",\n                \"type\": \"Root\",\n                \"layer\": 0,\n                \"nodes_passed\": [],\n                \"children\": [],\n                \"isBurr\": false\n            },\n            {\n                \"name\": \"DP1_0\",\n                \"type\": \"DP\",\n                \"layer\": 1,\n                \"nodes_passed\": [\"A\", \"B\", \"C\"],\n                \"children\": [],\n                \"isBurr\": false\n            }\n        ],\n        \"edges\": [\n            {\n                \"from_node\": \"Root\",\n                \"to_node\": \"DP1_0\"\n            }\n        ]\n    },\n    \"output_dir\": \"postman_test_tree_cut\",\n    \"show_graphs\": false\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/tree-cut",
+                    "host": ["{{base_url}}"],
+                    "path": ["tree-cut"]
+                }
+            }
+        },
+        {
+            "name": "Generate Load",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"host_num\": 64,\n    \"msg_len\": \"32*(1024)\",\n    \"dp\": 8,\n    \"device\": 0,\n    \"forward\": 1\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/generate-load",
+                    "host": ["{{base_url}}"],
+                    "path": ["generate-load"]
+                }
+            }
+        },
+        {
+            "name": "Generate Topology",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"torSwitches\": 8,\n    \"spineSwitches\": 4\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/generate-topology",
+                    "host": ["{{base_url}}"],
+                    "path": ["generate-topology"]
+                }
+            }
+        },
+        {
+            "name": "Modify Load File",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"filename\": \"deepseek.txt\",\n    \"old_value\": \"128\",\n    \"new_value\": \"64\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/modify-load-file",
+                    "host": ["{{base_url}}"],
+                    "path": ["modify-load-file"]
+                }
+            }
+        },
+        {
+            "name": "Run Simulation (No Cut)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"task_num\": 1,\n    \"llm_model\": \"deepseek\",\n    \"enable_mixed_granularity\": true,\n    \"simulation_time\": 5.0\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/run-simulation",
+                    "host": ["{{base_url}}"],
+                    "path": ["run-simulation"]
+                }
+            }
+        },
+        {
+            "name": "Run Simulation (With Cut)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"task_num\": 4,\n    \"llm_model\": \"deepseek\",\n    \"enable_mixed_granularity\": true,\n    \"simulation_time\": 5.0\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/run-simulation",
+                    "host": ["{{base_url}}"],
+                    "path": ["run-simulation"]
+                }
+            }
+        },
+        {
+            "name": "Simulation Status",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/simulation-status",
+                    "host": ["{{base_url}}"],
+                    "path": ["simulation-status"]
+                }
+            }
+        },
+        {
+            "name": "Steady State Monitor",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/steady-state-monitor",
+                    "host": ["{{base_url}}"],
+                    "path": ["steady-state-monitor"]
+                }
+            }
+        },
+        {
+            "name": "Analyze Results",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"analysis_type\": \"all\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/analyze-results",
+                    "host": ["{{base_url}}"],
+                    "path": ["analyze-results"]
+                }
+            }
+        }
+    ]
+}
+

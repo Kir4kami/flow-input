@@ -1,0 +1,6 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 56 src_port 2090 dst_node 48 dst_port 2090 priority 0 msg_len 8192
+Type rdma_send src_node 57 src_port 2090 dst_node 49 dst_port 2090 priority 0 msg_len 8192
+Type rdma_send src_node 58 src_port 2090 dst_node 50 dst_port 2090 priority 0 msg_len 8192
+Type rdma_send src_node 59 src_port 2090 dst_node 51 dst_port 2090 priority 0 msg_len 8192

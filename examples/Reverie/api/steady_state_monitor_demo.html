@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>混合粒度稳态监控 - 实时演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .control-panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .strategy-selector {
+            margin-bottom: 20px;
+        }
+
+        .strategy-selector label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .strategy-selector select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 2px solid #667eea;
+            font-size: 16px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-item .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .steady-state-indicator {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.5s;
+        }
+
+        .steady-state-indicator.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 15px 40px rgba(56, 239, 125, 0.5);
+            }
+        }
+
+        .steady-state-indicator h2 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .steady-state-indicator.active h2 {
+            color: white;
+        }
+
+        .steady-state-indicator p {
+            font-size: 1.3em;
+            color: #666;
+        }
+
+        .steady-state-indicator.active p {
+            color: white;
+            opacity: 0.95;
+        }
+
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .history-card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #38ef7d;
+        }
+
+        .history-item.exited {
+            border-left-color: #e74c3c;
+        }
+
+        .history-item .time {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .history-item .details {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connection-status .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #95a5a6;
+        }
+
+        .connection-status.connected .dot {
+            background: #38ef7d;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .log-console {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        .log-console .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+
+        .log-console .log-entry.success {
+            border-left-color: #2ecc71;
+        }
+
+        .log-console .log-entry.error {
+            border-left-color: #e74c3c;
+        }
+
+        .log-console .log-entry.warning {
+            border-left-color: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>混合粒度稳态监控</h1>
+            <p>实时监控仿真稳态状态，捕捉加速时刻</p>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h2>监控控制</h2>
+            
+            <div class="strategy-selector">
+                <label for="strategy">询问策略:</label>
+                <select id="strategy">
+                    <option value="high">高频 (50微秒) - 高捕捉率</option>
+                    <option value="medium" selected>中频 (100微秒) - 推荐</option>
+                    <option value="low">低频 (1000微秒) - 低资源</option>
+                </select>
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn-primary" id="btnStart" onclick="startMonitor()">
+                    启动监控
+                </button>
+                <button class="btn-danger" id="btnStop" onclick="stopMonitor()" disabled>
+                    停止监控
+                </button>
+                <button class="btn-secondary" onclick="refreshStatus()">
+                    刷新状态
+                </button>
+                <button class="btn-secondary" onclick="getHistory()">
+                    查看历史
+                </button>
+                <button class="btn-secondary" onclick="getConfig()">
+                    查看配置
+                </button>
+            </div>
+        </div>
+
+        <!-- 稳态指示器 -->
+        <div class="steady-state-indicator" id="steadyIndicator">
+            <div class="icon" id="steadyIcon">[等待]</div>
+            <h2 id="steadyTitle">等待启动监控</h2>
+            <p id="steadyMessage">请点击"启动监控"按钮开始</p>
+        </div>
+
+        <!-- 状态信息 -->
+        <div class="status-card">
+            <h2>实时状态</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="label">监控状态</div>
+                    <div class="value" id="monitorStatus">未启动</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">稳态状态</div>
+                    <div class="value" id="steadyStatus">等待中</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">稳态次数</div>
+                    <div class="value" id="steadyCount">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">询问间隔</div>
+                    <div class="value" id="pollInterval">-</div>
+                </div>
+            </div>
+
+            <!-- 日志控制台 -->
+            <div class="log-console" id="logConsole">
+                <div class="log-entry">[系统] 系统就绪，等待操作...</div>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="history-card">
+            <h2>稳态历史记录</h2>
+            <div class="history-list" id="historyList">
+                <p style="color: #999; text-align: center; padding: 20px;">暂无历史记录</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket连接状态 -->
+    <div class="connection-status" id="connectionStatus">
+        <div class="dot"></div>
+        <span>WebSocket: 断开</span>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+        const WS_URL = 'ws://localhost:8001/ws/steady-state';
+        let ws = null;
+        let isMonitoring = false;
+
+        // 初始化WebSocket连接
+        function connectWebSocket() {
+            try {
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = () => {
+                    updateConnectionStatus(true);
+                    addLog('WebSocket连接已建立', 'success');
+                };
+
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                };
+
+                ws.onerror = (error) => {
+                    addLog('WebSocket错误: ' + error, 'error');
+                    updateConnectionStatus(false);
+                };
+
+                ws.onclose = () => {
+                    updateConnectionStatus(false);
+                    addLog('WebSocket连接已断开', 'warning');
+                    
+                    // 5秒后尝试重连
+                    setTimeout(() => {
+                        if (isMonitoring) {
+                            addLog('尝试重新连接WebSocket...', 'warning');
+                            connectWebSocket();
+                        }
+                    }, 5000);
+                };
+            } catch (error) {
+                addLog('无法连接WebSocket: ' + error, 'error');
+            }
+        }
+
+        // 处理WebSocket消息
+        function handleWebSocketMessage(data) {
+            console.log('收到WebSocket消息:', data);
+
+            if (data.type === 'connected') {
+                addLog(data.message, 'success');
+            } else if (data.type === 'steady_state_entered') {
+                // 进入稳态
+                showSteadyState(data.data);
+                addLog(`[进入] ${data.message} - 时间: ${data.data.enter_time} ns`, 'success');
+                refreshStatus();
+            } else if (data.type === 'steady_state_exited') {
+                // 退出稳态
+                hideSteadyState();
+                addLog(`[退出] ${data.message}`, 'warning');
+                refreshStatus();
+            }
+        }
+
+        // 显示稳态加速界面
+        function showSteadyState(data) {
+            const indicator = document.getElementById('steadyIndicator');
+            const icon = document.getElementById('steadyIcon');
+            const title = document.getElementById('steadyTitle');
+            const message = document.getElementById('steadyMessage');
+
+            indicator.classList.add('active');
+            icon.textContent = '[加速]';
+            title.textContent = `稳态加速模式 #${data.count}`;
+            message.textContent = `进入时间: ${data.enter_time} ns`;
+
+            // 播放声音提示（可选）
+            // playNotificationSound();
+        }
+
+        // 隐藏稳态加速界面
+        function hideSteadyState() {
+            const indicator = document.getElementById('steadyIndicator');
+            const icon = document.getElementById('steadyIcon');
+            const title = document.getElementById('steadyTitle');
+            const message = document.getElementById('steadyMessage');
+
+            indicator.classList.remove('active');
+            icon.textContent = '[等待]';
+            title.textContent = '监控中';
+            message.textContent = '等待下一次稳态...';
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            const text = status.querySelector('span');
+            
+            if (connected) {
+                status.classList.add('connected');
+                text.textContent = 'WebSocket: 已连接';
+            } else {
+                status.classList.remove('connected');
+                text.textContent = 'WebSocket: 断开';
+            }
+        }
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const console = document.getElementById('logConsole');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            console.appendChild(entry);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // 启动监控
+        async function startMonitor() {
+            try {
+                const strategy = document.getElementById('strategy').value;
+                
+                addLog(`正在启动监控 (策略: ${strategy})...`, 'info');
+
+                const response = await fetch(`${API_BASE}/start-monitor`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mixed_granularity_enabled: true,
+                        poll_strategy: strategy
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    isMonitoring = true;
+                    document.getElementById('btnStart').disabled = true;
+                    document.getElementById('btnStop').disabled = false;
+                    
+                    addLog('[成功] 监控已启动', 'success');
+                    addLog(`询问间隔: ${data.config.poll_interval_microseconds.toFixed(2)} 微秒`, 'info');
+                    
+                    // 连接WebSocket
+                    connectWebSocket();
+                    
+                    // 更新界面
+                    document.getElementById('steadyIcon').textContent = '[等待]';
+                    document.getElementById('steadyTitle').textContent = '监控中';
+                    document.getElementById('steadyMessage').textContent = '等待进入稳态...';
+                    
+                    refreshStatus();
+                } else {
+                    addLog('[失败] 启动失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                addLog('[失败] 启动出错: ' + error, 'error');
+            }
+        }
+
+        // 停止监控
+        async function stopMonitor() {
+            try {
+                addLog('正在停止监控...', 'info');
+
+                const response = await fetch(`${API_BASE}/stop-monitor`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ save_history: true })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    isMonitoring = false;
+                    document.getElementById('btnStart').disabled = false;
+                    document.getElementById('btnStop').disabled = true;
+                    
+                    addLog('[停止] 监控已停止', 'success');
+                    addLog(`总稳态次数: ${data.statistics.total_steady_state_count}`, 'info');
+                    
+                    // 关闭WebSocket
+                    if (ws) {
+                        ws.close();
+                    }
+                    
+                    // 更新界面
+                    document.getElementById('steadyIndicator').classList.remove('active');
+                    document.getElementById('steadyIcon').textContent = '[停止]';
+                    document.getElementById('steadyTitle').textContent = '监控已停止';
+                    document.getElementById('steadyMessage').textContent = '点击"启动监控"重新开始';
+                    
+                    refreshStatus();
+                    getHistory();
+                } else {
+                    addLog('[失败] 停止失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                addLog('[失败] 停止出错: ' + error, 'error');
+            }
+        }
+
+        // 刷新状态
+        async function refreshStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/steady-state-status`);
+                const data = await response.json();
+
+                document.getElementById('monitorStatus').textContent = 
+                    data.is_monitoring ? '[运行中]' : '[已停止]';
+                document.getElementById('steadyStatus').textContent = 
+                    data.is_in_steady_state ? '[稳态中]' : '[等待中]';
+                document.getElementById('steadyCount').textContent = data.steady_state_count;
+                document.getElementById('pollInterval').textContent = 
+                    `${data.poll_interval_us.toFixed(2)} μs`;
+
+            } catch (error) {
+                addLog('刷新状态出错: ' + error, 'error');
+            }
+        }
+
+        // 获取历史记录
+        async function getHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/steady-state-history`);
+                const data = await response.json();
+
+                const historyList = document.getElementById('historyList');
+                
+                if (data.total_count === 0) {
+                    historyList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">暂无历史记录</p>';
+                } else {
+                    historyList.innerHTML = data.history.map(item => `
+                        <div class="history-item ${item.status === 'exited' ? 'exited' : ''}">
+                            <div class="time">稳态 #${item.count} - ${item.status === 'entered' ? '进入' : '退出'}</div>
+                            <div class="details">
+                                进入时间: ${item.enter_time} ns<br>
+                                检测时间: ${item.detected_at}
+                                ${item.exit_time ? '<br>退出时间: ' + item.exit_time : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                addLog(`已加载 ${data.total_count} 条历史记录`, 'success');
+            } catch (error) {
+                addLog('获取历史记录出错: ' + error, 'error');
+            }
+        }
+
+        // 获取配置
+        async function getConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/monitor-config`);
+                const data = await response.json();
+
+                addLog('=== 监控配置 ===', 'info');
+                addLog(`NS-3监测周期: ${data.ns3_monitor_period_ns} ns`, 'info');
+                addLog(`稳态窗口: ${data.steady_state_window_us} μs`, 'info');
+                addLog(`推荐策略: ${data.recommended_strategy}`, 'info');
+                addLog('详细说明请查看控制台', 'info');
+                console.log('监控配置:', data);
+            } catch (error) {
+                addLog('获取配置出错: ' + error, 'error');
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = () => {
+            addLog('[系统] 页面已加载，准备就绪', 'success');
+            addLog('[提示] 使用WebSocket可以实时接收稳态通知', 'info');
+        };
+
+        // 页面关闭时清理
+        window.onbeforeunload = () => {
+            if (ws) {
+                ws.close();
+            }
+        };
+    </script>
+</body>
+</html>
+
+

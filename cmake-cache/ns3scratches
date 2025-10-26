@@ -1,0 +1,5 @@
+/mnt/hgfs/flow-input-yf/scratch/scratch-simulator.cc
+/mnt/hgfs/flow-input-yf/scratch/nested-subdir/scratch-nested-subdir-executable.cc
+/mnt/hgfs/flow-input-yf/scratch/nested-subdir/lib/scratch-nested-subdir-library-source.cc
+/mnt/hgfs/flow-input-yf/scratch/subdir/scratch-subdir-additional-header.cc
+/mnt/hgfs/flow-input-yf/scratch/subdir/scratch-subdir.cc
