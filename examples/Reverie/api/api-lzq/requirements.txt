@@ -1,0 +1,6 @@
+fastapi>=0.68.0
+uvicorn[standard]>=0.15.0
+networkx>=2.6.0
+pydantic>=1.8.0
+requests>=2.25.0
+matplotlib>=3.3.0

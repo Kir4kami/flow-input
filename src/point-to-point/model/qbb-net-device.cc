@@ -63,6 +63,7 @@
 bool allSteadyStateReached=false;
 bool flag_steady =true;// 刚刚/第一次进入稳态
 bool flag_read_SwitchStats = true;
+int steady_state_count = 0;  // 稳态次数计数器
 
 bool flag_ENABLE_JUMP_TRANSITION=true;//启动跃迁
 
@@ -738,6 +739,14 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		}*/
 		allSteadyStateReached=false;
 		transition_cnt++;//增加状态转换计数器
+		
+		// 输出跃迁信息
+		uint64_t transitionTime = Simulator::Now().GetNanoSeconds();
+		cout << "========================================" << endl;
+		cout << "【系统跃迁】第 " << transition_cnt << " 次跃迁" << endl;
+		cout << "跃迁时间: " << transitionTime << " ns" << endl;
+		cout << "========================================" << endl;
+		
 		flag_steady=true;
 	}
 	if(allSteadyStateReached == false&&flag_steady==false && !flag_ENABLE_JUMP_TRANSITION){
@@ -900,23 +909,21 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
 				stat.ifnewpacket =false;
-				stat.rate.push_back(rate);
-				if(stat.rate.size() >= stat.size){
-					stat.rate.erase(stat.rate.begin());
-					// 获取最小值和最大值
-					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-					auto minIt = result.first;
-					auto maxIt = result.second;
-					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-						stat.steadyStateReached = true;//流进入稳态
-						//cout<<"进入稳态"<<endl;
-						
-					}else {
-						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
-					}
-					
-				}
+			stat.rate.push_back(rate);
+			if(stat.rate.size() >= stat.size){
+			stat.rate.erase(stat.rate.begin());
+			// 获取最小值和最大值
+			auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
+			auto minIt = result.first;
+			auto maxIt = result.second;
+			if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
+				stat.steadyStateReached = true;//流进入稳态
+				//cout << "进入稳态" << endl;
+			}else {
+				stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+				allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+			}
+			}
 				
 				// 清空流的统计信息
 				stat.byteCount = 0;
@@ -936,14 +943,26 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 			break;  // 一旦发现一个流未进入稳态，直接跳出循环
 		}
 	}
-	if(flow_fin_unack.size()!=0 && flag_ENABLE_JUMP_TRANSITION)
-		allSteadyStateReached=false;
+
+	// if(flow_fin_unack.size()!=0 && flag_ENABLE_JUMP_TRANSITION)
+	// 	allSteadyStateReached=false;
 	// 判断系统是否刚刚进入稳态
     if (allSteadyStateReached&&flag_steady) {
 		flag_steady=false;
+		steady_state_count++;  // 增加稳态计数
         steadyStateStartTime = currentTime;
+        
+        cout << "========================================" << endl;
+        cout << "【系统稳态】第 " << steady_state_count << " 次进入稳态" << endl;
+        cout << "稳态时间: " << steadyStateStartTime << " ns" << endl;
+        cout << "当前跃迁次数: " << transition_cnt << endl;
+        cout << "========================================" << endl;
+        
         cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
+		flowstatsFile << "Steady state count: " << steady_state_count << endl;
+		flowstatsFile << "Current transition count: " << transition_cnt << endl;
+		
 		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间uu
 		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
 		calculateMintime();
@@ -1355,3 +1374,4 @@ void QbbNetDevice::UpdateNextAvail(Time t) {
 }
 } 
 // namespace ns3
+

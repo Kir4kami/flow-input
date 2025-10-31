@@ -971,11 +971,16 @@ async def generate_topology(request: TopologyRequest):
             errorRate=request.errorRate
         )
         
+        # 保存到文件
+        topology_file = Path(__file__).parent.parent / "leaf-spine.txt"
+        with open(topology_file, 'w', encoding='utf-8') as f:
+            f.write(topology_content)
+        
         return TopologyResponse(
             success=True,
             content=topology_content,
             filename="leaf-spine.txt",
-            message=f"成功生成拓扑：{request.torSwitches}个TOR，{request.spineSwitches}个Spine"
+            message=f"成功生成拓扑：{request.torSwitches}个TOR，{request.spineSwitches}个Spine，已保存到 {topology_file}"
         )
         
     except Exception as e:
@@ -1494,11 +1499,16 @@ async def root():
             "POST /tree-cut": "拓扑切分",
             "POST /generate-load": "生成网络负载配置",
             "POST /generate-topology": "生成网络拓扑",
-            "POST /run-simulation": "运行仿真",
+            "POST /visualize-topology": "生成拓扑可视化图片",
+            "GET /get-topology-image": "获取拓扑可视化图片",
+            "POST /run-simulation": "运行仿真（支持切分和混合粒度开关）",
+            "POST /stop-simulation": "停止仿真",
             "GET /simulation-status": "获取仿真状态",
             "GET /steady-state-monitor": "实时监控稳态状态",
             "POST /modify-load-file": "修改负载文件",
             "POST /analyze-results": "分析仿真结果",
+            "GET /read-file": "读取文件内容",
+            "GET /list-files": "列出目录文件",
             "GET /health": "健康检查",
             "GET /docs": "API文档"
         }
@@ -1513,6 +1523,142 @@ async def health_check():
         "simulation_running": simulation_status.is_running,
         "steady_state": simulation_status.steady_state
     }
+
+# ==================== 文件访问接口 ====================
+
+from fastapi.responses import FileResponse, JSONResponse
+import mimetypes
+
+@app.get("/read-file")
+async def read_file(file_path: str):
+    """读取文件内容"""
+    try:
+        # 安全检查：确保文件路径在项目目录内
+        base_dir = Path(__file__).parent.parent
+        full_path = (base_dir / file_path).resolve()
+        
+        if not str(full_path).startswith(str(base_dir)):
+            raise HTTPException(status_code=403, detail="禁止访问此路径")
+        
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}")
+        
+        # 读取文件内容
+        with open(full_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return {
+            "success": True,
+            "file_path": file_path,
+            "content": content,
+            "size": len(content)
+        }
+    except UnicodeDecodeError:
+        # 如果是二进制文件，返回base64编码
+        with open(full_path, 'rb') as f:
+            import base64
+            content = base64.b64encode(f.read()).decode()
+        return {
+            "success": True,
+            "file_path": file_path,
+            "content": content,
+            "encoding": "base64",
+            "size": len(content)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"读取文件时出错: {str(e)}")
+
+@app.get("/list-files")
+async def list_files(directory: str = "."):
+    """列出目录中的文件"""
+    try:
+        base_dir = Path(__file__).parent.parent
+        full_path = (base_dir / directory).resolve()
+        
+        if not str(full_path).startswith(str(base_dir)):
+            raise HTTPException(status_code=403, detail="禁止访问此路径")
+        
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail=f"目录不存在: {directory}")
+        
+        files = []
+        for item in full_path.iterdir():
+            files.append({
+                "name": item.name,
+                "path": str(item.relative_to(base_dir)),
+                "is_dir": item.is_dir(),
+                "size": item.stat().st_size if item.is_file() else 0
+            })
+        
+        return {
+            "success": True,
+            "directory": directory,
+            "files": files
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"列出文件时出错: {str(e)}")
+
+# ==================== 拓扑可视化接口 ====================
+
+@app.post("/visualize-topology")
+async def visualize_topology(background_tasks: BackgroundTasks):
+    """生成拓扑可视化图片"""
+    try:
+        # 导入拓扑可视化模块
+        from api.topology_visualization import draw_improved_topology
+        
+        # 拓扑文件路径
+        topology_file = Path(__file__).parent.parent / "leaf-spine.txt"
+        
+        if not topology_file.exists():
+            raise HTTPException(status_code=404, detail="拓扑文件不存在，请先生成拓扑")
+        
+        # 生成图片
+        output_file = Path(__file__).parent / "topology_latest.png"
+        draw_improved_topology(topology_file, output_file)
+        
+        return {
+            "success": True,
+            "message": "拓扑可视化生成成功",
+            "image_path": "api/topology_latest.png"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"生成拓扑可视化时出错: {str(e)}")
+
+@app.get("/get-topology-image")
+async def get_topology_image():
+    """获取拓扑可视化图片"""
+    try:
+        image_file = Path(__file__).parent / "topology_latest.png"
+        
+        if not image_file.exists():
+            raise HTTPException(status_code=404, detail="拓扑图片不存在，请先生成")
+        
+        return FileResponse(image_file, media_type="image/png")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取图片时出错: {str(e)}")
+
+# ==================== 仿真停止接口 ====================
+
+@app.post("/stop-simulation")
+async def stop_simulation():
+    """停止仿真"""
+    try:
+        if not simulation_status.is_running:
+            return {
+                "success": True,
+                "message": "当前没有运行中的仿真"
+            }
+        
+        # 这里可以添加实际的停止逻辑（如果需要）
+        simulation_status.is_running = False
+        
+        return {
+            "success": True,
+            "message": "仿真已停止"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"停止仿真时出错: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

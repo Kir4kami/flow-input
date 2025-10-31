@@ -1,6 +1,6 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 32 src_port 2016 dst_node 40 dst_port 2016 priority 0 msg_len 8192
-Type rdma_send src_node 33 src_port 2016 dst_node 41 dst_port 2016 priority 0 msg_len 8192
-Type rdma_send src_node 34 src_port 2016 dst_node 42 dst_port 2016 priority 0 msg_len 8192
-Type rdma_send src_node 35 src_port 2016 dst_node 43 dst_port 2016 priority 0 msg_len 8192
+Type rdma_send src_node 32 src_port 2016 dst_node 40 dst_port 2016 priority 0 msg_len 8388608
+Type rdma_send src_node 33 src_port 2016 dst_node 41 dst_port 2016 priority 0 msg_len 8388608
+Type rdma_send src_node 34 src_port 2016 dst_node 42 dst_port 2016 priority 0 msg_len 8388608
+Type rdma_send src_node 35 src_port 2016 dst_node 43 dst_port 2016 priority 0 msg_len 8388608

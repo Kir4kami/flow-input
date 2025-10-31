@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 运行时生成的输出
+TreeGroup/
+*TreeGroup*/
+*.log
+
+# 临时文件
+.backup_*/
+*.tmp
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 测试覆盖
+.coverage
+htmlcov/
+.pytest_cache/
+

@@ -1,6 +1,6 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 8 src_port 1056 dst_node 0 dst_port 1056 priority 0 msg_len 32768
-Type rdma_send src_node 9 src_port 1056 dst_node 1 dst_port 1056 priority 0 msg_len 32768
-Type rdma_send src_node 10 src_port 1056 dst_node 2 dst_port 1056 priority 0 msg_len 32768
-Type rdma_send src_node 11 src_port 1056 dst_node 3 dst_port 1056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1056 dst_node 0 dst_port 1056 priority 0 msg_len 33554432
+Type rdma_send src_node 9 src_port 1056 dst_node 1 dst_port 1056 priority 0 msg_len 33554432
+Type rdma_send src_node 10 src_port 1056 dst_node 2 dst_port 1056 priority 0 msg_len 33554432
+Type rdma_send src_node 11 src_port 1056 dst_node 3 dst_port 1056 priority 0 msg_len 33554432
