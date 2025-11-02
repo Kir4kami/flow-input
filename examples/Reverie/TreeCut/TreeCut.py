@@ -2,8 +2,9 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import copy
 from collections import defaultdict
-from DocProcess import process_file
+from .DocProcess import process_file
 import os
+import json
 
 # 根节点
 root_node = 'Root'
@@ -46,6 +47,56 @@ def constructTree(G, root_node):
     # TP6 = addCommunicationEdge(G, 9, "TP", TP5)
     # DP4 = addCommunicationEdge(G, 10, "DP", TP6)
 
+# 从外部数据构建通信树
+def constructTreeFromData(G, root_node, tree_data):
+    """
+    从外部数据构建通信树
+    
+    Args:
+        G: NetworkX有向图对象
+        root_node: 根节点名称
+        tree_data: 包含树结构的字典，格式如下：
+        {
+            "nodes": [
+                {"name": "node1", "type": "DP", "layer": 1, "nodes_passed": ["A", "B"]},
+                {"name": "node2", "type": "PP", "layer": 1, "nodes_passed": ["C", "D"]}
+            ],
+            "edges": [
+                {"from": "Root", "to": "node1"},
+                {"from": "Root", "to": "node2"}
+            ]
+        }
+    """
+    # 添加所有节点
+    for node_data in tree_data.get("nodes", []):
+        # 检查是否是根节点
+        if node_data["name"] == "Root" or node_data["name"] == root_node:
+            G.add_node(
+                root_node,
+                name='Root',
+                type=node_data.get("type", "Root"),
+                layer=node_data.get("layer", 0),
+                nodes_passed=node_data.get("nodes_passed", []),
+                children=[],
+                isBurr=False
+            )
+        else:
+            G.add_node(
+                node_data["name"], 
+                name=node_data["name"], 
+                type=node_data["type"], 
+                layer=node_data["layer"], 
+                nodes_passed=node_data.get("nodes_passed", []), 
+                children=[],
+                isBurr=False
+            )
+    
+    # 添加所有边
+    for edge_data in tree_data.get("edges", []):
+        G.add_edge(edge_data["from"], edge_data["to"])
+    
+    return G
+
 # 合并节点
 def mergeInfo(Tree, remove_list, merge_in_node):
     # 将所有节点信息merge
@@ -57,12 +108,16 @@ def mergeInfo(Tree, remove_list, merge_in_node):
                 Tree.nodes[merge_in_node]['children'].append(item)
 
 # 将节点从Tree中cut掉，还原节点后添加root节点后插入到Tree_list中
-def recoverTree(node):
+def recoverTree(node, tree_copy=None):
+    global Tree_copy
+    if tree_copy is None:
+        tree_copy = Tree_copy
+    
     if node['name'] == 'Root' and len(node['children']) == 0:
         return 0
     node_list = [node['name']]
     node_list.extend(node['children'])
-    cut_tree = Tree_copy.subgraph(node_list)
+    cut_tree = tree_copy.subgraph(node_list)
     cut_tree = nx.DiGraph(cut_tree)
     if node['name'] != 'Root':
         cut_tree.add_node(root_node, name='Root')
@@ -165,7 +220,7 @@ def getRemoveList(Tree, start_node):
     return path, current_node
 
 # 对通信树的每个节点判断能否能切
-def oneNodeTreatment(Tree, node):
+def oneNodeTreatment(Tree, node, tree_copy=None):
     # 默认无冲突的标志符，看是否是因为无冲突而裁剪，若是的话需要恢复树形放入Tree_list
     isConflict = False
 
@@ -185,7 +240,12 @@ def oneNodeTreatment(Tree, node):
                 break
     # 如果没有冲突，将该节点从Tree中cut掉
     if not isConflict:
-        recoverTree(node)
+        # 将NetworkX节点数据转换为recoverTree期望的格式
+        node_data = {
+            'name': node['name'],
+            'children': node.get('children', [])
+        }
+        recoverTree(node_data, tree_copy)
         Tree.remove_node(node['name'])
     # 如果有冲突，该节点往上到PP都不能切割
     else:
@@ -231,11 +291,18 @@ def findAllLongestPathsFromRoot(G):
     return longest_paths_list
 
 # 分割通信树
-def splitCommunicationTree(Tree):
+def splitCommunicationTree(Tree, tree_copy=None):
+    global Tree_copy
+    if tree_copy is None:
+        tree_copy = Tree_copy
 
     # 函数出口,如果图中只剩根节点，那么根节点记录着所有子节点的信息
     if Tree.number_of_nodes() == 1:
-        recoverTree(Tree.nodes['Root'])
+        root_node_data = {
+            'name': 'Root',
+            'children': Tree.nodes['Root'].get('children', [])
+        }
+        recoverTree(root_node_data, tree_copy)
         return 0
     deepest_path_list = findAllLongestPathsFromRoot(Tree)
     deepest_node_list = []
@@ -262,13 +329,13 @@ def splitCommunicationTree(Tree):
         # 如果没有兄弟节点
         if len(deepest_node) == 1:
             # 对每个节点进行切割和合并处理
-            Tree = oneNodeTreatment(Tree, Tree.nodes[deepest_node[0]])
+            Tree = oneNodeTreatment(Tree, Tree.nodes[deepest_node[0]], tree_copy)
         # 如果有兄弟节点
         else:
             mergeInfo(Tree, deepest_node, list(Tree.predecessors(deepest_node[0]))[0])
             for item in deepest_node:
                 Tree.remove_node(item)
-    splitCommunicationTree(Tree)
+    splitCommunicationTree(Tree, tree_copy)
 
 def genInDependence(item, folder_name):
     # 初始化temp
@@ -294,9 +361,9 @@ def genInDependence(item, folder_name):
         item.nodes[node]['range'] = f"{start}-{end}"
         item.nodes[node]['group'] = folder_name
 
-def makeInDependenceInfo(Tree_list):
+def makeInDependenceInfo(Tree_list, output_dir="TreeGroup"):
     # 定义目标目录
-    target_directory = 'TreeGroup'
+    target_directory = output_dir
     # 如果目标目录不存在，创建
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
@@ -310,7 +377,7 @@ def makeInDependenceInfo(Tree_list):
         genInDependence(item, folder_name)
     # 定义输出文件路径
     for index, item in enumerate(reversed(Tree_list), start=1):
-        output_file = f"TreeGroup/group{index}/In_dependence_Info.txt"
+        output_file = f"{target_directory}/group{index}/In_dependence_Info.txt"
         isWrite = False
         # 打开文件以写入
         with open(output_file, 'w') as file:
@@ -319,26 +386,31 @@ def makeInDependenceInfo(Tree_list):
                 # 如果起点是根节点,跳过
                 if u == 'Root':
                     continue
-                # 获取起点和终点的range属性
-                start_range = item.nodes[u]['range']
-                end_range = item.nodes[v]['range']
-                isWrite = True
-                # 以指定格式写入文件
-                file.write(f"({end_range},{start_range})\n")
+                # 检查节点是否有range属性
+                if 'range' in item.nodes[u] and 'range' in item.nodes[v]:
+                    # 获取起点和终点的range属性
+                    start_range = item.nodes[u]['range']
+                    end_range = item.nodes[v]['range']
+                    isWrite = True
+                    # 以指定格式写入文件
+                    file.write(f"({end_range},{start_range})\n")
             if not isWrite:
                 file.write("Null\n")
             file.write(f"---------------------------------------------------\n")
-            # 遍历图中的每条边
+            # 遍历图中的每个节点
             for node in item.nodes:
                 # 如果起点是根节点, 跳过
                 if node == 'Root':
                     continue
-                # 以指定格式写入文件
-                file.write(f"({item.nodes[node]['name']}):({item.nodes[node]['range']})\n")
+                # 检查节点是否有必需的属性
+                node_data = item.nodes[node]
+                if 'name' in node_data and 'range' in node_data:
+                    # 以指定格式写入文件
+                    file.write(f"({node_data['name']}):({node_data['range']})\n")
 
 
-def makeOutDependenceInfo(outdependence_list, Tree_list):
-    output_file_path = "TreeGroup/Out_Dependence_Info.txt"
+def makeOutDependenceInfo(outdependence_list, Tree_list, output_dir="TreeGroup"):
+    output_file_path = f"{output_dir}/Out_Dependence_Info.txt"
     os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
     # 打开文件准备写入
     with open(output_file_path, 'w') as file:
@@ -348,7 +420,9 @@ def makeOutDependenceInfo(outdependence_list, Tree_list):
             for graph in Tree_list:
                 for node in graph.nodes(data=True):
                     if node[1].get('name') == second_element:
-                        file.write(f"{node[1]['group']}:")
+                        # 检查节点是否有group属性
+                        if 'group' in node[1]:
+                            file.write(f"{node[1]['group']}:")
                         break
                 if found:
                     break
@@ -357,7 +431,9 @@ def makeOutDependenceInfo(outdependence_list, Tree_list):
             for graph in Tree_list:
                 for node in graph.nodes(data=True):
                     if node[1].get('name') == name:
-                        file.write(f"{node[1]['group']}->{node[1]['range']}\n")
+                        # 检查节点是否有必需的属性
+                        if 'group' in node[1] and 'range' in node[1]:
+                            file.write(f"{node[1]['group']}->{node[1]['range']}\n")
                         found = True
                         break
                 if found:
@@ -370,7 +446,145 @@ def ShowGraph(G):
             edge_color='gray')
     plt.show()
 
+# 主要的拓扑切分函数
+def performTreeCut(tree_data=None, output_dir="TreeGroup", show_graphs=False):
+    """
+    执行拓扑切分的主要函数
+    
+    Args:
+        tree_data: 外部通信树数据，如果为None则使用默认构建方式
+        output_dir: 输出目录，默认为"TreeGroup"
+        show_graphs: 是否显示图形，默认为False
+    
+    Returns:
+        dict: 包含切分结果的字典
+    """
+    global Tree_list, out_dependence_list
+    
+    # 重置全局变量
+    Tree_list = []
+    out_dependence_list = []
+    
+    # 创建一个有向图
+    T = nx.DiGraph()
+    
+    if tree_data is not None:
+        # 使用外部数据构建通信树
+        T = constructTreeFromData(T, root_node, tree_data)
+    else:
+        # 使用默认方式构建通信树
+        T.add_node(root_node, name='Root', nodes_passed=[], children=[])
+        constructTree(T, root_node)
+    
+    if show_graphs:
+        ShowGraph(T)
+    
+    # 预处理
+    T = preTreatment(T)
+    Tree_copy = copy.deepcopy(T)
+    
+    # 执行切分
+    splitCommunicationTree(T, Tree_copy)
+    
+    if show_graphs:
+        for item in Tree_list:
+            print(item.edges())
+            ShowGraph(item)
+    
+    # 生成输出文件
+    makeInDependenceInfo(Tree_list, output_dir)
+    makeOutDependenceInfo(out_dependence_list, Tree_list, output_dir)
+    
+    # 保存TreeGroup为JSON文件
+    json_overview = saveTreeGroupToJson(Tree_list, output_dir)
+    
+    # 返回结果
+    result = {
+        "success": True,
+        "tree_groups": len(Tree_list),
+        "output_directory": output_dir,
+        "json_overview": json_overview,
+        "tree_list": Tree_list,
+        "out_dependence_list": out_dependence_list
+    }
+    
+    return result
 
+# 将NetworkX图转换为可序列化的格式
+def graphToDict(graph):
+    """将NetworkX图转换为字典格式"""
+    nodes = []
+    for node, data in graph.nodes(data=True):
+        node_dict = {"name": node}
+        # 只保留可序列化的数据
+        for key, value in data.items():
+            if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
+                node_dict[key] = value
+        nodes.append(node_dict)
+    
+    edges = []
+    for u, v in graph.edges():
+        edges.append({"from_node": u, "to_node": v})
+    
+    return {"nodes": nodes, "edges": edges}
+
+# 保存TreeGroup为JSON文件
+def saveTreeGroupToJson(Tree_list, output_dir="TreeGroup"):
+    """将切分后的TreeGroup保存为JSON文件"""
+    import json
+    import os
+    
+    # 确保输出目录存在
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # 保存每个Tree为单独的JSON文件
+    tree_files = []
+    for i, tree in enumerate(Tree_list, 1):
+        tree_data = graphToDict(tree)
+        filename = f"tree_group_{i}.json"
+        filepath = os.path.join(output_dir, filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(tree_data, f, indent=2, ensure_ascii=False)
+        
+        tree_files.append({
+            "group_id": i,
+            "filename": filename,
+            "filepath": filepath,
+            "node_count": len(tree_data["nodes"]),
+            "edge_count": len(tree_data["edges"])
+        })
+    
+    # 保存TreeGroup总览信息
+    overview = {
+        "total_groups": len(Tree_list),
+        "groups": tree_files,
+        "output_directory": output_dir
+    }
+    
+    overview_file = os.path.join(output_dir, "tree_group_overview.json")
+    with open(overview_file, 'w', encoding='utf-8') as f:
+        json.dump(overview, f, indent=2, ensure_ascii=False)
+    
+    return overview
+
+# 将字典格式转换为NetworkX图
+def dictToGraph(data):
+    """将字典格式转换为NetworkX图"""
+    G = nx.DiGraph()
+    
+    # 添加节点
+    for node_data in data.get("nodes", []):
+        node_name = node_data["name"]
+        node_attrs = {k: v for k, v in node_data.items() if k != "name"}
+        G.add_node(node_name, **node_attrs)
+    
+    # 添加边
+    for edge_data in data.get("edges", []):
+        G.add_edge(edge_data["from"], edge_data["to"])
+    
+    return G
 
 if __name__ == '__main__':
     # 创建一个有向图

@@ -3,7 +3,7 @@
 #请小写
 LLM="deepseek"
 #1是完整通信树，4是任务切分并行
-TASKNUM=1
+TASKNUM=4
 
 # 切换到 TrafficGenerator 目录
 cd "$(dirname "$0")/TrafficGenerator" || exit 1
@@ -23,7 +23,7 @@ python3 trafficGen.py --input_file "$INPUT_FILE" || {
 # 根据 TASKNUM 执行不同的操作
 if [ "$TASKNUM" -eq 1 ]; then
     # 单任务模式：执行合并操作并复制所有文件到 task1
-    echo "Running in single-task mode (TASKNUM=1)"
+    echo "Running in single-task mode (TASKNUM=4)"
     
     # 步骤2：执行 merge_dependency.sh
     echo "Running merge_dependency.sh..."

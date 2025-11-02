@@ -1,0 +1,6 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 52 src_port 1015 dst_node 60 dst_port 1015 priority 0 msg_len 8388608
+Type rdma_send src_node 53 src_port 1015 dst_node 61 dst_port 1015 priority 0 msg_len 8388608
+Type rdma_send src_node 54 src_port 1015 dst_node 62 dst_port 1015 priority 0 msg_len 8388608
+Type rdma_send src_node 55 src_port 1015 dst_node 63 dst_port 1015 priority 0 msg_len 8388608

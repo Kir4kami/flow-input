@@ -1,0 +1,27 @@
+{
+  "nodes": [
+    {
+      "name": "DP1_0",
+      "type": "DP",
+      "layer": 1,
+      "nodes_passed": [
+        "A",
+        "B",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false,
+      "range": "0-127",
+      "group": "group1"
+    },
+    {
+      "name": "Root"
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "Root",
+      "to_node": "DP1_0"
+    }
+  ]
+}

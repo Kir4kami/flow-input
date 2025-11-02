@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev \
     libssl-dev \
     libffi-dev \
+    bc \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置 gcc-9 为默认编译器
