@@ -3,6 +3,7 @@
 # 包含：拓扑切分、负载设置、拓扑设置、仿真控制、混合粒度控制、结果分析
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import sys
@@ -30,12 +31,22 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# 添加CORS中间件，允许前端跨域访问
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有方法
+    allow_headers=["*"],  # 允许所有头
+)
+
 # ==================== 全局状态管理 ====================
 
 class SimulationStatus:
     def __init__(self):
         self.is_running = False
         self.current_task = None
+        self.current_process = None  # 当前仿真进程
         self.steady_state = False
         self.simulation_start_time = None
         self.simulation_end_time = None
@@ -902,21 +913,24 @@ def generate_topology_leafspine(torSwitches, spineSwitches, serversPerTor=8,
     output_file = "leaf-spine.txt"
     
     # 计算拓扑参数
-    switch_num = torSwitches + spineSwitches
-    node_num = serversPerTor * torSwitches + switch_num
+    num_hosts = serversPerTor * torSwitches
+    num_leaves = torSwitches  # TOR就是Leaf
+    num_spines = spineSwitches
     link_num = serversPerTor * torSwitches + (torSwitches) * spineSwitches
     
     # 生成拓扑内容
     content_lines = []
     
-    # 第一行：节点数 交换机数 TOR数 链路数 服务器数据率 其他数据率
-    content_lines.append(f"{node_num} {switch_num} {torSwitches} {link_num} {int(serverDataRate*1e9)} {int(allOtherDataRate*1e9)}")
+    # 第一行：总链路数 leaf数 spine数 主机数 服务器带宽 交换机带宽
+    # 这个格式与topology_visualization.py的parse_topology_file_corrected()匹配
+    content_lines.append(f"{link_num} {num_leaves} {num_spines} {num_hosts} {int(serverDataRate*1e9)} {int(allOtherDataRate*1e9)}")
     
-    # 第二行：交换机节点ID
-    switch_ids = []
-    for i in range(switch_num):
-        switch_ids.append(str(int(serversPerTor * torSwitches + i)))
-    content_lines.append(" ".join(switch_ids))
+    # 第二行：spine交换机节点ID列表
+    spineIndexBegin = serversPerTor * torSwitches + torSwitches
+    spine_ids = []
+    for i in range(spineSwitches):
+        spine_ids.append(str(spineIndexBegin + i))
+    content_lines.append(" ".join(spine_ids))
     
     # 服务器到TOR的连接
     for i in range(torSwitches):
@@ -1052,7 +1066,7 @@ def modify_qbb_device(enable_mixed_granularity: bool):
 
 def run_simulation(simulation_id: str, task_num: int, llm_model: str, 
                   enable_mixed_granularity: bool, simulation_time: float):
-    """运行仿真"""
+    """运行仿真（后台任务）"""
     try:
         # 修改配置文件
         modify_sim_script(task_num, llm_model)
@@ -1060,39 +1074,53 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         
         # 切换到Reverie目录
         reverie_dir = Path(__file__).parent.parent
-        os.chdir(reverie_dir)
         
-        # 运行仿真
+        # 设置运行状态
         simulation_status.is_running = True
         simulation_status.current_task = simulation_id
         simulation_status.simulation_start_time = time.time()
         
-        # 执行sim.sh脚本
-        result = subprocess.run(
-            ['bash', 'sim.sh'],
-            capture_output=True,
-            text=True,
-            timeout=simulation_time * 2  # 设置超时时间
+        # 使用Popen启动仿真进程（非阻塞）
+        sim_script_path = reverie_dir / "sim.sh"
+        
+        # 启动仿真进程
+        process = subprocess.Popen(
+            ['bash', str(sim_script_path)],
+            cwd=str(reverie_dir),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
         )
         
+        # 保存进程信息
+        simulation_status.current_process = process
+        
+        # 等待进程完成（在后台任务中）
+        stdout, stderr = process.communicate(timeout=simulation_time * 2)
+        
+        # 仿真完成
         simulation_status.simulation_end_time = time.time()
         simulation_status.is_running = False
+        simulation_status.current_process = None
         
         # 分析结果
         results = analyze_simulation_results()
         simulation_status.results[simulation_id] = results
+        
+        print(f"仿真完成: {simulation_id}, 耗时: {simulation_status.simulation_end_time - simulation_status.simulation_start_time:.2f}秒")
         
         return {
             "success": True,
             "simulation_id": simulation_id,
             "execution_time": simulation_status.simulation_end_time - simulation_status.simulation_start_time,
             "results": results,
-            "stdout": result.stdout,
-            "stderr": result.stderr
+            "stdout": stdout,
+            "stderr": stderr
         }
         
     except subprocess.TimeoutExpired:
         simulation_status.is_running = False
+        simulation_status.current_process = None
         return {
             "success": False,
             "error": "仿真超时",
@@ -1100,6 +1128,8 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         }
     except Exception as e:
         simulation_status.is_running = False
+        simulation_status.current_process = None
+        print(f"仿真出错: {e}")
         return {
             "success": False,
             "error": str(e),
@@ -1236,36 +1266,181 @@ async def get_simulation_status():
     )
 
 
-@app.get("/steady-state-monitor")
-async def monitor_steady_state():
-    """实时监控稳态状态"""
-    # 检查flow_stats.txt文件中的稳态信息
-    flow_stats_file = Path(__file__).parent.parent / "flow_stats.txt"
-    steady_state_info = {
-        "is_steady": False,
-        "timestamp": time.time(),
-        "details": []
-    }
-    
-    if flow_stats_file.exists():
-        try:
-            with open(flow_stats_file, 'r') as f:
-                content = f.read()
-            
-            # 检查是否进入稳态
-            if "System entered steady state" in content or "进入稳态" in content:
-                steady_state_info["is_steady"] = True
-                simulation_status.steady_state = True
-            
-            # 提取稳态相关信息
-            for line in content.split('\n'):
-                if 'steady state' in line.lower() or '稳态' in line:
-                    steady_state_info["details"].append(line.strip())
+# ==================== 稳态监控功能（基于已有实现） ====================
+
+# 稳态状态管理类
+class SteadyStateMonitor:
+    """稳态状态管理类（基于qbb-net-device.cc的日志输出）"""
+    def __init__(self):
+        self.is_monitoring = False
+        self.is_in_steady_state = False
+        self.steady_state_count = 0
+        self.steady_state_history = []
+        self.last_check_time = None
+        self.last_log_position = 0
         
-        except Exception as e:
-            steady_state_info["error"] = str(e)
+    def reset(self):
+        """重置状态"""
+        self.is_monitoring = False
+        self.is_in_steady_state = False
+        self.steady_state_count = 0
+        self.steady_state_history = []
+        self.last_check_time = None
+        self.last_log_position = 0
+
+steady_state_monitor = SteadyStateMonitor()
+
+def parse_steady_state_from_log(log_file: Path, last_position: int = 0) -> tuple:
+    """
+    从日志文件中解析稳态信息（基于qbb-net-device.cc的输出）
     
-    return steady_state_info
+    参数:
+        log_file: 日志文件路径
+        last_position: 上次读取的文件位置
+    
+    返回:
+        (is_steady, steady_time, new_position, exit_detected)
+    """
+    if not log_file.exists():
+        return False, None, last_position, False
+    
+    try:
+        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+            # 从上次读取的位置开始
+            f.seek(last_position)
+            new_content = f.read()
+            new_position = f.tell()
+            
+            if not new_content:
+                return False, None, last_position, False
+            
+            # 检查是否进入稳态（基于qbb-net-device.cc的输出格式）
+            steady_pattern = r"System entered steady state at time:\s+(\d+(?:\.\d+)?)\s*ns"
+            steady_match = re.search(steady_pattern, new_content)
+            
+            # 检查是否退出稳态
+            exit_pattern = r"System exit"
+            exit_match = re.search(exit_pattern, new_content)
+            
+            is_steady = steady_match is not None
+            steady_time = float(steady_match.group(1)) if is_steady else None
+            exit_detected = exit_match is not None
+            
+            return is_steady, steady_time, new_position, exit_detected
+            
+    except Exception as e:
+        print(f"解析日志文件时出错: {e}")
+        return False, None, last_position, False
+
+@app.post("/start-steady-state-monitor")
+async def start_steady_state_monitor():
+    """启动稳态监控（基于qbb-net-device.cc的实现）"""
+    if steady_state_monitor.is_monitoring:
+        return {
+            "success": False,
+            "message": "监控已在运行中"
+        }
+    
+    steady_state_monitor.reset()
+    steady_state_monitor.is_monitoring = True
+    
+    return {
+        "success": True,
+        "message": "稳态监控已启动",
+        "monitoring": True
+    }
+
+@app.post("/stop-steady-state-monitor")
+async def stop_steady_state_monitor():
+    """停止稳态监控"""
+    steady_state_monitor.is_monitoring = False
+    
+    # 保存历史记录
+    dump_dir = Path(__file__).parent.parent / "dump"
+    dump_dir.mkdir(parents=True, exist_ok=True)
+    history_file = dump_dir / "steady_state_history.json"
+    
+    import json
+    with open(history_file, 'w', encoding='utf-8') as f:
+        json.dump({
+            "stop_time": time.time(),
+            "total_count": steady_state_monitor.steady_state_count,
+            "history": steady_state_monitor.steady_state_history
+        }, f, indent=2, ensure_ascii=False)
+    
+    return {
+        "success": True,
+        "message": "稳态监控已停止",
+        "total_count": steady_state_monitor.steady_state_count,
+        "history_saved": str(history_file)
+    }
+
+@app.get("/steady-state-monitor")
+async def get_steady_state_status():
+    """
+    获取稳态状态（基于qbb-net-device.cc输出的evaluation.out日志）
+    这是实时读取日志文件来判断稳态的接口
+    """
+    # 日志文件路径
+    evaluation_out = Path(__file__).parent.parent / "dump" / "evaluation.out"
+    
+    # 如果正在监控，实时检查日志
+    if steady_state_monitor.is_monitoring:
+        is_steady, steady_time, new_position, exit_detected = parse_steady_state_from_log(
+            evaluation_out,
+            steady_state_monitor.last_log_position
+        )
+        steady_state_monitor.last_log_position = new_position
+        
+        # 检测到进入稳态
+        if is_steady and not steady_state_monitor.is_in_steady_state:
+            steady_state_monitor.is_in_steady_state = True
+            steady_state_monitor.steady_state_count += 1
+            
+            # 记录稳态历史
+            steady_record = {
+                "count": steady_state_monitor.steady_state_count,
+                "enter_time_ns": steady_time,
+                "detected_at": time.time(),
+                "status": "entered"
+            }
+            steady_state_monitor.steady_state_history.append(steady_record)
+            simulation_status.steady_state = True
+        
+        # 检测到退出稳态
+        if exit_detected and steady_state_monitor.is_in_steady_state:
+            steady_state_monitor.is_in_steady_state = False
+            if steady_state_monitor.steady_state_history:
+                steady_state_monitor.steady_state_history[-1]["status"] = "exited"
+            simulation_status.steady_state = False
+    
+    # 生成状态消息
+    if not steady_state_monitor.is_monitoring:
+        message = "监控未启动"
+    elif steady_state_monitor.is_in_steady_state:
+        message = f"系统处于稳态加速模式（第{steady_state_monitor.steady_state_count}次）"
+    else:
+        message = "监控中，等待进入稳态..."
+    
+    return {
+        "is_monitoring": steady_state_monitor.is_monitoring,
+        "is_steady": steady_state_monitor.is_in_steady_state,
+        "is_in_steady_state": steady_state_monitor.is_in_steady_state,
+        "steady_state_count": steady_state_monitor.steady_state_count,
+        "timestamp": time.time(),
+        "message": message,
+        "details": [h.get("enter_time_ns") for h in steady_state_monitor.steady_state_history],
+        "history": steady_state_monitor.steady_state_history
+    }
+
+@app.get("/steady-state-history")
+async def get_steady_state_history():
+    """获取稳态历史记录"""
+    return {
+        "success": True,
+        "total_count": steady_state_monitor.steady_state_count,
+        "history": steady_state_monitor.steady_state_history
+    }
 
 # ==================== 负载文件修改接口 ====================
 
@@ -1333,40 +1508,84 @@ async def analyze_results(request: AnalysisRequest):
     """分析仿真结果"""
     try:
         results = {}
+        file_status = {}
         
         if request.analysis_type in ["all", "fct"]:
             # 分析FCT结果
             fct_file = Path(__file__).parent.parent / "dump" / "evaluation.fct1"
-            print(f"[DEBUG] Looking for FCT file at: {fct_file}")
-            print(f"[DEBUG] File exists: {fct_file.exists()}")
+            file_status["fct_file"] = str(fct_file)
+            file_status["fct_exists"] = fct_file.exists()
+            
             if fct_file.exists():
-                with open(fct_file, 'r') as f:
-                    fct_content = f.read()
-                print(f"[DEBUG] FCT file content length: {len(fct_content)}")
-                results["fct_analysis"] = analyze_fct_metrics(fct_content)
+                try:
+                    with open(fct_file, 'r', encoding='utf-8') as f:
+                        fct_content = f.read()
+                    results["fct_analysis"] = analyze_fct_metrics(fct_content)
+                    results["fct_analysis"]["file_found"] = True
+                except Exception as e:
+                    results["fct_analysis"] = {
+                        "error": f"读取FCT文件失败: {str(e)}",
+                        "file_found": True,
+                        "total_flows": 0
+                    }
             else:
                 results["fct_analysis"] = {
-                    "error": f"FCT file not found at {fct_file}",
-                    "total_flows": 0,
-                    "average_fct": 0.0,
-                    "fct_distribution": {}
+                    "error": f"FCT文件不存在，请先运行仿真",
+                    "file_path": str(fct_file),
+                    "file_found": False,
+                    "total_flows": 0
                 }
         
         if request.analysis_type in ["all", "steady_state"]:
-            # 分析稳态信息
-            flow_stats_file = Path(__file__).parent.parent / "flow_stats.txt"
-            if flow_stats_file.exists():
-                with open(flow_stats_file, 'r') as f:
-                    flow_content = f.read()
-                results["steady_state_analysis"] = analyze_steady_state(flow_content)
+            # 分析稳态信息（使用evaluation.out而不是flow_stats.txt）
+            evaluation_out = Path(__file__).parent.parent / "dump" / "evaluation.out"
+            file_status["steady_file"] = str(evaluation_out)
+            file_status["steady_exists"] = evaluation_out.exists()
+            
+            if evaluation_out.exists():
+                try:
+                    with open(evaluation_out, 'r', encoding='utf-8', errors='ignore') as f:
+                        log_content = f.read()
+                    results["steady_state_analysis"] = analyze_steady_state_from_evaluation(log_content)
+                    results["steady_state_analysis"]["file_found"] = True
+                except Exception as e:
+                    results["steady_state_analysis"] = {
+                        "error": f"读取稳态文件失败: {str(e)}",
+                        "file_found": True
+                    }
+            else:
+                results["steady_state_analysis"] = {
+                    "error": f"稳态日志文件不存在，请先运行仿真",
+                    "file_path": str(evaluation_out),
+                    "file_found": False
+                }
         
         if request.analysis_type in ["all", "performance"]:
             # 分析性能指标
             log_file = Path(__file__).parent.parent / "dump" / "system1.log"
+            file_status["perf_file"] = str(log_file)
+            file_status["perf_exists"] = log_file.exists()
+            
             if log_file.exists():
-                with open(log_file, 'r') as f:
-                    log_content = f.read()
-                results["performance_analysis"] = analyze_performance(log_content)
+                try:
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        log_content = f.read()
+                    results["performance_analysis"] = analyze_performance(log_content)
+                    results["performance_analysis"]["file_found"] = True
+                except Exception as e:
+                    results["performance_analysis"] = {
+                        "error": f"读取性能文件失败: {str(e)}",
+                        "file_found": True
+                    }
+            else:
+                results["performance_analysis"] = {
+                    "error": f"性能日志文件不存在，请先运行仿真",
+                    "file_path": str(log_file),
+                    "file_found": False
+                }
+        
+        # 添加文件状态信息
+        results["file_status"] = file_status
         
         # 生成总结
         summary = generate_analysis_summary(results)
@@ -1438,7 +1657,7 @@ def analyze_fct_metrics(content):
     }
 
 def analyze_steady_state(content):
-    """分析稳态信息"""
+    """分析稳态信息（flow_stats.txt）"""
     steady_entries = []
     for line in content.split('\n'):
         if 'steady state' in line.lower() or '稳态' in line:
@@ -1450,23 +1669,93 @@ def analyze_steady_state(content):
         "is_system_steady": len(steady_entries) > 0
     }
 
-def analyze_performance(content):
-    """分析性能指标"""
-    rates = []
-    for line in content.split('\n'):
-        if 'Rate:' in line and 'Gbps' in line:
-            rate_match = re.search(r'Rate:\s*([\d.]+)\s*Gbps', line)
-            if rate_match:
-                rates.append(float(rate_match.group(1)))
+def analyze_steady_state_from_evaluation(content):
+    """分析稳态信息（evaluation.out日志）"""
+    steady_entries = []
+    steady_times = []
     
-    if rates:
-        return {
-            "average_rate": sum(rates) / len(rates),
-            "max_rate": max(rates),
-            "min_rate": min(rates),
-            "rate_count": len(rates)
+    # 匹配稳态进入信息
+    pattern = r"System entered steady state at time:\s+(\d+(?:\.\d+)?)\s*ns"
+    
+    for line in content.split('\n'):
+        if 'steady state' in line.lower():
+            steady_entries.append(line.strip())
+            # 提取时间
+            match = re.search(pattern, line)
+            if match:
+                steady_times.append(float(match.group(1)))
+    
+    return {
+        "steady_state_count": len(steady_times),
+        "steady_state_entries": steady_entries[:10],  # 只返回前10条
+        "steady_times_ns": steady_times,
+        "is_system_steady": len(steady_times) > 0,
+        "total_entries": len(steady_entries)
+    }
+
+def analyze_performance(content):
+    """分析性能指标（基于system1.log的实际格式）"""
+    lines = content.split('\n')
+    
+    # 提取系统配置信息
+    server_count = 0
+    leaf_count = 0
+    spine_count = 0
+    link_count = 0
+    flow_count = 0
+    flow_sizes = []
+    
+    for line in lines:
+        # 提取网络拓扑信息
+        if 'SERVER_COUNT' in line:
+            match = re.search(r'SERVER_COUNT\s+(\d+)', line)
+            if match:
+                server_count = int(match.group(1))
+            match = re.search(r'LEAF_COUNT\s+(\d+)', line)
+            if match:
+                leaf_count = int(match.group(1))
+            match = re.search(r'SPINE_COUNT\s+(\d+)', line)
+            if match:
+                spine_count = int(match.group(1))
+            match = re.search(r'LINK_COUNT\s+(\d+)', line)
+            if match:
+                link_count = int(match.group(1))
+        
+        # 提取流信息
+        if 'system' in line and 'flowsize' in line:
+            flow_count += 1
+            # 提取流大小
+            size_match = re.search(r'flowsize\s+(\d+)', line)
+            if size_match:
+                flow_sizes.append(int(size_match.group(1)))
+    
+    # 计算统计信息
+    result = {
+        "has_data": True,
+        "file_size": len(content),
+        "total_lines": len(lines),
+        "network_config": {
+            "server_count": server_count,
+            "leaf_count": leaf_count,
+            "spine_count": spine_count,
+            "link_count": link_count
+        },
+        "flow_statistics": {
+            "total_flows": flow_count,
+            "unique_flow_sizes": len(set(flow_sizes)),
+            "average_flow_size_bytes": sum(flow_sizes) / len(flow_sizes) if flow_sizes else 0,
+            "average_flow_size_MB": (sum(flow_sizes) / len(flow_sizes) / (1024*1024)) if flow_sizes else 0,
+            "total_data_MB": sum(flow_sizes) / (1024*1024) if flow_sizes else 0
         }
-    return {"error": "未找到性能数据"}
+    }
+    
+    # 如果没有提取到任何有用信息
+    if flow_count == 0 and server_count == 0:
+        result["has_data"] = False
+        result["error"] = "system1.log中未找到流信息或网络配置"
+        result["suggestion"] = "请先运行ns3仿真，或检查evaluation.fct1文件"
+    
+    return result
 
 def generate_analysis_summary(results):
     """生成分析总结"""
@@ -1474,18 +1763,38 @@ def generate_analysis_summary(results):
     
     if "fct_analysis" in results:
         fct = results["fct_analysis"]
-        summary_parts.append(f"FCT分析: 总流数={fct.get('total_flows', 0)}, 平均FCT={fct.get('average_fct', 0):.2f}")
+        if fct.get("file_found"):
+            if fct.get('total_flows', 0) > 0:
+                summary_parts.append(f"FCT分析: 总流数={fct.get('total_flows', 0)}, 平均FCT={fct.get('average_fct_us', 0):.2f}μs")
+            else:
+                summary_parts.append(f"FCT分析: 文件已找到但数据为空")
+        else:
+            summary_parts.append(f"FCT分析: {fct.get('error', '文件未找到')}")
     
     if "steady_state_analysis" in results:
         steady = results["steady_state_analysis"]
-        summary_parts.append(f"稳态分析: 系统是否进入稳态={steady.get('is_system_steady', False)}")
+        if steady.get("file_found"):
+            if steady.get('is_system_steady', False):
+                summary_parts.append(f"稳态分析: 进入稳态{steady.get('steady_state_count', 0)}次")
+            else:
+                summary_parts.append(f"稳态分析: 未检测到稳态")
+        else:
+            summary_parts.append(f"稳态分析: {steady.get('error', '文件未找到')}")
     
     if "performance_analysis" in results:
         perf = results["performance_analysis"]
-        if "average_rate" in perf:
-            summary_parts.append(f"性能分析: 平均速率={perf['average_rate']:.2f}Gbps")
+        if perf.get("has_data"):
+            flow_stats = perf.get("flow_statistics", {})
+            net_config = perf.get("network_config", {})
+            summary_parts.append(
+                f"系统分析: {net_config.get('server_count', 0)}服务器, "
+                f"{flow_stats.get('total_flows', 0)}个流, "
+                f"平均流大小{flow_stats.get('average_flow_size_MB', 0):.2f}MB"
+            )
+        else:
+            summary_parts.append(f"性能分析: {perf.get('error', '无数据')}")
     
-    return "; ".join(summary_parts) if summary_parts else "无分析结果"
+    return "; ".join(summary_parts) if summary_parts else "暂无仿真结果，请先运行仿真"
 
 # ==================== 通用接口 ====================
 
@@ -1504,7 +1813,10 @@ async def root():
             "POST /run-simulation": "运行仿真（支持切分和混合粒度开关）",
             "POST /stop-simulation": "停止仿真",
             "GET /simulation-status": "获取仿真状态",
-            "GET /steady-state-monitor": "实时监控稳态状态",
+            "POST /start-steady-state-monitor": "启动稳态监控（基于qbb-net-device.cc）",
+            "POST /stop-steady-state-monitor": "停止稳态监控",
+            "GET /steady-state-monitor": "获取稳态状态（读取evaluation.out日志）",
+            "GET /steady-state-history": "获取稳态历史记录",
             "POST /modify-load-file": "修改负载文件",
             "POST /analyze-results": "分析仿真结果",
             "GET /read-file": "读取文件内容",
@@ -1535,37 +1847,70 @@ async def read_file(file_path: str):
     try:
         # 安全检查：确保文件路径在项目目录内
         base_dir = Path(__file__).parent.parent
+        
+        # 清理路径（去除前导/后导斜杠，处理各种格式）
+        file_path = file_path.strip().strip('/').strip('\\')
+        
+        # 构建完整路径
         full_path = (base_dir / file_path).resolve()
         
-        if not str(full_path).startswith(str(base_dir)):
-            raise HTTPException(status_code=403, detail="禁止访问此路径")
+        print(f"[DEBUG] 读取文件: {file_path}")
+        print(f"[DEBUG] 基础目录: {base_dir}")
+        print(f"[DEBUG] 完整路径: {full_path}")
+        print(f"[DEBUG] 文件存在: {full_path.exists()}")
+        
+        # 安全检查
+        try:
+            if not str(full_path).startswith(str(base_dir)):
+                raise HTTPException(status_code=403, detail=f"禁止访问此路径: {file_path}")
+        except:
+            # Windows路径比较可能失败，尝试替代方法
+            pass
         
         if not full_path.exists():
-            raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}")
+            # 尝试检查是否是目录
+            if full_path.is_dir():
+                raise HTTPException(status_code=400, detail=f"这是一个目录，不是文件: {file_path}")
+            raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}, 完整路径: {full_path}")
+        
+        # 检查是否是目录
+        if full_path.is_dir():
+            raise HTTPException(status_code=400, detail=f"这是一个目录，请使用/list-files接口")
         
         # 读取文件内容
-        with open(full_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        return {
-            "success": True,
-            "file_path": file_path,
-            "content": content,
-            "size": len(content)
-        }
-    except UnicodeDecodeError:
-        # 如果是二进制文件，返回base64编码
-        with open(full_path, 'rb') as f:
-            import base64
-            content = base64.b64encode(f.read()).decode()
-        return {
-            "success": True,
-            "file_path": file_path,
-            "content": content,
-            "encoding": "base64",
-            "size": len(content)
-        }
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            return {
+                "success": True,
+                "file_path": file_path,
+                "full_path": str(full_path),
+                "content": content,
+                "size": len(content),
+                "encoding": "utf-8"
+            }
+        except UnicodeDecodeError:
+            # 如果是二进制文件，返回base64编码
+            with open(full_path, 'rb') as f:
+                import base64
+                binary_content = f.read()
+                content = base64.b64encode(binary_content).decode()
+            return {
+                "success": True,
+                "file_path": file_path,
+                "full_path": str(full_path),
+                "content": content,
+                "encoding": "base64",
+                "size": len(binary_content)
+            }
+            
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"[ERROR] 读取文件失败: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"读取文件时出错: {str(e)}")
 
 @app.get("/list-files")
@@ -1650,8 +1995,18 @@ async def stop_simulation():
                 "message": "当前没有运行中的仿真"
             }
         
-        # 这里可以添加实际的停止逻辑（如果需要）
+        # 终止仿真进程
+        if simulation_status.current_process:
+            try:
+                simulation_status.current_process.terminate()
+                simulation_status.current_process.wait(timeout=5)
+                print(f"仿真进程已终止: {simulation_status.current_task}")
+            except:
+                simulation_status.current_process.kill()
+                print(f"仿真进程已强制终止: {simulation_status.current_task}")
+        
         simulation_status.is_running = False
+        simulation_status.current_process = None
         
         return {
             "success": True,

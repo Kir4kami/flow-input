@@ -4,7 +4,7 @@
       "name": "root"
     },
     {
-      "name": "DP1",
+      "name": "DP1_0",
       "range": "0-127",
       "group": "group2"
     }
@@ -12,7 +12,7 @@
   "edges": [
     {
       "from_node": "Root",
-      "to_node": "DP1"
+      "to_node": "DP1_0"
     }
   ]
 }

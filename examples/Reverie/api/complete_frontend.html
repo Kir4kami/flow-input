@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>完整网络仿真控制面板</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <title>网络仿真控制面板</title>
+  <!-- 使用多个CDN备选 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+    // 如果unpkg失败，尝试jsdelivr
+    if (typeof Vue === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"><\/script>');
+    }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -355,14 +362,19 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* 防止Vue加载前显示模板 */
+    [v-cloak] {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div id="app">
+  <div id="app" v-cloak>
     <div class="container">
       <!-- 头部 -->
       <div class="header">
-        <h1>🌐 网络仿真完整控制面板</h1>
+        <h1>网络仿真控制面板</h1>
         <p>拓扑设置 | 负载配置 | 拓扑切分 | 仿真控制 | 结果分析</p>
       </div>
 
@@ -370,7 +382,7 @@
       <div class="main-grid">
         <!-- 1. 拓扑设置 -->
         <div class="section">
-          <h3 class="section-title">📐 拓扑设置</h3>
+          <h3 class="section-title">拓扑设置</h3>
           <div class="input-group">
             <label>TOR交换机数量：</label>
             <input v-model.number="topology.torSwitches" type="number" min="1" placeholder="例如: 8">
@@ -383,19 +395,19 @@
             <button class="btn btn-primary" @click="generateTopology" :disabled="isGeneratingTopology">
               {{ isGeneratingTopology ? '生成中...' : '生成拓扑' }}
             </button>
-            <button class="btn btn-secondary" @click="visualizeTopology" :disabled="!topologyGenerated">
+            <button class="btn btn-secondary" @click="visualizeTopology">
               可视化拓扑
             </button>
           </div>
           <div v-if="topologyResult" class="result-box">
-            <p><strong>✓ 拓扑已生成</strong></p>
+            <p><strong>拓扑已生成</strong></p>
             <p class="info-text">文件: leaf-spine.txt</p>
           </div>
         </div>
 
         <!-- 2. 负载设置 -->
         <div class="section">
-          <h3 class="section-title">📊 负载设置</h3>
+          <h3 class="section-title">负载设置</h3>
           <div class="input-group">
             <label>节点数量：</label>
             <input v-model.number="load.host_num" type="number" min="1" placeholder="例如: 64">
@@ -411,18 +423,18 @@
           <button class="btn btn-primary" @click="generateLoad" :disabled="isGeneratingLoad">
             {{ isGeneratingLoad ? '生成中...' : '生成负载' }}
           </button>
-          <button class="btn btn-secondary" @click="viewLoadFiles" :disabled="!loadGenerated">
+          <button class="btn btn-secondary" @click="viewLoadFiles">
             查看负载文件
           </button>
           <div v-if="loadResult" class="result-box">
-            <p><strong>✓ 负载已生成</strong></p>
+            <p><strong>负载已生成</strong></p>
             <p class="info-text">{{ loadResult.message }}</p>
           </div>
         </div>
 
         <!-- 3. 拓扑切分 -->
         <div class="section">
-          <h3 class="section-title">✂️ 拓扑切分</h3>
+          <h3 class="section-title">拓扑切分</h3>
           <div class="input-group">
             <label>输出目录：</label>
             <input v-model="treeCut.output_dir" type="text" placeholder="TreeGroup">
@@ -430,11 +442,11 @@
           <button class="btn btn-primary" @click="performTreeCut" :disabled="isCutting">
             {{ isCutting ? '切分中...' : '执行切分' }}
           </button>
-          <button class="btn btn-secondary" @click="viewCutResults" :disabled="!cutCompleted">
+          <button class="btn btn-secondary" @click="viewCutResults">
             查看切分结果
           </button>
           <div v-if="cutResult" class="result-box">
-            <p><strong>✓ 切分完成</strong></p>
+            <p><strong>切分完成</strong></p>
             <p class="info-text">树组数量: {{ cutResult.tree_groups }}</p>
             <p class="info-text">输出目录: {{ cutResult.output_directory }}</p>
           </div>
@@ -442,7 +454,7 @@
 
         <!-- 4. 仿真控制 -->
         <div class="section">
-          <h3 class="section-title">🎮 仿真控制
+          <h3 class="section-title">仿真控制
             <span v-if="simulationStatus.is_running" class="status-badge status-running">运行中</span>
             <span v-else class="status-badge status-idle">空闲</span>
             <span v-if="simulationStatus.steady_state" class="status-badge status-steady">稳态</span>
@@ -500,7 +512,7 @@
 
         <!-- 5. 稳态监控 -->
         <div class="section">
-          <h3 class="section-title">📈 稳态监控</h3>
+          <h3 class="section-title">稳态监控</h3>
           <button class="btn btn-primary" @click="monitorSteadyState">
             检查稳态
           </button>
@@ -511,7 +523,7 @@
             停止监控
           </button>
           <div v-if="steadyStateInfo" class="result-box">
-            <p><strong>稳态状态:</strong> {{ steadyStateInfo.is_steady ? '✓ 已进入稳态' : '未进入稳态' }}</p>
+            <p><strong>稳态状态:</strong> {{ steadyStateInfo.is_steady ? '已进入稳态' : '未进入稳态' }}</p>
             <p class="info-text">检查时间: {{ new Date(steadyStateInfo.timestamp * 1000).toLocaleTimeString() }}</p>
             <div v-if="steadyStateInfo.details && steadyStateInfo.details.length > 0">
               <p><strong>详细信息:</strong></p>
@@ -522,7 +534,7 @@
 
         <!-- 6. 结果分析 -->
         <div class="section">
-          <h3 class="section-title">📊 结果分析</h3>
+          <h3 class="section-title">结果分析</h3>
           <div class="input-group">
             <label>分析类型：</label>
             <select v-model="analysis.type">
@@ -535,7 +547,7 @@
           <button class="btn btn-primary" @click="analyzeResults" :disabled="isAnalyzing">
             {{ isAnalyzing ? '分析中...' : '分析结果' }}
           </button>
-          <button class="btn btn-secondary" @click="viewAnalysisDetails" :disabled="!analysisResult">
+          <button class="btn btn-secondary" @click="viewAnalysisDetails">
             查看详情
           </button>
           <div v-if="analysisResult" class="result-box">
@@ -547,14 +559,14 @@
 
       <!-- 文件浏览器 -->
       <div class="section">
-        <h3 class="section-title">📁 文件浏览器</h3>
+        <h3 class="section-title">文件浏览器</h3>
         <div class="input-group">
           <label>文件路径：</label>
           <input v-model="fileBrowser.path" type="text" placeholder="例如: TreeGroup/group1/In_dependence_Info.txt">
         </div>
         <div class="button-row">
-          <button class="btn btn-primary" @click="readFile">读取文件</button>
-          <button class="btn btn-secondary" @click="listDirectory">列出目录</button>
+          <button class="btn btn-primary" @click="readFileDirect">读取文件</button>
+          <button class="btn btn-secondary" @click="listDirectoryDirect">列出目录</button>
         </div>
         <div v-if="fileContent" class="result-box">
           <pre>{{ fileContent }}</pre>
@@ -567,7 +579,7 @@
       </div>
 
       <!-- 模态框 -->
-      <div v-if="modal.show" class="modal-overlay" @click="closeModal">
+      <div v-if="modal.show" class="modal-overlay" @click.self="closeModal">
         <div class="modal-content" @click.stop>
           <div class="modal-header">
             <h2>{{ modal.title }}</h2>
@@ -579,9 +591,17 @@
               <p v-else>加载中...</p>
             </div>
             <div v-else-if="modal.type === 'files'">
+              <div v-if="modal.currentPath && modal.currentPath !== '.'" style="margin-bottom: 10px;">
+                <button class="btn btn-secondary" @click="goToParentDirectory" style="width: 100%;">
+                  返回上级目录
+                </button>
+              </div>
               <ul class="file-list">
-                <li v-for="file in modal.files" :key="file.path" @click="readFile(file.path)">
-                  {{ file.is_dir ? '📁' : '📄' }} {{ file.name }}
+                <li v-for="file in modal.files" :key="file.path" @click="readFile(file.path, file.is_dir)">
+                  <strong>{{ file.is_dir ? '[DIR]' : '[FILE]' }}</strong> {{ file.name }}
+                  <span v-if="!file.is_dir" style="opacity: 0.5; margin-left: 10px; font-size: 12px;">
+                    ({{ (file.size / 1024).toFixed(2) }} KB)
+                  </span>
                 </li>
               </ul>
             </div>
@@ -676,7 +696,8 @@
             type: '',
             content: '',
             files: [],
-            data: null
+            data: null,
+            currentPath: null
           },
 
           // Toast通知
@@ -781,7 +802,8 @@
                 show: true,
                 title: '负载文件列表',
                 type: 'files',
-                files: result.files
+                files: result.files,
+                currentPath: 'rdma_result'
               }
             }
           } catch (error) {
@@ -793,30 +815,40 @@
         async performTreeCut() {
           this.isCutting = true
           try {
-            // 先获取示例数据
+            // 使用示例树数据（包含实际的通信树结构）
+            const exampleTreeData = {
+              nodes: [
+                { name: 'Root', type: 'Root', layer: 0, nodes_passed: [], children: [], isBurr: false },
+                { name: 'DP1_0', type: 'DP', layer: 1, nodes_passed: ['A', 'B', 'C'], children: [], isBurr: false },
+                { name: 'PP1_1', type: 'PP', layer: 1, nodes_passed: ['D', 'E'], children: [], isBurr: false },
+                { name: 'TP2_2', type: 'TP', layer: 2, nodes_passed: ['F', 'G'], children: [], isBurr: false }
+              ],
+              edges: [
+                { from_node: 'Root', to_node: 'DP1_0' },
+                { from_node: 'Root', to_node: 'PP1_1' },
+                { from_node: 'PP1_1', to_node: 'TP2_2' }
+              ]
+            }
+            
             const exampleResponse = await fetch(`${this.apiUrl}/tree-cut`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                tree_data: {
-                  nodes: [
-                    { name: 'Root', type: 'Root', layer: 0, nodes_passed: [], children: [], isBurr: false }
-                  ],
-                  edges: []
-                },
+                tree_data: exampleTreeData,
                 output_dir: this.treeCut.output_dir,
                 show_graphs: false
               })
             })
             
-            const result = await exampleResponse.json()
-            if (result.success) {
-              this.cutResult = result
-              this.cutCompleted = true
-              this.showToast('切分完成', 'success')
-            } else {
-              this.showToast('切分失败', 'error')
+            if (!exampleResponse.ok) {
+              const errorData = await exampleResponse.json()
+              throw new Error(errorData.detail || '切分失败')
             }
+            
+            const result = await exampleResponse.json()
+            this.cutResult = result
+            this.cutCompleted = true
+            this.showToast(`切分完成！生成了${result.tree_groups}个树组`, 'success')
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
           } finally {
@@ -831,12 +863,19 @@
             const result = await response.json()
             
             if (result.success) {
-              this.modal = {
-                show: true,
-                title: '切分结果文件',
-                type: 'files',
-                files: result.files
+              if (result.files && result.files.length > 0) {
+                this.modal = {
+                  show: true,
+                  title: '切分结果文件',
+                  type: 'files',
+                  files: result.files,
+                  currentPath: this.treeCut.output_dir
+                }
+              } else {
+                this.showToast('目录为空，请先执行切分', 'info')
               }
+            } else {
+              this.showToast('目录不存在或读取失败，请先执行切分', 'error')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
@@ -846,6 +885,11 @@
         // 开始仿真
         async startSimulation() {
           try {
+            // 先启动稳态监控
+            await fetch(`${this.apiUrl}/start-steady-state-monitor`, {
+              method: 'POST'
+            })
+            
             const response = await fetch(`${this.apiUrl}/run-simulation`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -861,7 +905,7 @@
             if (result.success) {
               this.simulationResult = result
               this.simulationStatus.is_running = true
-              this.showToast('仿真已启动', 'success')
+              this.showToast('仿真已启动，稳态监控已开启', 'success')
               
               // 开始自动监控
               this.startAutoMonitor()
@@ -880,11 +924,16 @@
               method: 'POST'
             })
             
+            // 停止稳态监控
+            await fetch(`${this.apiUrl}/stop-steady-state-monitor`, {
+              method: 'POST'
+            })
+            
             const result = await response.json()
             if (result.success) {
               this.simulationStatus.is_running = false
               this.stopAutoMonitor()
-              this.showToast('仿真已停止', 'success')
+              this.showToast('仿真和稳态监控已停止', 'success')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
@@ -901,8 +950,25 @@
               is_running: result.is_running,
               steady_state: result.steady_state
             }
+            
+            // 显示状态弹窗
+            const statusText = `
+仿真状态: ${result.is_running ? '运行中' : '空闲'}
+稳态状态: ${result.steady_state ? '已进入稳态' : '未进入稳态'}
+仿真ID: ${result.simulation_id || '无'}
+任务ID: ${result.current_task || '无'}
+开始时间: ${result.simulation_start_time ? new Date(result.simulation_start_time * 1000).toLocaleString() : '无'}
+${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end_time * 1000).toLocaleString() : ''}
+            `.trim()
+            
+            this.modal = {
+              show: true,
+              title: '仿真状态详情',
+              type: 'content',
+              content: statusText
+            }
           } catch (error) {
-            console.error('检查状态失败:', error)
+            this.showToast(`检查状态失败: ${error.message}`, 'error')
           }
         },
 
@@ -967,7 +1033,10 @@
 
         // 查看分析详情
         viewAnalysisDetails() {
-          if (!this.analysisResult) return
+          if (!this.analysisResult) {
+            this.showToast('请先点击"分析结果"', 'info')
+            return
+          }
           
           this.modal = {
             show: true,
@@ -977,14 +1046,14 @@
           }
         },
 
-        // 读取文件
-        async readFile(path) {
-          const filePath = path || this.fileBrowser.path
+        // 从输入框直接读取文件（修复版）
+        async readFileDirect() {
+          const filePath = this.fileBrowser.path
           if (!filePath) {
             this.showToast('请输入文件路径', 'error')
             return
           }
-
+          
           try {
             const response = await fetch(`${this.apiUrl}/read-file?file_path=${encodeURIComponent(filePath)}`)
             const result = await response.json()
@@ -996,16 +1065,18 @@
                 type: 'content',
                 content: result.content
               }
+              this.fileContent = result.content
+              this.showToast('文件读取成功', 'success')
             } else {
-              this.showToast('读取文件失败', 'error')
+              this.showToast('读取失败', 'error')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
           }
         },
 
-        // 列出目录
-        async listDirectory() {
+        // 从输入框直接列出目录（修复版）
+        async listDirectoryDirect() {
           const dirPath = this.fileBrowser.path || '.'
           
           try {
@@ -1017,10 +1088,78 @@
                 show: true,
                 title: `目录: ${dirPath}`,
                 type: 'files',
-                files: result.files
+                files: result.files,
+                currentPath: dirPath
               }
             } else {
               this.showToast('列出目录失败', 'error')
+            }
+          } catch (error) {
+            this.showToast(`错误: ${error.message}`, 'error')
+          }
+        },
+
+        // 点击文件列表中的项目
+        async readFile(path, isDir) {
+          const filePath = path
+          if (!filePath) {
+            return
+          }
+
+          try {
+            // 如果是目录，列出目录内容
+            if (isDir) {
+              const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(filePath)}`)
+              const result = await response.json()
+              
+              if (result.success) {
+                this.modal = {
+                  show: true,
+                  title: `目录: ${filePath}`,
+                  type: 'files',
+                  files: result.files,
+                  currentPath: filePath
+                }
+              }
+            } else {
+              // 如果是文件，读取文件内容
+              const response = await fetch(`${this.apiUrl}/read-file?file_path=${encodeURIComponent(filePath)}`)
+              const result = await response.json()
+              
+              if (result.success) {
+                this.modal = {
+                  show: true,
+                  title: filePath,
+                  type: 'content',
+                  content: result.content
+                }
+                this.fileContent = result.content
+              } else {
+                this.showToast('读取文件失败', 'error')
+              }
+            }
+          } catch (error) {
+            this.showToast(`错误: ${error.message}`, 'error')
+          }
+        },
+
+        // 返回上级目录
+        async goToParentDirectory() {
+          if (!this.modal.currentPath) return
+          
+          // 计算上级目录路径
+          const parts = this.modal.currentPath.split('/').filter(p => p)
+          parts.pop()  // 移除最后一个部分
+          const parentPath = parts.length > 0 ? parts.join('/') : '.'
+          
+          try {
+            const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(parentPath)}`)
+            const result = await response.json()
+            
+            if (result.success) {
+              this.modal.title = `目录: ${parentPath}`
+              this.modal.files = result.files
+              this.modal.currentPath = parentPath
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')

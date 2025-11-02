@@ -4,7 +4,7 @@
       "name": "root"
     },
     {
-      "name": "PP1",
+      "name": "PP1_1",
       "range": "0-0",
       "group": "group1"
     }
@@ -12,7 +12,7 @@
   "edges": [
     {
       "from_node": "Root",
-      "to_node": "PP1"
+      "to_node": "PP1_1"
     }
   ]
 }

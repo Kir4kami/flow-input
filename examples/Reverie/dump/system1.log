@@ -9288,3 +9288,275 @@ system 0 from 52 to 53 fromportNumber 2011 destportNumder 2011 time 1.08868 flow
 system 0 from 53 to 54 fromportNumber 2011 destportNumder 2011 time 1.08868 flowsize 33554432 Flow actual path: 53:1 -> 70:7 -> 54:0
 system 0 from 54 to 55 fromportNumber 2011 destportNumder 2011 time 1.08868 flowsize 33554432 Flow actual path: 54:1 -> 70:8 -> 55:0
 system 0 from 55 to 48 fromportNumber 2011 destportNumder 2011 time 1.08868 flowsize 33554432 Flow actual path: 55:1 -> 70:1 -> 48:0
+ operate 104 phase 2 flow 1 1.11244
+ operate 104 phase 2 flow 2 1.11244
+ operate 104 phase 2 flow 3 1.11244
+ operate 104 phase 2 flow 4 1.11244
+ operate 104 phase 2 flow 5 1.11244
+ operate 104 phase 2 flow 6 1.11244
+ operate 104 phase 2 flow 7 1.11244
+ operate 104 phase 2 flow 8 1.11244
+operate 104 complete a phase
+ operate 105 phase 2 flow 1 1.11244
+ operate 105 phase 2 flow 2 1.11244
+ operate 105 phase 2 flow 3 1.11244
+ operate 105 phase 2 flow 4 1.11244
+ operate 105 phase 2 flow 5 1.11244
+ operate 105 phase 2 flow 6 1.11244
+ operate 105 phase 2 flow 7 1.11244
+ operate 105 phase 2 flow 8 1.11244
+operate 105 complete a phase
+ operate 106 phase 2 flow 1 1.11244
+ operate 106 phase 2 flow 2 1.11244
+ operate 106 phase 2 flow 3 1.11244
+ operate 106 phase 2 flow 4 1.11244
+ operate 106 phase 2 flow 5 1.11244
+ operate 106 phase 2 flow 6 1.11244
+ operate 106 phase 2 flow 7 1.11244
+ operate 106 phase 2 flow 8 1.11244
+operate 106 complete a phase
+ operate 107 phase 2 flow 1 1.11244
+ operate 107 phase 2 flow 2 1.11244
+ operate 107 phase 2 flow 3 1.11244
+ operate 107 phase 2 flow 4 1.11244
+ operate 107 phase 2 flow 5 1.11244
+ operate 107 phase 2 flow 6 1.11244
+ operate 107 phase 2 flow 7 1.11244
+ operate 107 phase 2 flow 8 1.11244
+operate 107 complete a phase
+system 0 from 0 to 1 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 0:1 -> 64:2 -> 1:0
+system 0 from 1 to 2 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 1:1 -> 64:3 -> 2:0
+system 0 from 2 to 3 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 2:1 -> 64:4 -> 3:0
+system 0 from 3 to 4 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 3:1 -> 64:5 -> 4:0
+system 0 from 4 to 5 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 4:1 -> 64:6 -> 5:0
+system 0 from 5 to 6 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 5:1 -> 64:7 -> 6:0
+system 0 from 6 to 7 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 6:1 -> 64:8 -> 7:0
+system 0 from 7 to 0 fromportNumber 2000 destportNumder 2000 time 1.11244 flowsize 33554432 Flow actual path: 7:1 -> 64:1 -> 0:0
+system 0 from 16 to 17 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 16:1 -> 66:2 -> 17:0
+system 0 from 17 to 18 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 17:1 -> 66:3 -> 18:0
+system 0 from 18 to 19 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 18:1 -> 66:4 -> 19:0
+system 0 from 19 to 20 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 19:1 -> 66:5 -> 20:0
+system 0 from 20 to 21 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 20:1 -> 66:6 -> 21:0
+system 0 from 21 to 22 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 21:1 -> 66:7 -> 22:0
+system 0 from 22 to 23 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 22:1 -> 66:8 -> 23:0
+system 0 from 23 to 16 fromportNumber 2001 destportNumder 2001 time 1.11244 flowsize 33554432 Flow actual path: 23:1 -> 66:1 -> 16:0
+system 0 from 32 to 33 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 32:1 -> 68:2 -> 33:0
+system 0 from 33 to 34 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 33:1 -> 68:3 -> 34:0
+system 0 from 34 to 35 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 34:1 -> 68:4 -> 35:0
+system 0 from 35 to 36 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 35:1 -> 68:5 -> 36:0
+system 0 from 36 to 37 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 36:1 -> 68:6 -> 37:0
+system 0 from 37 to 38 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 37:1 -> 68:7 -> 38:0
+system 0 from 38 to 39 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 38:1 -> 68:8 -> 39:0
+system 0 from 39 to 32 fromportNumber 2002 destportNumder 2002 time 1.11244 flowsize 33554432 Flow actual path: 39:1 -> 68:1 -> 32:0
+system 0 from 48 to 49 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 48:1 -> 70:2 -> 49:0
+system 0 from 49 to 50 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 49:1 -> 70:3 -> 50:0
+system 0 from 50 to 51 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 50:1 -> 70:4 -> 51:0
+system 0 from 51 to 52 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 51:1 -> 70:5 -> 52:0
+system 0 from 52 to 53 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 52:1 -> 70:6 -> 53:0
+system 0 from 53 to 54 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 53:1 -> 70:7 -> 54:0
+system 0 from 54 to 55 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 54:1 -> 70:8 -> 55:0
+system 0 from 55 to 48 fromportNumber 2003 destportNumder 2003 time 1.11244 flowsize 33554432 Flow actual path: 55:1 -> 70:1 -> 48:0
+ operate 108 phase 2 flow 1 1.11244
+ operate 108 phase 2 flow 2 1.11244
+ operate 108 phase 2 flow 3 1.11244
+ operate 108 phase 2 flow 4 1.11244
+ operate 108 phase 2 flow 5 1.11244
+ operate 108 phase 2 flow 6 1.11244
+ operate 108 phase 2 flow 7 1.11244
+ operate 108 phase 2 flow 8 1.11244
+operate 108 complete a phase
+ operate 109 phase 2 flow 1 1.11244
+ operate 109 phase 2 flow 2 1.11244
+ operate 109 phase 2 flow 3 1.11244
+ operate 109 phase 2 flow 4 1.11244
+ operate 109 phase 2 flow 5 1.11244
+ operate 109 phase 2 flow 6 1.11244
+ operate 109 phase 2 flow 7 1.11244
+ operate 109 phase 2 flow 8 1.11244
+operate 109 complete a phase
+ operate 110 phase 2 flow 1 1.11244
+ operate 110 phase 2 flow 2 1.11244
+ operate 110 phase 2 flow 3 1.11244
+ operate 110 phase 2 flow 4 1.11244
+ operate 110 phase 2 flow 5 1.11244
+ operate 110 phase 2 flow 6 1.11244
+ operate 110 phase 2 flow 7 1.11244
+ operate 110 phase 2 flow 8 1.11244
+operate 110 complete a phase
+ operate 111 phase 2 flow 1 1.11244
+ operate 111 phase 2 flow 2 1.11244
+ operate 111 phase 2 flow 3 1.11244
+ operate 111 phase 2 flow 4 1.11244
+ operate 111 phase 2 flow 5 1.11244
+ operate 111 phase 2 flow 6 1.11244
+ operate 111 phase 2 flow 7 1.11244
+ operate 111 phase 2 flow 8 1.11244
+operate 111 complete a phase
+system 0 from 0 to 1 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 0:1 -> 64:2 -> 1:0
+system 0 from 1 to 2 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 1:1 -> 64:3 -> 2:0
+system 0 from 2 to 3 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 2:1 -> 64:4 -> 3:0
+system 0 from 3 to 4 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 3:1 -> 64:5 -> 4:0
+system 0 from 4 to 5 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 4:1 -> 64:6 -> 5:0
+system 0 from 5 to 6 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 5:1 -> 64:7 -> 6:0
+system 0 from 6 to 7 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 6:1 -> 64:8 -> 7:0
+system 0 from 7 to 0 fromportNumber 2008 destportNumder 2008 time 1.11244 flowsize 33554432 Flow actual path: 7:1 -> 64:1 -> 0:0
+system 0 from 16 to 17 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 16:1 -> 66:2 -> 17:0
+system 0 from 17 to 18 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 17:1 -> 66:3 -> 18:0
+system 0 from 18 to 19 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 18:1 -> 66:4 -> 19:0
+system 0 from 19 to 20 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 19:1 -> 66:5 -> 20:0
+system 0 from 20 to 21 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 20:1 -> 66:6 -> 21:0
+system 0 from 21 to 22 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 21:1 -> 66:7 -> 22:0
+system 0 from 22 to 23 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 22:1 -> 66:8 -> 23:0
+system 0 from 23 to 16 fromportNumber 2009 destportNumder 2009 time 1.11244 flowsize 33554432 Flow actual path: 23:1 -> 66:1 -> 16:0
+system 0 from 32 to 33 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 32:1 -> 68:2 -> 33:0
+system 0 from 33 to 34 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 33:1 -> 68:3 -> 34:0
+system 0 from 34 to 35 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 34:1 -> 68:4 -> 35:0
+system 0 from 35 to 36 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 35:1 -> 68:5 -> 36:0
+system 0 from 36 to 37 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 36:1 -> 68:6 -> 37:0
+system 0 from 37 to 38 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 37:1 -> 68:7 -> 38:0
+system 0 from 38 to 39 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 38:1 -> 68:8 -> 39:0
+system 0 from 39 to 32 fromportNumber 2010 destportNumder 2010 time 1.11244 flowsize 33554432 Flow actual path: 39:1 -> 68:1 -> 32:0
+system 0 from 48 to 49 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 48:1 -> 70:2 -> 49:0
+system 0 from 49 to 50 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 49:1 -> 70:3 -> 50:0
+system 0 from 50 to 51 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 50:1 -> 70:4 -> 51:0
+system 0 from 51 to 52 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 51:1 -> 70:5 -> 52:0
+system 0 from 52 to 53 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 52:1 -> 70:6 -> 53:0
+system 0 from 53 to 54 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 53:1 -> 70:7 -> 54:0
+system 0 from 54 to 55 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 54:1 -> 70:8 -> 55:0
+system 0 from 55 to 48 fromportNumber 2011 destportNumder 2011 time 1.11244 flowsize 33554432 Flow actual path: 55:1 -> 70:1 -> 48:0
+ operate 104 phase 3 flow 1 1.13621
+ operate 104 phase 3 flow 2 1.13621
+ operate 104 phase 3 flow 3 1.13621
+ operate 104 phase 3 flow 4 1.13621
+ operate 104 phase 3 flow 5 1.13621
+ operate 104 phase 3 flow 6 1.13621
+ operate 104 phase 3 flow 7 1.13621
+ operate 104 phase 3 flow 8 1.13621
+operate 104 complete a phase
+ operate 105 phase 3 flow 1 1.13621
+ operate 105 phase 3 flow 2 1.13621
+ operate 105 phase 3 flow 3 1.13621
+ operate 105 phase 3 flow 4 1.13621
+ operate 105 phase 3 flow 5 1.13621
+ operate 105 phase 3 flow 6 1.13621
+ operate 105 phase 3 flow 7 1.13621
+ operate 105 phase 3 flow 8 1.13621
+operate 105 complete a phase
+ operate 106 phase 3 flow 1 1.13621
+ operate 106 phase 3 flow 2 1.13621
+ operate 106 phase 3 flow 3 1.13621
+ operate 106 phase 3 flow 4 1.13621
+ operate 106 phase 3 flow 5 1.13621
+ operate 106 phase 3 flow 6 1.13621
+ operate 106 phase 3 flow 7 1.13621
+ operate 106 phase 3 flow 8 1.13621
+operate 106 complete a phase
+ operate 107 phase 3 flow 1 1.13621
+ operate 107 phase 3 flow 2 1.13621
+ operate 107 phase 3 flow 3 1.13621
+ operate 107 phase 3 flow 4 1.13621
+ operate 107 phase 3 flow 5 1.13621
+ operate 107 phase 3 flow 6 1.13621
+ operate 107 phase 3 flow 7 1.13621
+ operate 107 phase 3 flow 8 1.13621
+operate 107 complete a phase
+system 0 from 0 to 1 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 0:1 -> 64:2 -> 1:0
+system 0 from 1 to 2 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 1:1 -> 64:3 -> 2:0
+system 0 from 2 to 3 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 2:1 -> 64:4 -> 3:0
+system 0 from 3 to 4 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 3:1 -> 64:5 -> 4:0
+system 0 from 4 to 5 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 4:1 -> 64:6 -> 5:0
+system 0 from 5 to 6 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 5:1 -> 64:7 -> 6:0
+system 0 from 6 to 7 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 6:1 -> 64:8 -> 7:0
+system 0 from 7 to 0 fromportNumber 2000 destportNumder 2000 time 1.13621 flowsize 33554432 Flow actual path: 7:1 -> 64:1 -> 0:0
+system 0 from 16 to 17 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 16:1 -> 66:2 -> 17:0
+system 0 from 17 to 18 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 17:1 -> 66:3 -> 18:0
+system 0 from 18 to 19 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 18:1 -> 66:4 -> 19:0
+system 0 from 19 to 20 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 19:1 -> 66:5 -> 20:0
+system 0 from 20 to 21 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 20:1 -> 66:6 -> 21:0
+system 0 from 21 to 22 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 21:1 -> 66:7 -> 22:0
+system 0 from 22 to 23 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 22:1 -> 66:8 -> 23:0
+system 0 from 23 to 16 fromportNumber 2001 destportNumder 2001 time 1.13621 flowsize 33554432 Flow actual path: 23:1 -> 66:1 -> 16:0
+system 0 from 32 to 33 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 32:1 -> 68:2 -> 33:0
+system 0 from 33 to 34 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 33:1 -> 68:3 -> 34:0
+system 0 from 34 to 35 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 34:1 -> 68:4 -> 35:0
+system 0 from 35 to 36 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 35:1 -> 68:5 -> 36:0
+system 0 from 36 to 37 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 36:1 -> 68:6 -> 37:0
+system 0 from 37 to 38 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 37:1 -> 68:7 -> 38:0
+system 0 from 38 to 39 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 38:1 -> 68:8 -> 39:0
+system 0 from 39 to 32 fromportNumber 2002 destportNumder 2002 time 1.13621 flowsize 33554432 Flow actual path: 39:1 -> 68:1 -> 32:0
+system 0 from 48 to 49 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 48:1 -> 70:2 -> 49:0
+system 0 from 49 to 50 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 49:1 -> 70:3 -> 50:0
+system 0 from 50 to 51 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 50:1 -> 70:4 -> 51:0
+system 0 from 51 to 52 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 51:1 -> 70:5 -> 52:0
+system 0 from 52 to 53 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 52:1 -> 70:6 -> 53:0
+system 0 from 53 to 54 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 53:1 -> 70:7 -> 54:0
+system 0 from 54 to 55 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 54:1 -> 70:8 -> 55:0
+system 0 from 55 to 48 fromportNumber 2003 destportNumder 2003 time 1.13621 flowsize 33554432 Flow actual path: 55:1 -> 70:1 -> 48:0
+ operate 108 phase 3 flow 1 1.13621
+ operate 108 phase 3 flow 2 1.13621
+ operate 108 phase 3 flow 3 1.13621
+ operate 108 phase 3 flow 4 1.13621
+ operate 108 phase 3 flow 5 1.13621
+ operate 108 phase 3 flow 6 1.13621
+ operate 108 phase 3 flow 7 1.13621
+ operate 108 phase 3 flow 8 1.13621
+operate 108 complete a phase
+ operate 109 phase 3 flow 1 1.13621
+ operate 109 phase 3 flow 2 1.13621
+ operate 109 phase 3 flow 3 1.13621
+ operate 109 phase 3 flow 4 1.13621
+ operate 109 phase 3 flow 5 1.13621
+ operate 109 phase 3 flow 6 1.13621
+ operate 109 phase 3 flow 7 1.13621
+ operate 109 phase 3 flow 8 1.13621
+operate 109 complete a phase
+ operate 110 phase 3 flow 1 1.13621
+ operate 110 phase 3 flow 2 1.13621
+ operate 110 phase 3 flow 3 1.13621
+ operate 110 phase 3 flow 4 1.13621
+ operate 110 phase 3 flow 5 1.13621
+ operate 110 phase 3 flow 6 1.13621
+ operate 110 phase 3 flow 7 1.13621
+ operate 110 phase 3 flow 8 1.13621
+operate 110 complete a phase
+ operate 111 phase 3 flow 1 1.13621
+ operate 111 phase 3 flow 2 1.13621
+ operate 111 phase 3 flow 3 1.13621
+ operate 111 phase 3 flow 4 1.13621
+ operate 111 phase 3 flow 5 1.13621
+ operate 111 phase 3 flow 6 1.13621
+ operate 111 phase 3 flow 7 1.13621
+ operate 111 phase 3 flow 8 1.13621
+operate 111 complete a phase
+system 0 from 0 to 1 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 0:1 -> 64:2 -> 1:0
+system 0 from 1 to 2 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 1:1 -> 64:3 -> 2:0
+system 0 from 2 to 3 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 2:1 -> 64:4 -> 3:0
+system 0 from 3 to 4 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 3:1 -> 64:5 -> 4:0
+system 0 from 4 to 5 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 4:1 -> 64:6 -> 5:0
+system 0 from 5 to 6 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 5:1 -> 64:7 -> 6:0
+system 0 from 6 to 7 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 6:1 -> 64:8 -> 7:0
+system 0 from 7 to 0 fromportNumber 2008 destportNumder 2008 time 1.13621 flowsize 33554432 Flow actual path: 7:1 -> 64:1 -> 0:0
+system 0 from 16 to 17 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 16:1 -> 66:2 -> 17:0
+system 0 from 17 to 18 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 17:1 -> 66:3 -> 18:0
+system 0 from 18 to 19 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 18:1 -> 66:4 -> 19:0
+system 0 from 19 to 20 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 19:1 -> 66:5 -> 20:0
+system 0 from 20 to 21 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 20:1 -> 66:6 -> 21:0
+system 0 from 21 to 22 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 21:1 -> 66:7 -> 22:0
+system 0 from 22 to 23 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 22:1 -> 66:8 -> 23:0
+system 0 from 23 to 16 fromportNumber 2009 destportNumder 2009 time 1.13621 flowsize 33554432 Flow actual path: 23:1 -> 66:1 -> 16:0
+system 0 from 32 to 33 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 32:1 -> 68:2 -> 33:0
+system 0 from 33 to 34 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 33:1 -> 68:3 -> 34:0
+system 0 from 34 to 35 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 34:1 -> 68:4 -> 35:0
+system 0 from 35 to 36 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 35:1 -> 68:5 -> 36:0
+system 0 from 36 to 37 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 36:1 -> 68:6 -> 37:0
+system 0 from 37 to 38 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 37:1 -> 68:7 -> 38:0
+system 0 from 38 to 39 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 38:1 -> 68:8 -> 39:0
+system 0 from 39 to 32 fromportNumber 2010 destportNumder 2010 time 1.13621 flowsize 33554432 Flow actual path: 39:1 -> 68:1 -> 32:0
+system 0 from 48 to 49 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 48:1 -> 70:2 -> 49:0
+system 0 from 49 to 50 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 49:1 -> 70:3 -> 50:0
+system 0 from 50 to 51 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 50:1 -> 70:4 -> 51:0
+system 0 from 51 to 52 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 51:1 -> 70:5 -> 52:0
+system 0 from 52 to 53 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 52:1 -> 70:6 -> 53:0
+system 0 from 53 to 54 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 53:1 -> 70:7 -> 54:0
+system 0 from 54 to 55 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 54:1 -> 70:8 -> 55:0
+system 0 from 55 to 48 fromportNumber 2011 destportNumder 2011 time 1.13621 flowsize 33554432 Flow actual path: 55:1 -> 70:1 -> 48:0
