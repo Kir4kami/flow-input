@@ -18,3 +18,4 @@ cmake-cache/
 *.internal
 build_output.log
 flow_stats.txt
+build/
