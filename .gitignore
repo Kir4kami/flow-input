@@ -11,3 +11,10 @@ Traffic Generation/paralle_mode/rdma_result/
 cmake-cache
 tor.txt
 scratch/first.cc
+cmake-cache/
+*.o
+*.o.d
+*.make
+*.internal
+build_output.log
+flow_stats.txt
