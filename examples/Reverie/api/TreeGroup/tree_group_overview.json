@@ -1,5 +1,5 @@
 {
-  "total_groups": 2,
+  "total_groups": 3,
   "groups": [
     {
       "group_id": 1,
@@ -12,6 +12,13 @@
       "group_id": 2,
       "filename": "tree_group_2.json",
       "filepath": "TreeGroup/tree_group_2.json",
+      "node_count": 2,
+      "edge_count": 1
+    },
+    {
+      "group_id": 3,
+      "filename": "tree_group_3.json",
+      "filepath": "TreeGroup/tree_group_3.json",
       "node_count": 2,
       "edge_count": 1
     }

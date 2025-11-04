@@ -1,0 +1,13 @@
+{
+  "total_groups": 1,
+  "groups": [
+    {
+      "group_id": 1,
+      "filename": "tree_group_1.json",
+      "filepath": "test_complete_tree_cut/tree_group_1.json",
+      "node_count": 2,
+      "edge_count": 1
+    }
+  ],
+  "output_directory": "test_complete_tree_cut"
+}

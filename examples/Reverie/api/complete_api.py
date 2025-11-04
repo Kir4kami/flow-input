@@ -1378,60 +1378,44 @@ async def stop_steady_state_monitor():
 @app.get("/steady-state-monitor")
 async def get_steady_state_status():
     """
-    获取稳态状态（基于qbb-net-device.cc输出的evaluation.out日志）
-    这是实时读取日志文件来判断稳态的接口
+    获取稳态状态（通过分析flow_stats.txt中的流速率数据来判断稳态）
+    不再依赖C++代码输出,而是Python自己分析
     """
-    # 日志文件路径
-    evaluation_out = Path(__file__).parent.parent / "dump" / "evaluation.out"
+    # 使用本地路径的 flow_stats.txt
+    flow_stats_file = Path("/home/chanel/flow-input-local/flow_stats.txt")
     
-    # 如果正在监控，实时检查日志
-    if steady_state_monitor.is_monitoring:
-        is_steady, steady_time, new_position, exit_detected = parse_steady_state_from_log(
-            evaluation_out,
-            steady_state_monitor.last_log_position
-        )
-        steady_state_monitor.last_log_position = new_position
+    if not flow_stats_file.exists():
+        # 尝试其他可能的路径
+        flow_stats_file = Path(__file__).parent.parent.parent / "flow_stats.txt"
+    
+    if not flow_stats_file.exists():
+        return {
+            "is_steady": False,
+            "message": "flow_stats.txt 文件不存在",
+            "timestamp": time.time(),
+            "details": []
+        }
+    
+    try:
+        # 分析流速率数据来判断稳态
+        steady_info = analyze_flow_rates_for_steady_state(flow_stats_file)
         
-        # 检测到进入稳态
-        if is_steady and not steady_state_monitor.is_in_steady_state:
-            steady_state_monitor.is_in_steady_state = True
-            steady_state_monitor.steady_state_count += 1
-            
-            # 记录稳态历史
-            steady_record = {
-                "count": steady_state_monitor.steady_state_count,
-                "enter_time_ns": steady_time,
-                "detected_at": time.time(),
-                "status": "entered"
-            }
-            steady_state_monitor.steady_state_history.append(steady_record)
-            simulation_status.steady_state = True
-        
-        # 检测到退出稳态
-        if exit_detected and steady_state_monitor.is_in_steady_state:
-            steady_state_monitor.is_in_steady_state = False
-            if steady_state_monitor.steady_state_history:
-                steady_state_monitor.steady_state_history[-1]["status"] = "exited"
-            simulation_status.steady_state = False
-    
-    # 生成状态消息
-    if not steady_state_monitor.is_monitoring:
-        message = "监控未启动"
-    elif steady_state_monitor.is_in_steady_state:
-        message = f"系统处于稳态加速模式（第{steady_state_monitor.steady_state_count}次）"
-    else:
-        message = "监控中，等待进入稳态..."
-    
-    return {
-        "is_monitoring": steady_state_monitor.is_monitoring,
-        "is_steady": steady_state_monitor.is_in_steady_state,
-        "is_in_steady_state": steady_state_monitor.is_in_steady_state,
-        "steady_state_count": steady_state_monitor.steady_state_count,
-        "timestamp": time.time(),
-        "message": message,
-        "details": [h.get("enter_time_ns") for h in steady_state_monitor.steady_state_history],
-        "history": steady_state_monitor.steady_state_history
-    }
+        return {
+            "is_monitoring": True,
+            "is_steady": steady_info["is_steady"],
+            "steady_state_count": steady_info["steady_count"],
+            "timestamp": time.time(),
+            "message": steady_info["message"],
+            "details": steady_info["details"],
+            "flow_analysis": steady_info["flow_stats"]
+        }
+    except Exception as e:
+        return {
+            "is_steady": False,
+            "message": f"分析失败: {str(e)}",
+            "timestamp": time.time(),
+            "details": []
+        }
 
 @app.get("/steady-state-history")
 async def get_steady_state_history():
@@ -2018,3 +2002,30 @@ async def stop_simulation():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# 添加稳态分析函数
+def analyze_flow_rates_for_steady_state_v2(flow_stats_file):
+    """分析流速率判断稳态"""
+    import re
+    flow_rates = {}
+    
+    with open(flow_stats_file, 'r') as f:
+        for line in f:
+            match = re.search(r'Flow ID:\s+([\d\-]+)\s+-\s+Rate:\s+([\d.]+)\s+Gbps', line)
+            if match:
+                flow_id = match.group(1)
+                rate = float(match.group(2))
+                if flow_id not in flow_rates:
+                    flow_rates[flow_id] = []
+                flow_rates[flow_id].append(rate)
+    
+    steady_flows = sum(1 for rates in flow_rates.values() if len(rates) >= 10 and (max(rates[-10:]) - min(rates[-10:])) < 1e-6)
+    total_flows = len(flow_rates)
+    
+    return {
+        "is_steady": steady_flows == total_flows and total_flows > 0,
+        "steady_count": 1 if steady_flows == total_flows and total_flows > 0 else 0,
+        "message": f"稳态分析: {steady_flows}/{total_flows} 个流稳定",
+        "details": [],
+        "flow_stats": {"total_flows": total_flows, "steady_flows": steady_flows}
+    }

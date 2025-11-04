@@ -1,0 +1,954 @@
+================================================================================
+仿真日志 - sim_1762072207
+时间戳: 2025-11-02 08:30:07
+================================================================================
+仿真ID: sim_1762072207
+工作目录: /workspace/examples/Reverie
+脚本路径: /workspace/examples/Reverie/sim.sh
+任务数: 1
+模型: deepseek
+混合粒度: True
+仿真时间限制: 10.0秒
+================================================================================
+
+
+================================================================================
+仿真执行结果
+================================================================================
+返回码: -2
+执行时间: 7.98秒
+
+================================================================================
+STDOUT 输出:
+================================================================================
+Running trafficGen.py with input: deepseek.txt...
+Removed existing rdma_result directory
+Iteration 0: Parsed model=deepseek, devices=2, iterations=2
+Iteration 0: Stored first TP args: {'host_num': 64, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+max_iterations after initial parse: 2
+Starting iteration 0
+Iteration 0: Parsed model=deepseek, devices=2, iterations=2
+Iteration 0: Stored first TP args: {'host_num': 64, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+Generated traffic for node 1_TP1, group 0 (mode: tp, iteration: 0) with port 1000
+Generated traffic for node 1_TP1, group 1 (mode: tp, iteration: 0) with port 1001
+Generated traffic for node 1_TP1, group 2 (mode: tp, iteration: 0) with port 1002
+Generated traffic for node 1_TP1, group 3 (mode: tp, iteration: 0) with port 1003
+Generated traffic for node 2_EP2, group 0 (mode: tp, iteration: 0) with port 1004
+Generated traffic for node 2_EP2, group 1 (mode: tp, iteration: 0) with port 1005
+Generated traffic for node 2_EP2, group 2 (mode: tp, iteration: 0) with port 1006
+Generated traffic for node 2_EP2, group 3 (mode: tp, iteration: 0) with port 1007
+Generated traffic for node 3_PP3, group 0 (mode: pp, iteration: 0) with port 1008
+Generated traffic for node 3_PP3, group 1 (mode: pp, iteration: 0) with port 1009
+Generated traffic for node 3_PP3, group 2 (mode: pp, iteration: 0) with port 1010
+Generated traffic for node 3_PP3, group 3 (mode: pp, iteration: 0) with port 1011
+Generated traffic for node 3_PP3, group 4 (mode: pp, iteration: 0) with port 1012
+Generated traffic for node 3_PP3, group 5 (mode: pp, iteration: 0) with port 1013
+Generated traffic for node 3_PP3, group 6 (mode: pp, iteration: 0) with port 1014
+Generated traffic for node 3_PP3, group 7 (mode: pp, iteration: 0) with port 1015
+Generated traffic for node 4_TP4, group 0 (mode: tp, iteration: 0) with port 1016
+Generated traffic for node 4_TP4, group 1 (mode: tp, iteration: 0) with port 1017
+Generated traffic for node 4_TP4, group 2 (mode: tp, iteration: 0) with port 1018
+Generated traffic for node 4_TP4, group 3 (mode: tp, iteration: 0) with port 1019
+Generated traffic for node 5_TP4, group 0 (mode: tp, iteration: 0) with port 1020
+Generated traffic for node 5_TP4, group 1 (mode: tp, iteration: 0) with port 1021
+Generated traffic for node 5_TP4, group 2 (mode: tp, iteration: 0) with port 1022
+Generated traffic for node 5_TP4, group 3 (mode: tp, iteration: 0) with port 1023
+Generated traffic for node 6_EP5, group 0 (mode: tp, iteration: 0) with port 1024
+Generated traffic for node 6_EP5, group 1 (mode: tp, iteration: 0) with port 1025
+Generated traffic for node 6_EP5, group 2 (mode: tp, iteration: 0) with port 1026
+Generated traffic for node 6_EP5, group 3 (mode: tp, iteration: 0) with port 1027
+Generated traffic for node 7_EP5, group 0 (mode: tp, iteration: 0) with port 1028
+Generated traffic for node 7_EP5, group 1 (mode: tp, iteration: 0) with port 1029
+Generated traffic for node 7_EP5, group 2 (mode: tp, iteration: 0) with port 1030
+Generated traffic for node 7_EP5, group 3 (mode: tp, iteration: 0) with port 1031
+Generated traffic for node 8_PP6, group 0 (mode: pp, iteration: 0) with port 1032
+Generated traffic for node 8_PP6, group 1 (mode: pp, iteration: 0) with port 1033
+Generated traffic for node 8_PP6, group 2 (mode: pp, iteration: 0) with port 1034
+Generated traffic for node 8_PP6, group 3 (mode: pp, iteration: 0) with port 1035
+Generated traffic for node 8_PP6, group 4 (mode: pp, iteration: 0) with port 1036
+Generated traffic for node 8_PP6, group 5 (mode: pp, iteration: 0) with port 1037
+Generated traffic for node 8_PP6, group 6 (mode: pp, iteration: 0) with port 1038
+Generated traffic for node 8_PP6, group 7 (mode: pp, iteration: 0) with port 1039
+Generated traffic for node 9_TP7, group 0 (mode: tp, iteration: 0) with port 1040
+Generated traffic for node 9_TP7, group 1 (mode: tp, iteration: 0) with port 1041
+Generated traffic for node 9_TP7, group 2 (mode: tp, iteration: 0) with port 1042
+Generated traffic for node 9_TP7, group 3 (mode: tp, iteration: 0) with port 1043
+Generated traffic for node 10_EP8, group 0 (mode: tp, iteration: 0) with port 1044
+Generated traffic for node 10_EP8, group 1 (mode: tp, iteration: 0) with port 1045
+Generated traffic for node 10_EP8, group 2 (mode: tp, iteration: 0) with port 1046
+Generated traffic for node 10_EP8, group 3 (mode: tp, iteration: 0) with port 1047
+Generated traffic for node 11_TP9, group 0 (mode: tp, iteration: 0) with port 1048
+Generated traffic for node 11_TP9, group 1 (mode: tp, iteration: 0) with port 1049
+Generated traffic for node 11_TP9, group 2 (mode: tp, iteration: 0) with port 1050
+Generated traffic for node 11_TP9, group 3 (mode: tp, iteration: 0) with port 1051
+Generated traffic for node 12_EP10, group 0 (mode: tp, iteration: 0) with port 1052
+Generated traffic for node 12_EP10, group 1 (mode: tp, iteration: 0) with port 1053
+Generated traffic for node 12_EP10, group 2 (mode: tp, iteration: 0) with port 1054
+Generated traffic for node 12_EP10, group 3 (mode: tp, iteration: 0) with port 1055
+Generated traffic for node 13_PP11, group 0 (mode: pp, iteration: 0) with port 1056
+Generated traffic for node 13_PP11, group 1 (mode: pp, iteration: 0) with port 1057
+Generated traffic for node 13_PP11, group 2 (mode: pp, iteration: 0) with port 1058
+Generated traffic for node 13_PP11, group 3 (mode: pp, iteration: 0) with port 1059
+Generated traffic for node 13_PP11, group 4 (mode: pp, iteration: 0) with port 1060
+Generated traffic for node 13_PP11, group 5 (mode: pp, iteration: 0) with port 1061
+Generated traffic for node 13_PP11, group 6 (mode: pp, iteration: 0) with port 1062
+Generated traffic for node 13_PP11, group 7 (mode: pp, iteration: 0) with port 1063
+Generated traffic for node 14_TP12, group 0 (mode: tp, iteration: 0) with port 1064
+Generated traffic for node 14_TP12, group 1 (mode: tp, iteration: 0) with port 1065
+Generated traffic for node 14_TP12, group 2 (mode: tp, iteration: 0) with port 1066
+Generated traffic for node 14_TP12, group 3 (mode: tp, iteration: 0) with port 1067
+Generated traffic for node 15_TP12, group 0 (mode: tp, iteration: 0) with port 1068
+Generated traffic for node 15_TP12, group 1 (mode: tp, iteration: 0) with port 1069
+Generated traffic for node 15_TP12, group 2 (mode: tp, iteration: 0) with port 1070
+Generated traffic for node 15_TP12, group 3 (mode: tp, iteration: 0) with port 1071
+Generated traffic for node 16_EP13, group 0 (mode: tp, iteration: 0) with port 1072
+Generated traffic for node 16_EP13, group 1 (mode: tp, iteration: 0) with port 1073
+Generated traffic for node 16_EP13, group 2 (mode: tp, iteration: 0) with port 1074
+Generated traffic for node 16_EP13, group 3 (mode: tp, iteration: 0) with port 1075
+Generated traffic for node 17_EP13, group 0 (mode: tp, iteration: 0) with port 1076
+Generated traffic for node 17_EP13, group 1 (mode: tp, iteration: 0) with port 1077
+Generated traffic for node 17_EP13, group 2 (mode: tp, iteration: 0) with port 1078
+Generated traffic for node 17_EP13, group 3 (mode: tp, iteration: 0) with port 1079
+Generated traffic for node 18_PP14, group 0 (mode: pp, iteration: 0) with port 1080
+Generated traffic for node 18_PP14, group 1 (mode: pp, iteration: 0) with port 1081
+Generated traffic for node 18_PP14, group 2 (mode: pp, iteration: 0) with port 1082
+Generated traffic for node 18_PP14, group 3 (mode: pp, iteration: 0) with port 1083
+Generated traffic for node 18_PP14, group 4 (mode: pp, iteration: 0) with port 1084
+Generated traffic for node 18_PP14, group 5 (mode: pp, iteration: 0) with port 1085
+Generated traffic for node 18_PP14, group 6 (mode: pp, iteration: 0) with port 1086
+Generated traffic for node 18_PP14, group 7 (mode: pp, iteration: 0) with port 1087
+Generated traffic for node 19_TP15, group 0 (mode: tp, iteration: 0) with port 1088
+Generated traffic for node 19_TP15, group 1 (mode: tp, iteration: 0) with port 1089
+Generated traffic for node 19_TP15, group 2 (mode: tp, iteration: 0) with port 1090
+Generated traffic for node 19_TP15, group 3 (mode: tp, iteration: 0) with port 1091
+Generated traffic for node 20_EP16, group 0 (mode: tp, iteration: 0) with port 1092
+Generated traffic for node 20_EP16, group 1 (mode: tp, iteration: 0) with port 1093
+Generated traffic for node 20_EP16, group 2 (mode: tp, iteration: 0) with port 1094
+Generated traffic for node 20_EP16, group 3 (mode: tp, iteration: 0) with port 1095
+Generated traffic for node 21_DP17, group 0 (mode: dp, iteration: 0) with port 1096
+Generated traffic for node 21_DP17, group 1 (mode: dp, iteration: 0) with port 1097
+Generated traffic for node 21_DP17, group 2 (mode: dp, iteration: 0) with port 1098
+Generated traffic for node 21_DP17, group 3 (mode: dp, iteration: 0) with port 1099
+Generated traffic for node 21_DP17, group 4 (mode: dp, iteration: 0) with port 1100
+Generated traffic for node 21_DP17, group 5 (mode: dp, iteration: 0) with port 1101
+Generated traffic for node 21_DP17, group 6 (mode: dp, iteration: 0) with port 1102
+Generated traffic for node 21_DP17, group 7 (mode: dp, iteration: 0) with port 1103
+Starting iteration 1
+Iteration 1: Parsed model=deepseek, devices=2, iterations=2
+Iteration 1: Adding extra TP node with args: {'host_num': 64, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+Node 21_DP17: No valid hosts in nodes_passed []
+Generated traffic for node 22_TP18, group 0 (mode: tp, iteration: 1) with port 2000
+Generated traffic for node 22_TP18, group 1 (mode: tp, iteration: 1) with port 2001
+Generated traffic for node 22_TP18, group 2 (mode: tp, iteration: 1) with port 2002
+Generated traffic for node 22_TP18, group 3 (mode: tp, iteration: 1) with port 2003
+Generated traffic for node 43_TP34, group 0 (mode: tp, iteration: 1) with port 2004
+Generated traffic for node 43_TP34, group 1 (mode: tp, iteration: 1) with port 2005
+Generated traffic for node 43_TP34, group 2 (mode: tp, iteration: 1) with port 2006
+Generated traffic for node 43_TP34, group 3 (mode: tp, iteration: 1) with port 2007
+Generated traffic for node 23_EP19, group 0 (mode: tp, iteration: 1) with port 2008
+Generated traffic for node 23_EP19, group 1 (mode: tp, iteration: 1) with port 2009
+Generated traffic for node 23_EP19, group 2 (mode: tp, iteration: 1) with port 2010
+Generated traffic for node 23_EP19, group 3 (mode: tp, iteration: 1) with port 2011
+Generated traffic for node 24_PP20, group 0 (mode: pp, iteration: 1) with port 2012
+Generated traffic for node 24_PP20, group 1 (mode: pp, iteration: 1) with port 2013
+Generated traffic for node 24_PP20, group 2 (mode: pp, iteration: 1) with port 2014
+Generated traffic for node 24_PP20, group 3 (mode: pp, iteration: 1) with port 2015
+Generated traffic for node 24_PP20, group 4 (mode: pp, iteration: 1) with port 2016
+Generated traffic for node 24_PP20, group 5 (mode: pp, iteration: 1) with port 2017
+Generated traffic for node 24_PP20, group 6 (mode: pp, iteration: 1) with port 2018
+Generated traffic for node 24_PP20, group 7 (mode: pp, iteration: 1) with port 2019
+Generated traffic for node 25_TP21, group 0 (mode: tp, iteration: 1) with port 2020
+Generated traffic for node 25_TP21, group 1 (mode: tp, iteration: 1) with port 2021
+Generated traffic for node 25_TP21, group 2 (mode: tp, iteration: 1) with port 2022
+Generated traffic for node 25_TP21, group 3 (mode: tp, iteration: 1) with port 2023
+Generated traffic for node 26_TP21, group 0 (mode: tp, iteration: 1) with port 2024
+Generated traffic for node 26_TP21, group 1 (mode: tp, iteration: 1) with port 2025
+Generated traffic for node 26_TP21, group 2 (mode: tp, iteration: 1) with port 2026
+Generated traffic for node 26_TP21, group 3 (mode: tp, iteration: 1) with port 2027
+Generated traffic for node 27_EP22, group 0 (mode: tp, iteration: 1) with port 2028
+Generated traffic for node 27_EP22, group 1 (mode: tp, iteration: 1) with port 2029
+Generated traffic for node 27_EP22, group 2 (mode: tp, iteration: 1) with port 2030
+Generated traffic for node 27_EP22, group 3 (mode: tp, iteration: 1) with port 2031
+Generated traffic for node 28_EP22, group 0 (mode: tp, iteration: 1) with port 2032
+Generated traffic for node 28_EP22, group 1 (mode: tp, iteration: 1) with port 2033
+Generated traffic for node 28_EP22, group 2 (mode: tp, iteration: 1) with port 2034
+Generated traffic for node 28_EP22, group 3 (mode: tp, iteration: 1) with port 2035
+Generated traffic for node 29_PP23, group 0 (mode: pp, iteration: 1) with port 2036
+Generated traffic for node 29_PP23, group 1 (mode: pp, iteration: 1) with port 2037
+Generated traffic for node 29_PP23, group 2 (mode: pp, iteration: 1) with port 2038
+Generated traffic for node 29_PP23, group 3 (mode: pp, iteration: 1) with port 2039
+Generated traffic for node 29_PP23, group 4 (mode: pp, iteration: 1) with port 2040
+Generated traffic for node 29_PP23, group 5 (mode: pp, iteration: 1) with port 2041
+Generated traffic for node 29_PP23, group 6 (mode: pp, iteration: 1) with port 2042
+Generated traffic for node 29_PP23, group 7 (mode: pp, iteration: 1) with port 2043
+Generated traffic for node 30_TP24, group 0 (mode: tp, iteration: 1) with port 2044
+Generated traffic for node 30_TP24, group 1 (mode: tp, iteration: 1) with port 2045
+Generated traffic for node 30_TP24, group 2 (mode: tp, iteration: 1) with port 2046
+Generated traffic for node 30_TP24, group 3 (mode: tp, iteration: 1) with port 2047
+Generated traffic for node 31_EP25, group 0 (mode: tp, iteration: 1) with port 2048
+Generated traffic for node 31_EP25, group 1 (mode: tp, iteration: 1) with port 2049
+Generated traffic for node 31_EP25, group 2 (mode: tp, iteration: 1) with port 2050
+Generated traffic for node 31_EP25, group 3 (mode: tp, iteration: 1) with port 2051
+Generated traffic for node 32_TP26, group 0 (mode: tp, iteration: 1) with port 2052
+Generated traffic for node 32_TP26, group 1 (mode: tp, iteration: 1) with port 2053
+Generated traffic for node 32_TP26, group 2 (mode: tp, iteration: 1) with port 2054
+Generated traffic for node 32_TP26, group 3 (mode: tp, iteration: 1) with port 2055
+Generated traffic for node 33_EP27, group 0 (mode: tp, iteration: 1) with port 2056
+Generated traffic for node 33_EP27, group 1 (mode: tp, iteration: 1) with port 2057
+Generated traffic for node 33_EP27, group 2 (mode: tp, iteration: 1) with port 2058
+Generated traffic for node 33_EP27, group 3 (mode: tp, iteration: 1) with port 2059
+Generated traffic for node 34_PP28, group 0 (mode: pp, iteration: 1) with port 2060
+Generated traffic for node 34_PP28, group 1 (mode: pp, iteration: 1) with port 2061
+Generated traffic for node 34_PP28, group 2 (mode: pp, iteration: 1) with port 2062
+Generated traffic for node 34_PP28, group 3 (mode: pp, iteration: 1) with port 2063
+Generated traffic for node 34_PP28, group 4 (mode: pp, iteration: 1) with port 2064
+Generated traffic for node 34_PP28, group 5 (mode: pp, iteration: 1) with port 2065
+Generated traffic for node 34_PP28, group 6 (mode: pp, iteration: 1) with port 2066
+Generated traffic for node 34_PP28, group 7 (mode: pp, iteration: 1) with port 2067
+Generated traffic for node 35_TP29, group 0 (mode: tp, iteration: 1) with port 2068
+Generated traffic for node 35_TP29, group 1 (mode: tp, iteration: 1) with port 2069
+Generated traffic for node 35_TP29, group 2 (mode: tp, iteration: 1) with port 2070
+Generated traffic for node 35_TP29, group 3 (mode: tp, iteration: 1) with port 2071
+Generated traffic for node 36_TP29, group 0 (mode: tp, iteration: 1) with port 2072
+Generated traffic for node 36_TP29, group 1 (mode: tp, iteration: 1) with port 2073
+Generated traffic for node 36_TP29, group 2 (mode: tp, iteration: 1) with port 2074
+Generated traffic for node 36_TP29, group 3 (mode: tp, iteration: 1) with port 2075
+Generated traffic for node 37_EP30, group 0 (mode: tp, iteration: 1) with port 2076
+Generated traffic for node 37_EP30, group 1 (mode: tp, iteration: 1) with port 2077
+Generated traffic for node 37_EP30, group 2 (mode: tp, iteration: 1) with port 2078
+Generated traffic for node 37_EP30, group 3 (mode: tp, iteration: 1) with port 2079
+Generated traffic for node 38_EP30, group 0 (mode: tp, iteration: 1) with port 2080
+Generated traffic for node 38_EP30, group 1 (mode: tp, iteration: 1) with port 2081
+Generated traffic for node 38_EP30, group 2 (mode: tp, iteration: 1) with port 2082
+Generated traffic for node 38_EP30, group 3 (mode: tp, iteration: 1) with port 2083
+Generated traffic for node 39_PP31, group 0 (mode: pp, iteration: 1) with port 2084
+Generated traffic for node 39_PP31, group 1 (mode: pp, iteration: 1) with port 2085
+Generated traffic for node 39_PP31, group 2 (mode: pp, iteration: 1) with port 2086
+Generated traffic for node 39_PP31, group 3 (mode: pp, iteration: 1) with port 2087
+Generated traffic for node 39_PP31, group 4 (mode: pp, iteration: 1) with port 2088
+Generated traffic for node 39_PP31, group 5 (mode: pp, iteration: 1) with port 2089
+Generated traffic for node 39_PP31, group 6 (mode: pp, iteration: 1) with port 2090
+Generated traffic for node 39_PP31, group 7 (mode: pp, iteration: 1) with port 2091
+Generated traffic for node 40_TP32, group 0 (mode: tp, iteration: 1) with port 2092
+Generated traffic for node 40_TP32, group 1 (mode: tp, iteration: 1) with port 2093
+Generated traffic for node 40_TP32, group 2 (mode: tp, iteration: 1) with port 2094
+Generated traffic for node 40_TP32, group 3 (mode: tp, iteration: 1) with port 2095
+Generated traffic for node 41_EP33, group 0 (mode: tp, iteration: 1) with port 2096
+Generated traffic for node 41_EP33, group 1 (mode: tp, iteration: 1) with port 2097
+Generated traffic for node 41_EP33, group 2 (mode: tp, iteration: 1) with port 2098
+Generated traffic for node 41_EP33, group 3 (mode: tp, iteration: 1) with port 2099
+Generated traffic for node 42_DP34, group 0 (mode: dp, iteration: 1) with port 2100
+Generated traffic for node 42_DP34, group 1 (mode: dp, iteration: 1) with port 2101
+Generated traffic for node 42_DP34, group 2 (mode: dp, iteration: 1) with port 2102
+Generated traffic for node 42_DP34, group 3 (mode: dp, iteration: 1) with port 2103
+Generated traffic for node 42_DP34, group 4 (mode: dp, iteration: 1) with port 2104
+Generated traffic for node 42_DP34, group 5 (mode: dp, iteration: 1) with port 2105
+Generated traffic for node 42_DP34, group 6 (mode: dp, iteration: 1) with port 2106
+Generated traffic for node 42_DP34, group 7 (mode: dp, iteration: 1) with port 2107
+Traffic generation completed for model deepseek with 2 devices and 2 iterations
+Running in single-task mode (TASKNUM=1)
+Running merge_dependency.sh...
+Generated dependence.txt with dependencies for 212 files.
+Running merge_rdma.sh...
+实际合并文件数: 212
+All merge scripts executed successfully!
+Copying generated traffic files to task1 directory...
+Removing existing task1 directory...
+'rdma_result/all_rdma_files/rdma_operate0.txt' -> '../task1/rdma_operate0.txt'
+'rdma_result/all_rdma_files/rdma_operate1.txt' -> '../task1/rdma_operate1.txt'
+'rdma_result/all_rdma_files/rdma_operate10.txt' -> '../task1/rdma_operate10.txt'
+'rdma_result/all_rdma_files/rdma_operate100.txt' -> '../task1/rdma_operate100.txt'
+'rdma_result/all_rdma_files/rdma_operate101.txt' -> '../task1/rdma_operate101.txt'
+'rdma_result/all_rdma_files/rdma_operate102.txt' -> '../task1/rdma_operate102.txt'
+'rdma_result/all_rdma_files/rdma_operate103.txt' -> '../task1/rdma_operate103.txt'
+'rdma_result/all_rdma_files/rdma_operate104.txt' -> '../task1/rdma_operate104.txt'
+'rdma_result/all_rdma_files/rdma_operate105.txt' -> '../task1/rdma_operate105.txt'
+'rdma_result/all_rdma_files/rdma_operate106.txt' -> '../task1/rdma_operate106.txt'
+'rdma_result/all_rdma_files/rdma_operate107.txt' -> '../task1/rdma_operate107.txt'
+'rdma_result/all_rdma_files/rdma_operate108.txt' -> '../task1/rdma_operate108.txt'
+'rdma_result/all_rdma_files/rdma_operate109.txt' -> '../task1/rdma_operate109.txt'
+'rdma_result/all_rdma_files/rdma_operate11.txt' -> '../task1/rdma_operate11.txt'
+'rdma_result/all_rdma_files/rdma_operate110.txt' -> '../task1/rdma_operate110.txt'
+'rdma_result/all_rdma_files/rdma_operate111.txt' -> '../task1/rdma_operate111.txt'
+'rdma_result/all_rdma_files/rdma_operate112.txt' -> '../task1/rdma_operate112.txt'
+'rdma_result/all_rdma_files/rdma_operate113.txt' -> '../task1/rdma_operate113.txt'
+'rdma_result/all_rdma_files/rdma_operate114.txt' -> '../task1/rdma_operate114.txt'
+'rdma_result/all_rdma_files/rdma_operate115.txt' -> '../task1/rdma_operate115.txt'
+'rdma_result/all_rdma_files/rdma_operate116.txt' -> '../task1/rdma_operate116.txt'
+'rdma_result/all_rdma_files/rdma_operate117.txt' -> '../task1/rdma_operate117.txt'
+'rdma_result/all_rdma_files/rdma_operate118.txt' -> '../task1/rdma_operate118.txt'
+'rdma_result/all_rdma_files/rdma_operate119.txt' -> '../task1/rdma_operate119.txt'
+'rdma_result/all_rdma_files/rdma_operate12.txt' -> '../task1/rdma_operate12.txt'
+'rdma_result/all_rdma_files/rdma_operate120.txt' -> '../task1/rdma_operate120.txt'
+'rdma_result/all_rdma_files/rdma_operate121.txt' -> '../task1/rdma_operate121.txt'
+'rdma_result/all_rdma_files/rdma_operate122.txt' -> '../task1/rdma_operate122.txt'
+'rdma_result/all_rdma_files/rdma_operate123.txt' -> '../task1/rdma_operate123.txt'
+'rdma_result/all_rdma_files/rdma_operate124.txt' -> '../task1/rdma_operate124.txt'
+'rdma_result/all_rdma_files/rdma_operate125.txt' -> '../task1/rdma_operate125.txt'
+'rdma_result/all_rdma_files/rdma_operate126.txt' -> '../task1/rdma_operate126.txt'
+'rdma_result/all_rdma_files/rdma_operate127.txt' -> '../task1/rdma_operate127.txt'
+'rdma_result/all_rdma_files/rdma_operate128.txt' -> '../task1/rdma_operate128.txt'
+'rdma_result/all_rdma_files/rdma_operate129.txt' -> '../task1/rdma_operate129.txt'
+'rdma_result/all_rdma_files/rdma_operate13.txt' -> '../task1/rdma_operate13.txt'
+'rdma_result/all_rdma_files/rdma_operate130.txt' -> '../task1/rdma_operate130.txt'
+'rdma_result/all_rdma_files/rdma_operate131.txt' -> '../task1/rdma_operate131.txt'
+'rdma_result/all_rdma_files/rdma_operate132.txt' -> '../task1/rdma_operate132.txt'
+'rdma_result/all_rdma_files/rdma_operate133.txt' -> '../task1/rdma_operate133.txt'
+'rdma_result/all_rdma_files/rdma_operate134.txt' -> '../task1/rdma_operate134.txt'
+'rdma_result/all_rdma_files/rdma_operate135.txt' -> '../task1/rdma_operate135.txt'
+'rdma_result/all_rdma_files/rdma_operate136.txt' -> '../task1/rdma_operate136.txt'
+'rdma_result/all_rdma_files/rdma_operate137.txt' -> '../task1/rdma_operate137.txt'
+'rdma_result/all_rdma_files/rdma_operate138.txt' -> '../task1/rdma_operate138.txt'
+'rdma_result/all_rdma_files/rdma_operate139.txt' -> '../task1/rdma_operate139.txt'
+'rdma_result/all_rdma_files/rdma_operate14.txt' -> '../task1/rdma_operate14.txt'
+'rdma_result/all_rdma_files/rdma_operate140.txt' -> '../task1/rdma_operate140.txt'
+'rdma_result/all_rdma_files/rdma_operate141.txt' -> '../task1/rdma_operate141.txt'
+'rdma_result/all_rdma_files/rdma_operate142.txt' -> '../task1/rdma_operate142.txt'
+'rdma_result/all_rdma_files/rdma_operate143.txt' -> '../task1/rdma_operate143.txt'
+'rdma_result/all_rdma_files/rdma_operate144.txt' -> '../task1/rdma_operate144.txt'
+'rdma_result/all_rdma_files/rdma_operate145.txt' -> '../task1/rdma_operate145.txt'
+'rdma_result/all_rdma_files/rdma_operate146.txt' -> '../task1/rdma_operate146.txt'
+'rdma_result/all_rdma_files/rdma_operate147.txt' -> '../task1/rdma_operate147.txt'
+'rdma_result/all_rdma_files/rdma_operate148.txt' -> '../task1/rdma_operate148.txt'
+'rdma_result/all_rdma_files/rdma_operate149.txt' -> '../task1/rdma_operate149.txt'
+'rdma_result/all_rdma_files/rdma_operate15.txt' -> '../task1/rdma_operate15.txt'
+'rdma_result/all_rdma_files/rdma_operate150.txt' -> '../task1/rdma_operate150.txt'
+'rdma_result/all_rdma_files/rdma_operate151.txt' -> '../task1/rdma_operate151.txt'
+'rdma_result/all_rdma_files/rdma_operate152.txt' -> '../task1/rdma_operate152.txt'
+'rdma_result/all_rdma_files/rdma_operate153.txt' -> '../task1/rdma_operate153.txt'
+'rdma_result/all_rdma_files/rdma_operate154.txt' -> '../task1/rdma_operate154.txt'
+'rdma_result/all_rdma_files/rdma_operate155.txt' -> '../task1/rdma_operate155.txt'
+'rdma_result/all_rdma_files/rdma_operate156.txt' -> '../task1/rdma_operate156.txt'
+'rdma_result/all_rdma_files/rdma_operate157.txt' -> '../task1/rdma_operate157.txt'
+'rdma_result/all_rdma_files/rdma_operate158.txt' -> '../task1/rdma_operate158.txt'
+'rdma_result/all_rdma_files/rdma_operate159.txt' -> '../task1/rdma_operate159.txt'
+'rdma_result/all_rdma_files/rdma_operate16.txt' -> '../task1/rdma_operate16.txt'
+'rdma_result/all_rdma_files/rdma_operate160.txt' -> '../task1/rdma_operate160.txt'
+'rdma_result/all_rdma_files/rdma_operate161.txt' -> '../task1/rdma_operate161.txt'
+'rdma_result/all_rdma_files/rdma_operate162.txt' -> '../task1/rdma_operate162.txt'
+'rdma_result/all_rdma_files/rdma_operate163.txt' -> '../task1/rdma_operate163.txt'
+'rdma_result/all_rdma_files/rdma_operate164.txt' -> '../task1/rdma_operate164.txt'
+'rdma_result/all_rdma_files/rdma_operate165.txt' -> '../task1/rdma_operate165.txt'
+'rdma_result/all_rdma_files/rdma_operate166.txt' -> '../task1/rdma_operate166.txt'
+'rdma_result/all_rdma_files/rdma_operate167.txt' -> '../task1/rdma_operate167.txt'
+'rdma_result/all_rdma_files/rdma_operate168.txt' -> '../task1/rdma_operate168.txt'
+'rdma_result/all_rdma_files/rdma_operate169.txt' -> '../task1/rdma_operate169.txt'
+'rdma_result/all_rdma_files/rdma_operate17.txt' -> '../task1/rdma_operate17.txt'
+'rdma_result/all_rdma_files/rdma_operate170.txt' -> '../task1/rdma_operate170.txt'
+'rdma_result/all_rdma_files/rdma_operate171.txt' -> '../task1/rdma_operate171.txt'
+'rdma_result/all_rdma_files/rdma_operate172.txt' -> '../task1/rdma_operate172.txt'
+'rdma_result/all_rdma_files/rdma_operate173.txt' -> '../task1/rdma_operate173.txt'
+'rdma_result/all_rdma_files/rdma_operate174.txt' -> '../task1/rdma_operate174.txt'
+'rdma_result/all_rdma_files/rdma_operate175.txt' -> '../task1/rdma_operate175.txt'
+'rdma_result/all_rdma_files/rdma_operate176.txt' -> '../task1/rdma_operate176.txt'
+'rdma_result/all_rdma_files/rdma_operate177.txt' -> '../task1/rdma_operate177.txt'
+'rdma_result/all_rdma_files/rdma_operate178.txt' -> '../task1/rdma_operate178.txt'
+'rdma_result/all_rdma_files/rdma_operate179.txt' -> '../task1/rdma_operate179.txt'
+'rdma_result/all_rdma_files/rdma_operate18.txt' -> '../task1/rdma_operate18.txt'
+'rdma_result/all_rdma_files/rdma_operate180.txt' -> '../task1/rdma_operate180.txt'
+'rdma_result/all_rdma_files/rdma_operate181.txt' -> '../task1/rdma_operate181.txt'
+'rdma_result/all_rdma_files/rdma_operate182.txt' -> '../task1/rdma_operate182.txt'
+'rdma_result/all_rdma_files/rdma_operate183.txt' -> '../task1/rdma_operate183.txt'
+'rdma_result/all_rdma_files/rdma_operate184.txt' -> '../task1/rdma_operate184.txt'
+'rdma_result/all_rdma_files/rdma_operate185.txt' -> '../task1/rdma_operate185.txt'
+'rdma_result/all_rdma_files/rdma_operate186.txt' -> '../task1/rdma_operate186.txt'
+'rdma_result/all_rdma_files/rdma_operate187.txt' -> '../task1/rdma_operate187.txt'
+'rdma_result/all_rdma_files/rdma_operate188.txt' -> '../task1/rdma_operate188.txt'
+'rdma_result/all_rdma_files/rdma_operate189.txt' -> '../task1/rdma_operate189.txt'
+'rdma_result/all_rdma_files/rdma_operate19.txt' -> '../task1/rdma_operate19.txt'
+'rdma_result/all_rdma_files/rdma_operate190.txt' -> '../task1/rdma_operate190.txt'
+'rdma_result/all_rdma_files/rdma_operate191.txt' -> '../task1/rdma_operate191.txt'
+'rdma_result/all_rdma_files/rdma_operate192.txt' -> '../task1/rdma_operate192.txt'
+'rdma_result/all_rdma_files/rdma_operate193.txt' -> '../task1/rdma_operate193.txt'
+'rdma_result/all_rdma_files/rdma_operate194.txt' -> '../task1/rdma_operate194.txt'
+'rdma_result/all_rdma_files/rdma_operate195.txt' -> '../task1/rdma_operate195.txt'
+'rdma_result/all_rdma_files/rdma_operate196.txt' -> '../task1/rdma_operate196.txt'
+'rdma_result/all_rdma_files/rdma_operate197.txt' -> '../task1/rdma_operate197.txt'
+'rdma_result/all_rdma_files/rdma_operate198.txt' -> '../task1/rdma_operate198.txt'
+'rdma_result/all_rdma_files/rdma_operate199.txt' -> '../task1/rdma_operate199.txt'
+'rdma_result/all_rdma_files/rdma_operate2.txt' -> '../task1/rdma_operate2.txt'
+'rdma_result/all_rdma_files/rdma_operate20.txt' -> '../task1/rdma_operate20.txt'
+'rdma_result/all_rdma_files/rdma_operate200.txt' -> '../task1/rdma_operate200.txt'
+'rdma_result/all_rdma_files/rdma_operate201.txt' -> '../task1/rdma_operate201.txt'
+'rdma_result/all_rdma_files/rdma_operate202.txt' -> '../task1/rdma_operate202.txt'
+'rdma_result/all_rdma_files/rdma_operate203.txt' -> '../task1/rdma_operate203.txt'
+'rdma_result/all_rdma_files/rdma_operate204.txt' -> '../task1/rdma_operate204.txt'
+'rdma_result/all_rdma_files/rdma_operate205.txt' -> '../task1/rdma_operate205.txt'
+'rdma_result/all_rdma_files/rdma_operate206.txt' -> '../task1/rdma_operate206.txt'
+'rdma_result/all_rdma_files/rdma_operate207.txt' -> '../task1/rdma_operate207.txt'
+'rdma_result/all_rdma_files/rdma_operate208.txt' -> '../task1/rdma_operate208.txt'
+'rdma_result/all_rdma_files/rdma_operate209.txt' -> '../task1/rdma_operate209.txt'
+'rdma_result/all_rdma_files/rdma_operate21.txt' -> '../task1/rdma_operate21.txt'
+'rdma_result/all_rdma_files/rdma_operate210.txt' -> '../task1/rdma_operate210.txt'
+'rdma_result/all_rdma_files/rdma_operate211.txt' -> '../task1/rdma_operate211.txt'
+'rdma_result/all_rdma_files/rdma_operate22.txt' -> '../task1/rdma_operate22.txt'
+'rdma_result/all_rdma_files/rdma_operate23.txt' -> '../task1/rdma_operate23.txt'
+'rdma_result/all_rdma_files/rdma_operate24.txt' -> '../task1/rdma_operate24.txt'
+'rdma_result/all_rdma_files/rdma_operate25.txt' -> '../task1/rdma_operate25.txt'
+'rdma_result/all_rdma_files/rdma_operate26.txt' -> '../task1/rdma_operate26.txt'
+'rdma_result/all_rdma_files/rdma_operate27.txt' -> '../task1/rdma_operate27.txt'
+'rdma_result/all_rdma_files/rdma_operate28.txt' -> '../task1/rdma_operate28.txt'
+'rdma_result/all_rdma_files/rdma_operate29.txt' -> '../task1/rdma_operate29.txt'
+'rdma_result/all_rdma_files/rdma_operate3.txt' -> '../task1/rdma_operate3.txt'
+'rdma_result/all_rdma_files/rdma_operate30.txt' -> '../task1/rdma_operate30.txt'
+'rdma_result/all_rdma_files/rdma_operate31.txt' -> '../task1/rdma_operate31.txt'
+'rdma_result/all_rdma_files/rdma_operate32.txt' -> '../task1/rdma_operate32.txt'
+'rdma_result/all_rdma_files/rdma_operate33.txt' -> '../task1/rdma_operate33.txt'
+'rdma_result/all_rdma_files/rdma_operate34.txt' -> '../task1/rdma_operate34.txt'
+'rdma_result/all_rdma_files/rdma_operate35.txt' -> '../task1/rdma_operate35.txt'
+'rdma_result/all_rdma_files/rdma_operate36.txt' -> '../task1/rdma_operate36.txt'
+'rdma_result/all_rdma_files/rdma_operate37.txt' -> '../task1/rdma_operate37.txt'
+'rdma_result/all_rdma_files/rdma_operate38.txt' -> '../task1/rdma_operate38.txt'
+'rdma_result/all_rdma_files/rdma_operate39.txt' -> '../task1/rdma_operate39.txt'
+'rdma_result/all_rdma_files/rdma_operate4.txt' -> '../task1/rdma_operate4.txt'
+'rdma_result/all_rdma_files/rdma_operate40.txt' -> '../task1/rdma_operate40.txt'
+'rdma_result/all_rdma_files/rdma_operate41.txt' -> '../task1/rdma_operate41.txt'
+'rdma_result/all_rdma_files/rdma_operate42.txt' -> '../task1/rdma_operate42.txt'
+'rdma_result/all_rdma_files/rdma_operate43.txt' -> '../task1/rdma_operate43.txt'
+'rdma_result/all_rdma_files/rdma_operate44.txt' -> '../task1/rdma_operate44.txt'
+'rdma_result/all_rdma_files/rdma_operate45.txt' -> '../task1/rdma_operate45.txt'
+'rdma_result/all_rdma_files/rdma_operate46.txt' -> '../task1/rdma_operate46.txt'
+'rdma_result/all_rdma_files/rdma_operate47.txt' -> '../task1/rdma_operate47.txt'
+'rdma_result/all_rdma_files/rdma_operate48.txt' -> '../task1/rdma_operate48.txt'
+'rdma_result/all_rdma_files/rdma_operate49.txt' -> '../task1/rdma_operate49.txt'
+'rdma_result/all_rdma_files/rdma_operate5.txt' -> '../task1/rdma_operate5.txt'
+'rdma_result/all_rdma_files/rdma_operate50.txt' -> '../task1/rdma_operate50.txt'
+'rdma_result/all_rdma_files/rdma_operate51.txt' -> '../task1/rdma_operate51.txt'
+'rdma_result/all_rdma_files/rdma_operate52.txt' -> '../task1/rdma_operate52.txt'
+'rdma_result/all_rdma_files/rdma_operate53.txt' -> '../task1/rdma_operate53.txt'
+'rdma_result/all_rdma_files/rdma_operate54.txt' -> '../task1/rdma_operate54.txt'
+'rdma_result/all_rdma_files/rdma_operate55.txt' -> '../task1/rdma_operate55.txt'
+'rdma_result/all_rdma_files/rdma_operate56.txt' -> '../task1/rdma_operate56.txt'
+'rdma_result/all_rdma_files/rdma_operate57.txt' -> '../task1/rdma_operate57.txt'
+'rdma_result/all_rdma_files/rdma_operate58.txt' -> '../task1/rdma_operate58.txt'
+'rdma_result/all_rdma_files/rdma_operate59.txt' -> '../task1/rdma_operate59.txt'
+'rdma_result/all_rdma_files/rdma_operate6.txt' -> '../task1/rdma_operate6.txt'
+'rdma_result/all_rdma_files/rdma_operate60.txt' -> '../task1/rdma_operate60.txt'
+'rdma_result/all_rdma_files/rdma_operate61.txt' -> '../task1/rdma_operate61.txt'
+'rdma_result/all_rdma_files/rdma_operate62.txt' -> '../task1/rdma_operate62.txt'
+'rdma_result/all_rdma_files/rdma_operate63.txt' -> '../task1/rdma_operate63.txt'
+'rdma_result/all_rdma_files/rdma_operate64.txt' -> '../task1/rdma_operate64.txt'
+'rdma_result/all_rdma_files/rdma_operate65.txt' -> '../task1/rdma_operate65.txt'
+'rdma_result/all_rdma_files/rdma_operate66.txt' -> '../task1/rdma_operate66.txt'
+'rdma_result/all_rdma_files/rdma_operate67.txt' -> '../task1/rdma_operate67.txt'
+'rdma_result/all_rdma_files/rdma_operate68.txt' -> '../task1/rdma_operate68.txt'
+'rdma_result/all_rdma_files/rdma_operate69.txt' -> '../task1/rdma_operate69.txt'
+'rdma_result/all_rdma_files/rdma_operate7.txt' -> '../task1/rdma_operate7.txt'
+'rdma_result/all_rdma_files/rdma_operate70.txt' -> '../task1/rdma_operate70.txt'
+'rdma_result/all_rdma_files/rdma_operate71.txt' -> '../task1/rdma_operate71.txt'
+'rdma_result/all_rdma_files/rdma_operate72.txt' -> '../task1/rdma_operate72.txt'
+'rdma_result/all_rdma_files/rdma_operate73.txt' -> '../task1/rdma_operate73.txt'
+'rdma_result/all_rdma_files/rdma_operate74.txt' -> '../task1/rdma_operate74.txt'
+'rdma_result/all_rdma_files/rdma_operate75.txt' -> '../task1/rdma_operate75.txt'
+'rdma_result/all_rdma_files/rdma_operate76.txt' -> '../task1/rdma_operate76.txt'
+'rdma_result/all_rdma_files/rdma_operate77.txt' -> '../task1/rdma_operate77.txt'
+'rdma_result/all_rdma_files/rdma_operate78.txt' -> '../task1/rdma_operate78.txt'
+'rdma_result/all_rdma_files/rdma_operate79.txt' -> '../task1/rdma_operate79.txt'
+'rdma_result/all_rdma_files/rdma_operate8.txt' -> '../task1/rdma_operate8.txt'
+'rdma_result/all_rdma_files/rdma_operate80.txt' -> '../task1/rdma_operate80.txt'
+'rdma_result/all_rdma_files/rdma_operate81.txt' -> '../task1/rdma_operate81.txt'
+'rdma_result/all_rdma_files/rdma_operate82.txt' -> '../task1/rdma_operate82.txt'
+'rdma_result/all_rdma_files/rdma_operate83.txt' -> '../task1/rdma_operate83.txt'
+'rdma_result/all_rdma_files/rdma_operate84.txt' -> '../task1/rdma_operate84.txt'
+'rdma_result/all_rdma_files/rdma_operate85.txt' -> '../task1/rdma_operate85.txt'
+'rdma_result/all_rdma_files/rdma_operate86.txt' -> '../task1/rdma_operate86.txt'
+'rdma_result/all_rdma_files/rdma_operate87.txt' -> '../task1/rdma_operate87.txt'
+'rdma_result/all_rdma_files/rdma_operate88.txt' -> '../task1/rdma_operate88.txt'
+'rdma_result/all_rdma_files/rdma_operate89.txt' -> '../task1/rdma_operate89.txt'
+'rdma_result/all_rdma_files/rdma_operate9.txt' -> '../task1/rdma_operate9.txt'
+'rdma_result/all_rdma_files/rdma_operate90.txt' -> '../task1/rdma_operate90.txt'
+'rdma_result/all_rdma_files/rdma_operate91.txt' -> '../task1/rdma_operate91.txt'
+'rdma_result/all_rdma_files/rdma_operate92.txt' -> '../task1/rdma_operate92.txt'
+'rdma_result/all_rdma_files/rdma_operate93.txt' -> '../task1/rdma_operate93.txt'
+'rdma_result/all_rdma_files/rdma_operate94.txt' -> '../task1/rdma_operate94.txt'
+'rdma_result/all_rdma_files/rdma_operate95.txt' -> '../task1/rdma_operate95.txt'
+'rdma_result/all_rdma_files/rdma_operate96.txt' -> '../task1/rdma_operate96.txt'
+'rdma_result/all_rdma_files/rdma_operate97.txt' -> '../task1/rdma_operate97.txt'
+'rdma_result/all_rdma_files/rdma_operate98.txt' -> '../task1/rdma_operate98.txt'
+'rdma_result/all_rdma_files/rdma_operate99.txt' -> '../task1/rdma_operate99.txt'
+Successfully copied 212 files to task1 directory
+Moving dependence.txt to task1 directory
+Running kira-parallel.sh with TASKNUM=1...
+Scanning dependencies of target libpoint-to-point-obj
+[  0%] Building CXX object src/point-to-point/CMakeFiles/libpoint-to-point-obj.dir/model/qbb-net-device.cc.o
+Finished executing the following commands:
+cd cmake-cache; /usr/bin/cmake --build . -j 3 --target reverie-evaluation-sigcomm2023 ; cd ..
+
+================================================================================
+STDERR 输出:
+================================================================================
+Header line: deepseek 2 2, header_word: deepseek, max_devices: 2, num_iterations: 2
+Debug: num_iterations=2 before loop
+Processing iteration 1 of 2
+Saved first TP args: --host_num 64	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+Debug: Before parse_params for line 2, num_iterations=2
+Debug: After parse_params for line 2, num_iterations=2
+Mapping: TP1_iter1 -> 0_TP1_iter1
+Node 0_TP1_iter1 parents:  Root
+Node 0_TP1_iter1 files: 0-3 (4 files)
+Debug: Before parse_params for line 3, num_iterations=2
+Debug: After parse_params for line 3, num_iterations=2
+Mapping: EP1_iter1 -> 1_EP2_iter1
+Node 1_EP2_iter1 parents:  0_TP1_iter1
+Node 1_EP2_iter1 files: 4-7 (4 files)
+Debug: Before parse_params for line 4, num_iterations=2
+Debug: After parse_params for line 4, num_iterations=2
+Mapping: PP1_iter1 -> 2_PP3_iter1
+Node 2_PP3_iter1 parents:  1_EP2_iter1
+Node 2_PP3_iter1 files: 8-15 (8 files)
+Debug: Before parse_params for line 5, num_iterations=2
+Debug: After parse_params for line 5, num_iterations=2
+Mapping: TP2_iter1 -> 3_TP4_iter1
+Node 3_TP4_iter1 parents:  2_PP3_iter1
+Node 3_TP4_iter1 files: 16-19 (4 files)
+Debug: Before parse_params for line 6, num_iterations=2
+Debug: After parse_params for line 6, num_iterations=2
+Mapping: TP3_iter1 -> 4_TP4_iter1
+Node 4_TP4_iter1 parents:  2_PP3_iter1
+Node 4_TP4_iter1 files: 20-23 (4 files)
+Debug: Before parse_params for line 7, num_iterations=2
+Debug: After parse_params for line 7, num_iterations=2
+Mapping: EP2_iter1 -> 5_EP5_iter1
+Node 5_EP5_iter1 parents:  3_TP4_iter1
+Node 5_EP5_iter1 files: 24-27 (4 files)
+Debug: Before parse_params for line 8, num_iterations=2
+Debug: After parse_params for line 8, num_iterations=2
+Mapping: EP3_iter1 -> 6_EP5_iter1
+Node 6_EP5_iter1 parents:  4_TP4_iter1
+Node 6_EP5_iter1 files: 28-31 (4 files)
+Debug: Before parse_params for line 9, num_iterations=2
+Debug: After parse_params for line 9, num_iterations=2
+Mapping: PP2_iter1 -> 7_PP6_iter1
+Node 7_PP6_iter1 parents:  5_EP5_iter1
+Node 7_PP6_iter1 files: 32-39 (8 files)
+Debug: Before parse_params for line 10, num_iterations=2
+Debug: After parse_params for line 10, num_iterations=2
+Mapping: TP4_iter1 -> 8_TP7_iter1
+Node 8_TP7_iter1 parents:  7_PP6_iter1 6_EP5_iter1
+Node 8_TP7_iter1 files: 40-43 (4 files)
+Debug: Before parse_params for line 11, num_iterations=2
+Debug: After parse_params for line 11, num_iterations=2
+Mapping: EP4_iter1 -> 9_EP8_iter1
+Node 9_EP8_iter1 parents:  8_TP7_iter1
+Node 9_EP8_iter1 files: 44-47 (4 files)
+Debug: Before parse_params for line 12, num_iterations=2
+Debug: After parse_params for line 12, num_iterations=2
+Mapping: TP5_iter1 -> 10_TP9_iter1
+Node 10_TP9_iter1 parents:  9_EP8_iter1
+Node 10_TP9_iter1 files: 48-51 (4 files)
+Debug: Before parse_params for line 13, num_iterations=2
+Debug: After parse_params for line 13, num_iterations=2
+Mapping: EP5_iter1 -> 11_EP10_iter1
+Node 11_EP10_iter1 parents:  10_TP9_iter1
+Node 11_EP10_iter1 files: 52-55 (4 files)
+Debug: Before parse_params for line 14, num_iterations=2
+Debug: After parse_params for line 14, num_iterations=2
+Mapping: PP3_iter1 -> 12_PP11_iter1
+Node 12_PP11_iter1 parents:  11_EP10_iter1
+Node 12_PP11_iter1 files: 56-63 (8 files)
+Debug: Before parse_params for line 15, num_iterations=2
+Debug: After parse_params for line 15, num_iterations=2
+Mapping: TP6_iter1 -> 13_TP12_iter1
+Node 13_TP12_iter1 parents:  12_PP11_iter1
+Node 13_TP12_iter1 files: 64-67 (4 files)
+Debug: Before parse_params for line 16, num_iterations=2
+Debug: After parse_params for line 16, num_iterations=2
+Mapping: TP7_iter1 -> 14_TP12_iter1
+Node 14_TP12_iter1 parents:  12_PP11_iter1
+Node 14_TP12_iter1 files: 68-71 (4 files)
+Debug: Before parse_params for line 17, num_iterations=2
+Debug: After parse_params for line 17, num_iterations=2
+Mapping: EP6_iter1 -> 15_EP13_iter1
+Node 15_EP13_iter1 parents:  13_TP12_iter1
+Node 15_EP13_iter1 files: 72-75 (4 files)
+Debug: Before parse_params for line 18, num_iterations=2
+Debug: After parse_params for line 18, num_iterations=2
+Mapping: EP7_iter1 -> 16_EP13_iter1
+Node 16_EP13_iter1 parents:  14_TP12_iter1
+Node 16_EP13_iter1 files: 76-79 (4 files)
+Debug: Before parse_params for line 19, num_iterations=2
+Debug: After parse_params for line 19, num_iterations=2
+Mapping: PP4_iter1 -> 17_PP14_iter1
+Node 17_PP14_iter1 parents:  16_EP13_iter1
+Node 17_PP14_iter1 files: 80-87 (8 files)
+Debug: Before parse_params for line 20, num_iterations=2
+Debug: After parse_params for line 20, num_iterations=2
+Mapping: TP8_iter1 -> 18_TP15_iter1
+Node 18_TP15_iter1 parents:  15_EP13_iter1 17_PP14_iter1
+Node 18_TP15_iter1 files: 88-91 (4 files)
+Debug: Before parse_params for line 21, num_iterations=2
+Debug: After parse_params for line 21, num_iterations=2
+Mapping: EP8_iter1 -> 19_EP16_iter1
+Node 19_EP16_iter1 parents:  18_TP15_iter1
+Node 19_EP16_iter1 files: 92-95 (4 files)
+Debug: Before parse_params for line 22, num_iterations=2
+Debug: After parse_params for line 22, num_iterations=2
+Mapping: DP1_iter1 -> 20_DP17_iter1
+Node 20_DP17_iter1 parents:  19_EP16_iter1
+Node 20_DP17_iter1 files: 96-103 (8 files)
+Stored DP node for iter=1: 20_DP17_iter1
+Debug: Checking TP node addition for iter=1, num_iterations=2, last_dp_node='20_DP17_iter1', first_tp_args='--host_num 64	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1'
+Mapping: TP9_iter1 -> 21_TP18_iter1
+Node 21_TP18_iter1 parents: 20_DP17_iter1
+Node 21_TP18_iter1 files: 104-107 (4 files)
+Processing iteration 2 of 2
+Debug: Before parse_params for line 2, num_iterations=2
+Debug: After parse_params for line 2, num_iterations=2
+Mapping: TP1_iter2 -> 22_TP1_iter2
+Node 22_TP1_iter2 parents: 20_DP17_iter1
+Node 22_TP1_iter2 files: 108-111 (4 files)
+Debug: Before parse_params for line 3, num_iterations=2
+Debug: After parse_params for line 3, num_iterations=2
+Mapping: EP1_iter2 -> 23_EP2_iter2
+Node 23_EP2_iter2 parents:  22_TP1_iter2
+Node 23_EP2_iter2 files: 112-115 (4 files)
+Debug: Before parse_params for line 4, num_iterations=2
+Debug: After parse_params for line 4, num_iterations=2
+Mapping: PP1_iter2 -> 24_PP3_iter2
+Node 24_PP3_iter2 parents:  23_EP2_iter2
+Node 24_PP3_iter2 files: 116-123 (8 files)
+Debug: Before parse_params for line 5, num_iterations=2
+Debug: After parse_params for line 5, num_iterations=2
+Mapping: TP2_iter2 -> 25_TP4_iter2
+Node 25_TP4_iter2 parents:  24_PP3_iter2
+Node 25_TP4_iter2 files: 124-127 (4 files)
+Debug: Before parse_params for line 6, num_iterations=2
+Debug: After parse_params for line 6, num_iterations=2
+Mapping: TP3_iter2 -> 26_TP4_iter2
+Node 26_TP4_iter2 parents:  24_PP3_iter2
+Node 26_TP4_iter2 files: 128-131 (4 files)
+Debug: Before parse_params for line 7, num_iterations=2
+Debug: After parse_params for line 7, num_iterations=2
+Mapping: EP2_iter2 -> 27_EP5_iter2
+Node 27_EP5_iter2 parents:  25_TP4_iter2
+Node 27_EP5_iter2 files: 132-135 (4 files)
+Debug: Before parse_params for line 8, num_iterations=2
+Debug: After parse_params for line 8, num_iterations=2
+Mapping: EP3_iter2 -> 28_EP5_iter2
+Node 28_EP5_iter2 parents:  26_TP4_iter2
+Node 28_EP5_iter2 files: 136-139 (4 files)
+Debug: Before parse_params for line 9, num_iterations=2
+Debug: After parse_params for line 9, num_iterations=2
+Mapping: PP2_iter2 -> 29_PP6_iter2
+Node 29_PP6_iter2 parents:  27_EP5_iter2
+Node 29_PP6_iter2 files: 140-147 (8 files)
+Debug: Before parse_params for line 10, num_iterations=2
+Debug: After parse_params for line 10, num_iterations=2
+Mapping: TP4_iter2 -> 30_TP7_iter2
+Node 30_TP7_iter2 parents:  29_PP6_iter2 28_EP5_iter2
+Node 30_TP7_iter2 files: 148-151 (4 files)
+Debug: Before parse_params for line 11, num_iterations=2
+Debug: After parse_params for line 11, num_iterations=2
+Mapping: EP4_iter2 -> 31_EP8_iter2
+Node 31_EP8_iter2 parents:  30_TP7_iter2
+Node 31_EP8_iter2 files: 152-155 (4 files)
+Debug: Before parse_params for line 12, num_iterations=2
+Debug: After parse_params for line 12, num_iterations=2
+Mapping: TP5_iter2 -> 32_TP9_iter2
+Node 32_TP9_iter2 parents:  31_EP8_iter2
+Node 32_TP9_iter2 files: 156-159 (4 files)
+Debug: Before parse_params for line 13, num_iterations=2
+Debug: After parse_params for line 13, num_iterations=2
+Mapping: EP5_iter2 -> 33_EP10_iter2
+Node 33_EP10_iter2 parents:  32_TP9_iter2
+Node 33_EP10_iter2 files: 160-163 (4 files)
+Debug: Before parse_params for line 14, num_iterations=2
+Debug: After parse_params for line 14, num_iterations=2
+Mapping: PP3_iter2 -> 34_PP11_iter2
+Node 34_PP11_iter2 parents:  33_EP10_iter2
+Node 34_PP11_iter2 files: 164-171 (8 files)
+Debug: Before parse_params for line 15, num_iterations=2
+Debug: After parse_params for line 15, num_iterations=2
+Mapping: TP6_iter2 -> 35_TP12_iter2
+Node 35_TP12_iter2 parents:  34_PP11_iter2
+Node 35_TP12_iter2 files: 172-175 (4 files)
+Debug: Before parse_params for line 16, num_iterations=2
+Debug: After parse_params for line 16, num_iterations=2
+Mapping: TP7_iter2 -> 36_TP12_iter2
+Node 36_TP12_iter2 parents:  34_PP11_iter2
+Node 36_TP12_iter2 files: 176-179 (4 files)
+Debug: Before parse_params for line 17, num_iterations=2
+Debug: After parse_params for line 17, num_iterations=2
+Mapping: EP6_iter2 -> 37_EP13_iter2
+Node 37_EP13_iter2 parents:  35_TP12_iter2
+Node 37_EP13_iter2 files: 180-183 (4 files)
+Debug: Before parse_params for line 18, num_iterations=2
+Debug: After parse_params for line 18, num_iterations=2
+Mapping: EP7_iter2 -> 38_EP13_iter2
+Node 38_EP13_iter2 parents:  36_TP12_iter2
+Node 38_EP13_iter2 files: 184-187 (4 files)
+Debug: Before parse_params for line 19, num_iterations=2
+Debug: After parse_params for line 19, num_iterations=2
+Mapping: PP4_iter2 -> 39_PP14_iter2
+Node 39_PP14_iter2 parents:  38_EP13_iter2
+Node 39_PP14_iter2 files: 188-195 (8 files)
+Debug: Before parse_params for line 20, num_iterations=2
+Debug: After parse_params for line 20, num_iterations=2
+Mapping: TP8_iter2 -> 40_TP15_iter2
+Node 40_TP15_iter2 parents:  37_EP13_iter2 39_PP14_iter2
+Node 40_TP15_iter2 files: 196-199 (4 files)
+Debug: Before parse_params for line 21, num_iterations=2
+Debug: After parse_params for line 21, num_iterations=2
+Mapping: EP8_iter2 -> 41_EP16_iter2
+Node 41_EP16_iter2 parents:  40_TP15_iter2
+Node 41_EP16_iter2 files: 200-203 (4 files)
+Debug: Before parse_params for line 22, num_iterations=2
+Debug: After parse_params for line 22, num_iterations=2
+Mapping: DP1_iter2 -> 42_DP17_iter2
+Node 42_DP17_iter2 parents:  41_EP16_iter2
+Node 42_DP17_iter2 files: 204-211 (8 files)
+Stored DP node for iter=2: 42_DP17_iter2
+Debug: Checking TP node addition for iter=2, num_iterations=2, last_dp_node='42_DP17_iter2', first_tp_args='--host_num 64	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1'
+Skipping TP node addition for iter=2: condition not met (iter<2=2<2, last_dp_node='42_DP17_iter2', first_tp_args='--host_num 64	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1')
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:22:[m[K [01;35m[Kwarning: [m[K"__STDC_LIMIT_MACROS" redefined
+   22 | #define __STDC_LIMIT_MACROS 1
+      | 
+In file included from [01m[K/usr/include/c++/9/cstdint:41[m[K,
+                 from [01m[K/usr/include/c++/9/bits/char_traits.h:628[m[K,
+                 from [01m[K/usr/include/c++/9/string:40[m[K,
+                 from [01m[K/usr/include/c++/9/stdexcept:39[m[K,
+                 from [01m[K/usr/include/c++/9/array:39[m[K,
+                 from [01m[K/usr/include/c++/9/tuple:39[m[K,
+                 from [01m[K/usr/include/c++/9/functional:54[m[K,
+                 from [01m[K/usr/include/c++/9/pstl/glue_algorithm_defs.h:13[m[K,
+                 from [01m[K/usr/include/c++/9/algorithm:71[m[K,
+                 from [01m[K/workspace/cmake-cache/CMakeFiles/stdlib_pch-default.dir/cmake_pch.hxx:5[m[K,
+                 from [01m[K<command-line>[m[K:
+[01m[K/usr/lib/gcc/x86_64-linux-gnu/9/include/stdint.h:5:[m[K [01;36m[Knote: [m[Kthis is the location of the previous definition
+    5 | #  define __STDC_LIMIT_MACROS
+      | 
+In file included from [01m[K/workspace/src/network/model/packet.h:23[m[K,
+                 from [01m[K/workspace/src/network/model/net-device.h:24[m[K,
+                 from [01m[K/workspace/build/include/ns3/net-device.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/node.h:24[m[K,
+                 from [01m[K/workspace/build/include/ns3/node.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:24[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/network/model/byte-tag-list.h:22:[m[K [01;35m[Kwarning: [m[K"__STDC_LIMIT_MACROS" redefined
+   22 | #define __STDC_LIMIT_MACROS
+      | 
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:22:[m[K [01;36m[Knote: [m[Kthis is the location of the previous definition
+   22 | #define __STDC_LIMIT_MACROS 1
+      | 
+In file included from [01m[K/workspace/build/include/ns3/data-rate.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:30[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/network/utils/data-rate.h:308:1:[m[K [01;35m[Kwarning: [m[K"/*" within comment [[01;35m[K-Wcomment[m[K]
+  308 | /*
+      |  
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kns3::Ptr<ns3::Packet> ns3::RdmaEgressQueue::DequeueQindex(int)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:112:8:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kfound[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  112 |   bool [01;35m[Kfound[m[K = p->PeekPacketTag(tag);
+      |        [01;35m[K^~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:113:12:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kunsched[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  113 |   uint32_t [01;35m[Kunsched[m[K = tag.GetValue();
+      |            [01;35m[K^~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:122:8:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kfound[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  122 |   bool [01;35m[Kfound[m[K = p->PeekPacketTag(tag);
+      |        [01;35m[K^~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:123:12:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kunsched[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  123 |   uint32_t [01;35m[Kunsched[m[K = tag.GetValue();
+      |            [01;35m[K^~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kint ns3::RdmaEgressQueue::GetNextQindex(bool*)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:162:39:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kuint32_t[m[K’ {aka ‘[01m[Kunsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  162 |     for (int i = min_finish_id + 1; [01;35m[Ki < fcount[m[K; i++) if (!qps[i]->IsFinished()) {
+      |                                     [01;35m[K~~^~~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:132:7:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kfound[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  132 |  bool [01;35m[Kfound[m[K = false;
+      |       [01;35m[K^~~~~[m[K
+In file included from [01m[K/workspace/src/core/model/ptr.h:23[m[K,
+                 from [01m[K/workspace/src/core/model/attribute.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-accessor-helper.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-helper.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/attribute-helper.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/address.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/address.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvirtual void ns3::QbbNetDevice::TransmitComplete()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:349:32:[m[K [01;35m[Kwarning: [m[K‘[01m[Kns3::Ptr<T>::operator ns3::Ptr<T>::Tester*() const [with T = ns3::Packet][m[K’ is deprecated: see operator bool [[01;35m[K-Wdeprecated-declarations[m[K]
+  349 |  NS_ASSERT_MSG(m_currentPkt != [01;35m[K0[m[K, "QbbNetDevice::TransmitComplete(): m_currentPkt zero");
+      |                                [01;35m[K^[m[K
+[01m[K/workspace/src/core/model/assert.h:89:15:[m[K [01;36m[Knote: [m[Kin definition of macro ‘[01m[KNS_ASSERT_MSG[m[K’
+   89 |         if (!([01;36m[Kcondition[m[K))                                                                          \
+      |               [01;36m[K^~~~~~~~~[m[K
+In file included from [01m[K/workspace/src/core/model/attribute.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-accessor-helper.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-helper.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/attribute-helper.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/address.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/address.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/core/model/ptr.h:781:1:[m[K [01;36m[Knote: [m[Kdeclared here
+  781 | [01;36m[KPtr<T>[m[K::operator Tester*() const // NS_DEPRECATED_3_37
+      | [01;36m[K^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvirtual void ns3::QbbNetDevice::DequeueAndTransmit()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:378:14:[m[K [01;35m[Kwarning: [m[K‘[01m[Kns3::Ptr<T>::operator ns3::Ptr<T>::Tester*() const [with T = ns3::Packet][m[K’ is deprecated: see operator bool [[01;35m[K-Wdeprecated-declarations[m[K]
+  378 |     if (p == [01;35m[K0[m[K)
+      |              [01;35m[K^[m[K
+In file included from [01m[K/workspace/src/core/model/attribute.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-accessor-helper.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-helper.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/attribute-helper.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/address.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/address.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/core/model/ptr.h:781:1:[m[K [01;36m[Knote: [m[Kdeclared here
+  781 | [01;36m[KPtr<T>[m[K::operator Tester*() const // NS_DEPRECATED_3_37
+      | [01;36m[K^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:423:12:[m[K [01;35m[Kwarning: [m[K‘[01m[Kns3::Ptr<T>::operator ns3::Ptr<T>::Tester*() const [with T = ns3::Packet][m[K’ is deprecated: see operator bool [[01;35m[K-Wdeprecated-declarations[m[K]
+  423 |   if (p != [01;35m[K0[m[K) {
+      |            [01;35m[K^[m[K
+In file included from [01m[K/workspace/src/core/model/attribute.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-accessor-helper.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-helper.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/attribute-helper.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/address.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/address.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/core/model/ptr.h:781:1:[m[K [01;36m[Knote: [m[Kdeclared here
+  781 | [01;36m[KPtr<T>[m[K::operator Tester*() const // NS_DEPRECATED_3_37
+      | [01;36m[K^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::PrintAllSwitchStats(std::map<unsigned int, SwitchStat>&, std::ofstream&)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:534:22:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  534 |    for (int i = 0; [01;35m[Ki < pCnt[m[K; ++i) {
+      |                    [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:535:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  535 |     for (int j = 0; [01;35m[Kj < qCnt[m[K; ++j) {
+      |                     [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:557:16:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  557 |   for(int k=0;[01;35m[Kk<pCnt[m[K;++k){
+      |               [01;35m[K~^~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:558:22:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  558 |    for (int i = 0; [01;35m[Ki < pCnt[m[K; ++i) {
+      |                    [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:559:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  559 |     for (int j = 0; [01;35m[Kj < qCnt[m[K; ++j) {
+      |                     [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kbool ns3::QbbNetDevice::IsAllZero(const SwitchStat&)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:588:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  588 |     for (int i = 0; [01;35m[Ki < pCnt[m[K; ++i) {
+      |                     [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:589:27:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  589 |         for (int j = 0; [01;35m[Kj < pCnt[m[K; ++j) {
+      |                         [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:590:31:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  590 |             for (int k = 0; [01;35m[Kk < qCnt[m[K; ++k) {
+      |                             [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:597:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  597 |     for (int i = 0; [01;35m[Ki < pCnt[m[K; ++i) {
+      |                     [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:598:27:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  598 |         for (int j = 0; [01;35m[Kj < qCnt[m[K; ++j) {
+      |                         [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvirtual void ns3::QbbNetDevice::Receive(ns3::Ptr<ns3::Packet>)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:651:8:[m[K [01;35m[Kwarning: [m[Kvariable ‘[01m[Kret[m[K’ set but not used [[01;35m[K-Wunused-but-set-variable[m[K]
+  651 |    int [01;35m[Kret[m[K;
+      |        [01;35m[K^~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::calculateRate(std::string, uint16_t, std::ofstream&)[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:913:24:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kstd::vector<double>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} and ‘[01m[Kint[m[K’ [[01;35m[K-Wsign-compare[m[K]
+  913 |    if([01;35m[Kstat.rate.size() >= stat.size[m[K){
+      |       [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::UpdateSwitchStats()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:983:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kstd::vector<SwitchStatsPair>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+  983 |  if([01;35m[K(transition_cnt-1)<multiSwitchStats.size()[m[K){
+      |     [01;35m[K~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::TimeDelaySwitchStats()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1001:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kstd::vector<SwitchStatsPair>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+ 1001 |  if([01;35m[K(transition_cnt-1)<multiSwitchStats.size()[m[K){
+      |     [01;35m[K~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1010:23:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+ 1010 |     for (int i = 0; [01;35m[Ki < pCnt[m[K; ++i) {
+      |                     [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1011:24:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Kconst uint32_t[m[K’ {aka ‘[01m[Kconst unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+ 1011 |      for (int j = 0; [01;35m[Kj < qCnt[m[K; ++j) {
+      |                      [01;35m[K~~^~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1008:14:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[KsecondKey[m[K’ [[01;35m[K-Wunused-variable[m[K]
+ 1008 |     uint32_t [01;35m[KsecondKey[m[K = it_2->first;
+      |              [01;35m[K^~~~~~~~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::exitSteadyState()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1082:14:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kavg[m[K’ [[01;35m[K-Wunused-variable[m[K]
+ 1082 |       double [01;35m[Kavg[m[K = sum / iter->second.rate.size();
+      |              [01;35m[K^~~[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::calculateMintime()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1172:9:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Ki[m[K’ [[01;35m[K-Wunused-variable[m[K]
+ 1172 |     int [01;35m[Ki[m[K=1;
+      |         [01;35m[K^[m[K
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:[m[K In member function ‘[01m[Kvoid ns3::QbbNetDevice::TakeDown()[m[K’:
+[01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:1358:13:[m[K [01;35m[Kwarning: [m[K‘[01m[Kns3::Ptr<T>::operator ns3::Ptr<T>::Tester*() const [with T = ns3::Packet][m[K’ is deprecated: see operator bool [[01;35m[K-Wdeprecated-declarations[m[K]
+ 1358 |    if (p == [01;35m[K0[m[K)
+      |             [01;35m[K^[m[K
+In file included from [01m[K/workspace/src/core/model/attribute.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-accessor-helper.h:22[m[K,
+                 from [01m[K/workspace/src/core/model/attribute-helper.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/attribute-helper.h:1[m[K,
+                 from [01m[K/workspace/src/network/model/address.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/address.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/point-to-point-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/point-to-point-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.h:23[m[K,
+                 from [01m[K/workspace/build/include/ns3/qbb-net-device.h:1[m[K,
+                 from [01m[K/workspace/src/point-to-point/model/qbb-net-device.cc:25[m[K:
+[01m[K/workspace/src/core/model/ptr.h:781:1:[m[K [01;36m[Knote: [m[Kdeclared here
+  781 | [01;36m[KPtr<T>[m[K::operator Tester*() const // NS_DEPRECATED_3_37
+      | [01;36m[K^~~~~~[m[K
+make[3]: *** [src/point-to-point/CMakeFiles/libpoint-to-point-obj.dir/build.make:200: src/point-to-point/CMakeFiles/libpoint-to-point-obj.dir/model/qbb-net-device.cc.o] Interrupt
+make[2]: *** [CMakeFiles/Makefile2:10358: src/point-to-point/CMakeFiles/libpoint-to-point-obj.dir/all] Interrupt
+make[1]: *** [CMakeFiles/Makefile2:13245: examples/Reverie/CMakeFiles/reverie-evaluation-sigcomm2023.dir/rule] Interrupt
+make: *** [Makefile:4479: reverie-evaluation-sigcomm2023] Interrupt
+Traceback (most recent call last):
+  File "./ns3", line 1615, in <module>
+    main()
+  File "./ns3", line 1586, in main
+    build_step(args,
+  File "./ns3", line 1087, in build_step
+    cmake_build(current_cmake_cache_folder,
+  File "./ns3", line 895, in cmake_build
+    ret = subprocess.run(cmake_build_command.split(),
+  File "/usr/lib/python3.8/subprocess.py", line 495, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib/python3.8/subprocess.py", line 1020, in communicate
+    self.wait()
+  File "/usr/lib/python3.8/subprocess.py", line 1083, in wait
+    return self._wait(timeout=timeout)
+  File "/usr/lib/python3.8/subprocess.py", line 1806, in _wait
+    (pid, sts) = self._try_wait(0)
+  File "/usr/lib/python3.8/subprocess.py", line 1764, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt
+
+================================================================================
+错误信息:
+================================================================================
+仿真脚本执行失败，返回码: -2
+错误信息: Header line: deepseek 2 2, header_word: deepseek, max_devices: 2, num_iterations: 2
+Debug: num_iterations=2 before loop
+Processing iteration 1 of 2
+Saved first TP args: --host_num 64	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+Debug: Before parse_params for line 2, num_iterations=2
+Debug: After parse_params for line 2, num_iterations=2
+Mapping: TP1_iter1 -> 0_TP1_iter1
+Node 0_TP1_iter1 parents:  Root
+Node 0_TP1_iter1 files: 0-3 (4 files)
+Debug: Before parse_params for line 3, num_iter

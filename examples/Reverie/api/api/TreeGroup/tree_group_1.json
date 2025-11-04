@@ -1,0 +1,18 @@
+{
+  "nodes": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "DP1_0",
+      "range": "0-127",
+      "group": "group3"
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "Root",
+      "to_node": "DP1_0"
+    }
+  ]
+}

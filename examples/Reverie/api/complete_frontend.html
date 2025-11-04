@@ -437,7 +437,7 @@
           <h3 class="section-title">拓扑切分</h3>
           <div class="input-group">
             <label>输出目录：</label>
-            <input v-model="treeCut.output_dir" type="text" placeholder="TreeGroup">
+            <input v-model="treeCut.output_dir" type="text" placeholder="api/TreeGroup">
           </div>
           <button class="btn btn-primary" @click="performTreeCut" :disabled="isCutting">
             {{ isCutting ? '切分中...' : '执行切分' }}
@@ -652,7 +652,7 @@
 
           // 拓扑切分
           treeCut: {
-            output_dir: 'TreeGroup'
+            output_dir: 'api/TreeGroup'
           },
           isCutting: false,
           cutResult: null,
@@ -992,7 +992,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           this.autoMonitoring = true
           this.monitorInterval = setInterval(() => {
             this.monitorSteadyState()
-            this.checkSimulationStatus()
+            this.updateSimulationStatusSilently()  // 静默更新，不弹窗
           }, 2000)
         },
 
