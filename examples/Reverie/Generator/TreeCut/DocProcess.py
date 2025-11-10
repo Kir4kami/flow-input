@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 def process_file(file_path):
     processed_lines = []
     file_name = file_path.split('/')[-1].split('.')[0]  # 获取文档名称，不带路径和扩展名

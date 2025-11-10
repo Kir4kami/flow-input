@@ -1,12 +1,68 @@
-SwitchStats0
+SwitchStats
 ===== Switch ID: 64 =====
-Port 1, Queue 3: Egress Bytes = 0, Ingress Bytes = 161392, Egress LPF = 0, Ingress LPF = 78843, DequeueRateIngress = 1, Bandwidth = 25000000000
-Port 2, Queue 3: Egress Bytes = 322784, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
-Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 161392, Egress LPF = 0, Ingress LPF = 79668, DequeueRateIngress = 1, Bandwidth = 25000000000
-iPort 1, ePort 2, Queue 3: 161392, 
-iPort 3, ePort 2, Queue 3: 161392, 
-exit_SwitchStats0
+Port 1, Queue 3: Egress Bytes = 1634880, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 2, Queue 3: Egress Bytes = 0, Ingress Bytes = 546008, Egress LPF = 0, Ingress LPF = 536781, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 544960, Egress LPF = 0, Ingress LPF = 536699, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 543912, Egress LPF = 0, Ingress LPF = 535733, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
 ===== Switch ID: 64 =====
-Port 2, Queue 3: Egress Bytes = 1067912, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
-Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 1067912, Egress LPF = 0, Ingress LPF = 1034393, DequeueRateIngress = 1, Bandwidth = 25000000000
-iPort 3, ePort 2, Queue 3: 1067912, 
+Port 1, Queue 3: Egress Bytes = 1630688, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 2, Queue 3: Egress Bytes = 0, Ingress Bytes = 537624, Egress LPF = 0, Ingress LPF = 536243, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 554392, Egress LPF = 0, Ingress LPF = 533432, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 538672, Egress LPF = 0, Ingress LPF = 537123, DequeueRateIngress = 1, Bandwidth = 25000000000
+
+SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1625448, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 2, Queue 3: Egress Bytes = 0, Ingress Bytes = 535528, Egress LPF = 0, Ingress LPF = 535528, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 554392, Egress LPF = 0, Ingress LPF = 533432, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 535528, Egress LPF = 0, Ingress LPF = 535528, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1625448, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 2, Queue 3: Egress Bytes = 0, Ingress Bytes = 536576, Egress LPF = 0, Ingress LPF = 534480, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 554392, Egress LPF = 0, Ingress LPF = 534679, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 534480, Egress LPF = 0, Ingress LPF = 533432, DequeueRateIngress = 1, Bandwidth = 25000000000
+
+SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1444144, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 729408, Egress LPF = 0, Ingress LPF = 688430, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 714736, Egress LPF = 0, Ingress LPF = 692094, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1444144, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 712640, Egress LPF = 0, Ingress LPF = 707400, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 731504, Egress LPF = 0, Ingress LPF = 709416, DequeueRateIngress = 1, Bandwidth = 25000000000
+
+SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1444144, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 713688, Egress LPF = 0, Ingress LPF = 711356, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 730456, Egress LPF = 0, Ingress LPF = 707400, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1444144, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 732552, Egress LPF = 0, Ingress LPF = 707400, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 711592, Egress LPF = 0, Ingress LPF = 711370, DequeueRateIngress = 1, Bandwidth = 25000000000
+
+SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1444144, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 723120, Egress LPF = 0, Ingress LPF = 707400, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 721024, Egress LPF = 0, Ingress LPF = 710963, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1431832, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 3, Queue 3: Egress Bytes = 0, Ingress Bytes = 716048, Egress LPF = 0, Ingress LPF = 709172, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 715784, Egress LPF = 0, Ingress LPF = 707400, DequeueRateIngress = 1, Bandwidth = 25000000000
+
+SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1073152, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 1073152, Egress LPF = 0, Ingress LPF = 1072005, DequeueRateIngress = 1, Bandwidth = 25000000000
+exit_SwitchStats
+===== Switch ID: 64 =====
+Port 1, Queue 3: Egress Bytes = 1073152, Ingress Bytes = 0, Egress LPF = 0, Ingress LPF = 0, DequeueRateIngress = 1, Bandwidth = 25000000000
+Port 4, Queue 3: Egress Bytes = 0, Ingress Bytes = 1073152, Egress LPF = 0, Ingress LPF = 1072005, DequeueRateIngress = 1, Bandwidth = 25000000000
+

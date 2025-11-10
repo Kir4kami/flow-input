@@ -1,0 +1,6 @@
+===== Transition Stage: 0 =====
+No difference detected.
+===== Transition Stage: 1 =====
+No difference detected.
+===== Transition Stage: 2 =====
+No difference detected.

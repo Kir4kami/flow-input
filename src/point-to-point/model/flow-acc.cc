@@ -1,6 +1,8 @@
 #include "flow-acc.h"
 #include <iostream>
 #include <thread>  // 用于模拟时间延迟
+#include <cmath>
+#include <sstream>
 #include "ns3/mixed-granularity.h"
 
 
@@ -8,7 +10,7 @@ using namespace std;
 
 // 构造函数，初始化监测周期
 std::map<uint32_t, NodeStat>NodeStats;
-uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
+uint64_t MONITOR_PERIOD =100000; // 监测周期(ns)
 
 
 std::map<uint32_t,SwitchStat> SwitchStats;
@@ -18,6 +20,8 @@ std::vector<SwitchStatsPair> multiSwitchStats;
 
 bool isFirstOpen = true;
 bool isFirstOpen_SwitchStats=true;
+bool isFirstOpen_SwitchDiff = true;
+bool g_enableSwitchDiffLogging = false;
 std::map<std::string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
 uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
 bool inSteadyState = false;         // 标识系统是否处于稳态
@@ -27,6 +31,7 @@ double next_trans_avail=0; //更新下一次状态转换时间
 std::map<uint32_t,ns3::Time> node_latency_fix;
 std::set<string> filter;
 std::set<string> flow_fin_unack; //已发送待确认的流
+
 
 bool IsAllZero(const SwitchStat& stat) {
     if (stat.totalUsed != 0 ||
@@ -143,4 +148,106 @@ void loadFlowSwitchStats(const std::string &filename) {
     }
 
     fin.close();
+}
+
+void RemoveFlowStat(const std::string& flowid) {
+    auto it = flowStats.find(flowid);
+    if (it != flowStats.end()) {
+        flowStats.erase(it);
+    }
+    flow_fin_unack.erase(flowid);
+}
+
+void LogSwitchStatsDiff(const std::map<uint32_t,SwitchStat>& normalStats,
+                        const std::map<uint32_t,SwitchStat>& exitStats,
+                        int transitionStage)
+{
+    if (!g_enableSwitchDiffLogging) {
+        return;
+    }
+
+    std::set<uint32_t> switchIds;
+    for (const auto& entry : normalStats) {
+        switchIds.insert(entry.first);
+    }
+    for (const auto& entry : exitStats) {
+        switchIds.insert(entry.first);
+    }
+
+    std::ostringstream stageStream;
+    bool anySwitch = false;
+
+    for (auto switchId : switchIds) {
+        auto normalIt = normalStats.find(switchId);
+        auto exitIt = exitStats.find(switchId);
+
+        if (normalIt == normalStats.end() || exitIt == exitStats.end()) {
+            continue;
+        }
+
+        const SwitchStat& normalStat = normalIt->second;
+        const SwitchStat& exitStat = exitIt->second;
+
+        std::ostringstream switchStream;
+        bool switchHasDiff = false;
+
+        for (int port = 0; port < static_cast<int>(pCnt); ++port) {
+            for (int queue = 0; queue < static_cast<int>(qCnt); ++queue) {
+                uint64_t ingressEnter = normalStat.ingress_bytes[port][queue];
+                uint64_t ingressExit = exitStat.ingress_bytes[port][queue];
+                int64_t ingressDelta = static_cast<int64_t>(ingressExit) - static_cast<int64_t>(ingressEnter);
+                if (ingressDelta != 0) {
+                    switchHasDiff = true;
+                    switchStream << "  Ingress port " << port << " queue " << queue
+                                 << ": enter=" << ingressEnter
+                                 << ", exit=" << ingressExit
+                                 << ", delta=" << ingressDelta << std::endl;
+                }
+
+                uint64_t egressEnter = normalStat.egress_bytes[port][queue];
+                uint64_t egressExit = exitStat.egress_bytes[port][queue];
+                int64_t egressDelta = static_cast<int64_t>(egressExit) - static_cast<int64_t>(egressEnter);
+                if (egressDelta != 0) {
+                    switchHasDiff = true;
+                    switchStream << "  Egress port " << port << " queue " << queue
+                                 << ": enter=" << egressEnter
+                                 << ", exit=" << egressExit
+                                 << ", delta=" << egressDelta << std::endl;
+                }
+            }
+        }
+
+        if (switchHasDiff) {
+            anySwitch = true;
+            stageStream << "Switch ID: " << switchId << std::endl;
+            stageStream << switchStream.str();
+            stageStream << std::endl;
+        }
+    }
+
+    std::ios_base::openmode mode = isFirstOpen_SwitchDiff ? std::ios::out : std::ios::app;
+    std::ofstream fout("flow_switch_diff.txt", mode);
+    if (!fout.is_open()) {
+        throw std::runtime_error("Unable to open file for writing switch diff statistics.");
+    }
+    if (isFirstOpen_SwitchDiff) {
+        isFirstOpen_SwitchDiff = false;
+    }
+
+    fout << "===== Transition Stage: " << transitionStage << " =====" << std::endl;
+    if (anySwitch) {
+        fout << stageStream.str();
+    } else {
+        fout << "No difference detected." << std::endl;
+    }
+}
+
+void SetSwitchDiffLogging(bool enable)
+{
+    g_enableSwitchDiffLogging = enable;
+}
+
+bool GetSwitchDiffLogging()
+{
+    return g_enableSwitchDiffLogging;
 }

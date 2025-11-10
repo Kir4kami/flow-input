@@ -55,6 +55,8 @@
 
 
 #include <iostream>
+#include <cmath>
+#include <sstream>
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
 
@@ -62,13 +64,31 @@
 
 bool allSteadyStateReached=false;
 bool flag_steady =true;// 刚刚/第一次进入稳态
-bool flag_read_SwitchStats = true;
+bool flag_read_SwitchStats = false;
 
-bool flag_ENABLE_JUMP_TRANSITION=false;//启动跃迁
+bool flag_ENABLE_JUMP_TRANSITION=true;//启动跃迁
 
 NS_LOG_COMPONENT_DEFINE("QbbNetDevice");
 
 namespace ns3 {
+
+namespace {
+
+std::string
+BuildFlowIdFromQp(const Ptr<RdmaQueuePair>& qp)
+{
+	std::ostringstream oss;
+	uint32_t srcIp = qp->sip.Get();
+	uint32_t dstIp = qp->dip.Get();
+	uint32_t srcId = ((srcIp >> 8) & 0xffff);
+	uint32_t dstId = ((dstIp >> 8) & 0xffff);
+	uint16_t srcPort = qp->sport;
+	uint16_t dstPort = qp->dport;
+	oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
+	return oss.str();
+}
+
+} // anonymous namespace
 
 uint32_t RdmaEgressQueue::ack_q_idx = 3;
 uint32_t RdmaEgressQueue::tcpip_q_idx = 1;
@@ -401,6 +421,9 @@ QbbNetDevice::DequeueAndTransmit(void)
 
 			// update for the next avail time
 			m_rdmaPktSent(lastQp, p, m_tInterframeGap);//通知 QP 该数据包已发送，并设置下次可用时�? (m_tInterframeGap)
+			if (lastQp->IsFinished() || lastQp->GetBytesLeft() == 0) {
+				RemoveFlowStat(BuildFlowIdFromQp(lastQp));
+			}
 			totalBytesSent += p->GetSize();
 		} else { // no packet to send
 			NS_LOG_INFO("PAUSE prohibits send at node " << m_node->GetId());
@@ -553,7 +576,7 @@ void QbbNetDevice::PrintAllSwitchStats(std::map<uint32_t,SwitchStat>& stats,std:
 				}
         	}
 		//}
-		for(int k=0;k<pCnt;++k){
+		/*for(int k=0;k<pCnt;++k){
 			for (int i = 0; i < pCnt; ++i) {
 				for (int j = 0; j < qCnt; ++j) {
 					if(stat.m_bytes[k][i][j]
@@ -570,7 +593,7 @@ void QbbNetDevice::PrintAllSwitchStats(std::map<uint32_t,SwitchStat>& stats,std:
 					}
 				}
         	}
-		}
+		}*/
     }
 }
 
@@ -780,11 +803,12 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		}
 		// 如果是第一次打开，设置标志为false，后续追加
 		isFirstOpen_SwitchStats = false;
-		flowstatsFile_SwitchStats<<"SwitchStats"<<transition_cnt<<endl;
+		flowstatsFile_SwitchStats<<"SwitchStats"<<endl;
 		PrintAllSwitchStats(SwitchStats,flowstatsFile_SwitchStats);
 		SwitchStats.clear();
-		flowstatsFile_SwitchStats<<"exit_SwitchStats"<<transition_cnt<<endl;
+		flowstatsFile_SwitchStats<<"exit_SwitchStats"<<endl;
 		PrintAllSwitchStats(exit_SwitchStats,flowstatsFile_SwitchStats);
+		flowstatsFile_SwitchStats<<endl;
 		exit_SwitchStats.clear();
 		flowstatsFile_SwitchStats.close();
 	}
@@ -852,7 +876,12 @@ void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std:
     auto filter_it =filter.find(flowid);
     if (it == flowStats.end()&&filter_it==filter.end()){
         // 流不存在，创建新流
-        FlowStat newStat = { packetSize, currentTime };
+        FlowStat newStat;
+        newStat.byteCount = packetSize;
+        newStat.timestamp = currentTime;
+        newStat.ifnewpacket = true;
+        newStat.steadyStateReached = false;
+        newStat.steadyCooldown = 0;
         flowStats[flowid] = newStat;
     }
 	calculateRate(flowid,packetSize,flowstatsFile);
@@ -875,45 +904,47 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
 
 			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
-				// 计算速率（单位：字节/纳秒）
-				/*for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-			{
-				Ptr<Node> node = *it;
-
-				if(node->GetNodeType()==1){//交换机
-						node->SwitchStatsCount(1);
-				}
-				std::ofstream flowstatsFile;
-				// 根据是否是第一次打开文件来选择文件打开模式
-				std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
-				flowstatsFile.open("flow_stats.txt", mode);	
-				if (!flowstatsFile.is_open()) {
-					throw std::runtime_error("Unable to open file for writing flow statistics.");
-				}
-				// 如果是第一次打开，设置标志为false，后续追加
-				isFirstOpen = false;
-				PrintAllSwitchStats(SwitchStats,flowstatsFile);
-				SwitchStats.clear();
-			}*/
-
 				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
 				stat.ifnewpacket =false;
 				stat.rate.push_back(rate);
-				if(stat.rate.size() >= stat.size){
+				if(stat.rate.size() > static_cast<size_t>(stat.size)){
 					stat.rate.erase(stat.rate.begin());
+				}
+				bool immediateExit = false;
+				if (stat.rate.size() >= 2) {
+					double latestRate = stat.rate.back();
+					double prevRate = *(stat.rate.end() - 2);
+					double denomPair = std::max(std::max(latestRate, prevRate), kSteadyRateEpsilon);
+					double relativeDiff = std::fabs(latestRate - prevRate) / denomPair;
+					if (relativeDiff > kSteadyRelativeThreshold) {
+						stat.steadyStateReached = false;
+						stat.steadyCooldown = 0;
+						allSteadyStateReached = false;
+						immediateExit = true;
+					}
+				}
+				if(!immediateExit && stat.rate.size() >= static_cast<size_t>(stat.size)){
 					// 获取最小值和最大值
 					auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-					auto minIt = result.first;
-					auto maxIt = result.second;
-					if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
+					double minRate = *result.first;
+					double maxRate = *result.second;
+					double avgRate = std::accumulate(stat.rate.begin(), stat.rate.end(), 0.0) / static_cast<double>(stat.rate.size());
+					double denom = std::max(avgRate, kSteadyRateEpsilon);
+					double relativeSpan = (maxRate - minRate) / denom;
+					if(relativeSpan  <= kSteadyRelativeThreshold ){
 						stat.steadyStateReached = true;//流进入稳态
+						stat.steadyCooldown = kSteadyCooldownCycles;
 						//cout<<"进入稳态"<<endl;
 						
 					}else {
-						stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-						allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+						if (stat.steadyCooldown > 0) {
+							stat.steadyCooldown--;
+						} else {
+							stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
+							allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
+						}
 					}
 					
 				}
@@ -922,6 +953,11 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				stat.byteCount = 0;
 				stat.timestamp = currentTime;
 				//stat.byteCount +=packetSize;
+			} else if (stat.steadyCooldown > 0) {
+				stat.steadyCooldown--;
+				if (stat.steadyCooldown == 0 && !stat.steadyStateReached) {
+					allSteadyStateReached = false;
+				}
 			}
 		}
 		if(flow_id == flowid){		
@@ -937,7 +973,7 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		}
 	}
 	if(flow_fin_unack.size()!=0 && flag_ENABLE_JUMP_TRANSITION)
-		allSteadyStateReached=false;
+	 	allSteadyStateReached=false;
 	// 判断系统是否刚刚进入稳态
     if (allSteadyStateReached&&flag_steady) {
 		flag_steady=false;
@@ -1059,14 +1095,29 @@ void QbbNetDevice::exitSteadyState(){
 	
 					map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
 					if(iter!=flowStats.end()){
-						double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
-						double avg = sum / iter->second.rate.size();
-						//qp->snd_nxt+=
-						qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1]; 
-						//transition_delay[transition_cnt - 1]（上一个稳态周期的持续时间，单位为纳秒），得到稳态期间传输的字节数，累加到 snd_nxt（已发送的下一个字节序号）
-						//即更新所有流的状态（跃迁）
+						// 检查流是否已经完成
+						if(qp->GetBytesLeft() > 0) {
+							// 只有未完成的流才更新状态
+							double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
+							double avg = sum / iter->second.rate.size();
+							//qp->snd_nxt+=
+							qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1]; 
+							//transition_delay[transition_cnt - 1]（上一个稳态周期的持续时间，单位为纳秒），得到稳态期间传输的字节数，累加到 snd_nxt（已发送的下一个字节序号）
+							//即更新所有流的状态（跃迁）
 
-						flowStats.erase(flowid);
+							// 重置流统计
+							iter->second.byteCount = 0;
+							iter->second.timestamp = Simulator::Now().GetNanoSeconds();
+							iter->second.rate.clear();  // 保留 rate 历史，不清空
+							iter->second.steadyStateReached = false;
+							iter->second.ifnewpacket = false;
+						} else {
+							// 流已完成，删除统计（流完成时会在 rdma-hw.cc 中删除，这里也可以提前删除）
+							 flowStats.erase(flowid);
+						}
+						
+						//删除流
+						//flowStats.erase(flowid);
 						
 						/*if(qp->IsFinished()){
 							filter.insert(flowid);
@@ -1080,13 +1131,28 @@ void QbbNetDevice::exitSteadyState(){
         }
     }
 	allSteadyStateReached=false;
+	for (NodeList::Iterator itSwitch = NodeList::Begin(); itSwitch != NodeList::End(); ++itSwitch)
+	{
+		Ptr<Node> node = *itSwitch;
+		if (node->GetNodeType() == 1) {
+			node->SwitchStatsCount(0);
+		}
+	}
+	if (transition_cnt > 0) {
+		LogSwitchStatsDiff(SwitchStats, exit_SwitchStats, transition_cnt - 1);
+	} else {
+		LogSwitchStatsDiff(SwitchStats, exit_SwitchStats, transition_cnt);
+	}
 		cout<<"System exit"<<endl;
+
+	// 清理 flow_fin_unack，避免阻止进入稳态
+	//flow_fin_unack.clear();
 
 	//补偿
 	//UpdateSwitchStats();
 
 	//时延
-	TimeDelaySwitchStats();
+	//TimeDelaySwitchStats();
 
 	std::ofstream flowstatsFile;
 	// 根据是否是第一次打开文件来选择文件打开模式

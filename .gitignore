@@ -11,3 +11,13 @@ Traffic Generation/paralle_mode/rdma_result/
 cmake-cache
 tor.txt
 scratch/first.cc
+Traffic Generation
+examples/Reverie/Generator/auto_output
+examples/Reverie/Generator/TopoGenerator/clos/auto_output
+examples/Reverie/Generator/TopoGenerator/clos/router_output
+examples/Reverie/Generator/TopoGenerator/clos/output
+examples/Reverie/Generator/workflow_output
+examples/Reverie/Generator/TreeCut/ecmp_outputs
+examples/Reverie/Generator/TreeCut/TreeGroup
+examples/Reverie/Generator/TreeCut/rdma_result
+examples/Reverie/Generator/TreeCut/Input_

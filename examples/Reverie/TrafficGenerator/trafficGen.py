@@ -11,13 +11,14 @@ import re
 root_node = 'Root'
 
 # Global variables
-model_identifier = None
-max_devices = None
-max_iterations = None
-global_node_counter = 1  # 从1开始计数
-first_tp_args = None  # 存储第一行 TP 节点的参数
+model_identifier = None #模型类型（'qwen'或'deepseek'）
+max_devices = None #最大设备数
+max_iterations = None #迭代次数
+global_node_counter = 1  # 节点计数器，从1开始，用于生成唯一节点名（如"1_TP1"）
+first_tp_args = None  # 存储第一个TP节点的参数，用于后续迭代添加额外TP
+max_layers = None  # 动态总层数，从文件中读
 
-# Define node addition method
+# 向图G添加新节点和边。新节点代表通信操作
 def addCommunicationEdge(G, layer, comm_type, parent_node, node_args):
     global global_node_counter
     node_name = f"{global_node_counter}_{comm_type}{layer}"
@@ -28,19 +29,21 @@ def addCommunicationEdge(G, layer, comm_type, parent_node, node_args):
     global_node_counter += 1
     return node_name
 
+# 从输入文件构建通信树，支持多迭代（调整层级，连接前DP）
 def constructTree(G, input_file, iteration=0, prev_dp_node=None, prev_dp_args=None):
-    global model_identifier, max_devices, max_iterations, first_tp_args
+    global model_identifier, max_devices, max_iterations, first_tp_args, max_layers
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist")
     
     valid_modes = {'EP', 'TP', 'PP', 'DP'}
-    node_name_mapping = {}
-    tp_multi_parent_nodes = {}
+    node_name_mapping = {} #映射输入文件中的节点名（如TP1）到实际生成名（如"1_TP1"）
+    tp_multi_parent_nodes = {} #缓存TP多父节点的映射
     mode_counters = {'TP': 0, 'EP': 0, 'PP': 0, 'DP': 0}
-
+    
+    max_layers = 17
     # 如果有prev_dp_node，添加到当前图
     if prev_dp_node and iteration > 0:
-        layer = str(17 + (iteration - 1) * 17)  # 前一迭代的DP层级
+        layer = str(max_layers + (iteration - 1) * max_layers)  # 前一迭代的DP层级，这里的17为一次迭代的总层数
         G.add_node(prev_dp_node, name=prev_dp_node, type='DP', layer=layer, nodes_passed=[], children=[], isBurr=False, args=prev_dp_args)
 
     with open(input_file, 'r') as f:
@@ -80,7 +83,7 @@ def constructTree(G, input_file, iteration=0, prev_dp_node=None, prev_dp_args=No
                 raise ValueError(f"Line {line_num}: Invalid format, expected at least layer, mode, parent_node")
             
             try:
-                layer = str(int(parts[0]) + iteration * 17)  # 调整层级
+                layer = str(int(parts[0]) + iteration * max_layers)  # 调整层级
                 mode = parts[1]
                 parent_nodes = parts[2].split('/')
             except ValueError:
@@ -165,10 +168,10 @@ def constructTree(G, input_file, iteration=0, prev_dp_node=None, prev_dp_args=No
             node_name_mapping[expected_node_name] = generated_node_name
 
         # 添加额外的TP节点
-        if prev_dp_node and iteration > 0:
+        if prev_dp_node and iteration > 1:
             if first_tp_args is None:
                 raise ValueError(f"Iteration {iteration}: first_tp_args is None, cannot create extra TP node")
-            layer = str(17 + iteration * 17)
+            layer = str(max_layers + iteration * max_layers)
             mode = 'TP'
             node_args = first_tp_args.copy()  # 使用第一行 TP 节点的参数
             print(f"Iteration {iteration}: Adding extra TP node with args: {node_args}")
@@ -176,6 +179,22 @@ def constructTree(G, input_file, iteration=0, prev_dp_node=None, prev_dp_args=No
             mode_counters['TP'] += 1
             expected_node_name = f"TP{mode_counters['TP']}"
             node_name_mapping[expected_node_name] = generated_node_name
+
+        # 在函数末尾，返回 dp_node, dp_args 前，如果是初次调用（iteration=0），计算 max_layers
+        if iteration == 0 and max_layers is None:
+            layers = []
+            for node in G.nodes:
+                if node != root_node:
+                    layer_str = G.nodes[node]['layer']
+                    try:
+                        layers.append(int(layer_str))
+                    except ValueError:
+                        raise ValueError(f"Invalid layer '{layer_str}' for node {node}")
+            if layers:
+                max_layers = max(layers)
+            else:
+                max_layers = 0  # 或抛出错误，如果无层级
+            print(f"Calculated max_layers: {max_layers}")
 
     dp_node = node_name_mapping.get('DP1', None)
     dp_args = G.nodes[dp_node]['args'] if dp_node else None
@@ -204,7 +223,7 @@ def get_neighbor(index, num, iter):
 
 def write_file(result, file_name, append=False):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    mode = 'a' if append else 'w'
+    mode = 'a' if append else 'w' #追加（'a'）覆盖（'w'）
     try:
         with open(file_name, mode) as fd:
             if not append:
@@ -425,13 +444,14 @@ def generate_traffic_from_tree(T, iteration=0):
                 print(f"Error generating traffic for node {node}, group {group_idx}: {e}")
 
 def main(args):
-    global model_identifier, max_devices, max_iterations, global_node_counter, first_tp_args
+    global model_identifier, max_devices, max_iterations, global_node_counter, first_tp_args, max_layers
     model_identifier = None
     max_devices = None
     max_iterations = None
     global_node_counter = 1
     first_tp_args = None
     result_dir = "rdma_result"
+    max_layers = None
     try:
         if os.path.exists(result_dir):
             shutil.rmtree(result_dir)
