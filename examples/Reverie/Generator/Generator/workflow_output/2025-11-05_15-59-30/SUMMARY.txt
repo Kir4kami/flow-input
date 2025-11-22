@@ -1,0 +1,27 @@
+======================================================================
+工作流执行摘要
+======================================================================
+
+配置参数:
+  host_num: 128
+  leaf_num: 16
+  spine_num: 8
+  host_bw: 200
+  leaf_spine_bw: 800
+  model: qwen
+  traffic_input: deepseek.txt
+  max_devices: 2
+  max_iterations: 2
+  enable_treecut: True
+
+生成的文件:
+  1. 拓扑配置: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-05_15-59-30/1_topology/dcn2.0_config.xml
+  2. 路由表: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-05_15-59-30/1_topology/router_mine.xml
+  3. 流量文件: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-05_15-59-30/2_traffic/rdma_result/
+  4. ECMP路径: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-05_15-59-30/3_paths/ecmp_outputs/
+  5. 通信树分割: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-05_15-59-30/4_treecut/TreeGroup/
+
+执行时间: 2025-11-05 15:59:38
+
+日志文件:
+  详细日志: workflow.log

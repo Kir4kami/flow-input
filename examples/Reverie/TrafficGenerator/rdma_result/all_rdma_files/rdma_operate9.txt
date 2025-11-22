@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 4 src_port 1009 dst_node 12 dst_port 1009 priority 0 msg_len 8388608
-Type rdma_send src_node 5 src_port 1009 dst_node 13 dst_port 1009 priority 0 msg_len 8388608
-Type rdma_send src_node 6 src_port 1009 dst_node 14 dst_port 1009 priority 0 msg_len 8388608
-Type rdma_send src_node 7 src_port 1009 dst_node 15 dst_port 1009 priority 0 msg_len 8388608
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 144 src_port 1009 dst_node 145 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 145 src_port 1009 dst_node 146 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 146 src_port 1009 dst_node 147 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 147 src_port 1009 dst_node 148 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 148 src_port 1009 dst_node 149 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 149 src_port 1009 dst_node 150 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 150 src_port 1009 dst_node 151 dst_port 1009 priority 0 msg_len 33554432
+Type rdma_send src_node 151 src_port 1009 dst_node 144 dst_port 1009 priority 0 msg_len 33554432

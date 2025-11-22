@@ -1,0 +1,10 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 88 src_port 1141 dst_node 80 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 89 src_port 1141 dst_node 81 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 90 src_port 1141 dst_node 82 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 91 src_port 1141 dst_node 83 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 92 src_port 1141 dst_node 84 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 93 src_port 1141 dst_node 85 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 94 src_port 1141 dst_node 86 dst_port 1141 priority 0 msg_len 8388608
+Type rdma_send src_node 95 src_port 1141 dst_node 87 dst_port 1141 priority 0 msg_len 8388608

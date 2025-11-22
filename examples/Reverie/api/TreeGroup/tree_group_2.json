@@ -1,17 +1,15 @@
 {
   "nodes": [
     {
-      "name": "TP2_2",
-      "type": "TP",
+      "name": "2_EP2",
+      "type": "EP",
       "layer": 2,
       "nodes_passed": [
-        "F",
-        "G"
+        "E",
+        "A"
       ],
       "children": [],
-      "isBurr": false,
-      "range": "0-127",
-      "group": "group2"
+      "isBurr": false
     },
     {
       "name": "Root"
@@ -20,7 +18,7 @@
   "edges": [
     {
       "from_node": "Root",
-      "to_node": "TP2_2"
+      "to_node": "2_EP2"
     }
   ]
 }

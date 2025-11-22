@@ -1,6 +1,0 @@
-stat rdma operate:
-phase:3000
-Type rdma_send src_node 44 src_port 2089 dst_node 36 dst_port 2089 priority 0 msg_len 8388608
-Type rdma_send src_node 45 src_port 2089 dst_node 37 dst_port 2089 priority 0 msg_len 8388608
-Type rdma_send src_node 46 src_port 2089 dst_node 38 dst_port 2089 priority 0 msg_len 8388608
-Type rdma_send src_node 47 src_port 2089 dst_node 39 dst_port 2089 priority 0 msg_len 8388608

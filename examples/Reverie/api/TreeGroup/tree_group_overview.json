@@ -4,24 +4,24 @@
     {
       "group_id": 1,
       "filename": "tree_group_1.json",
-      "filepath": "TreeGroup/tree_group_1.json",
-      "node_count": 2,
-      "edge_count": 1
+      "filepath": "/mnt/hgfs/flow-input-yf/examples/Reverie/api/TreeGroup/tree_group_1.json",
+      "node_count": 20,
+      "edge_count": 21
     },
     {
       "group_id": 2,
       "filename": "tree_group_2.json",
-      "filepath": "TreeGroup/tree_group_2.json",
+      "filepath": "/mnt/hgfs/flow-input-yf/examples/Reverie/api/TreeGroup/tree_group_2.json",
       "node_count": 2,
       "edge_count": 1
     },
     {
       "group_id": 3,
       "filename": "tree_group_3.json",
-      "filepath": "TreeGroup/tree_group_3.json",
+      "filepath": "/mnt/hgfs/flow-input-yf/examples/Reverie/api/TreeGroup/tree_group_3.json",
       "node_count": 2,
       "edge_count": 1
     }
   ],
-  "output_directory": "TreeGroup"
+  "output_directory": "/mnt/hgfs/flow-input-yf/examples/Reverie/api/TreeGroup"
 }

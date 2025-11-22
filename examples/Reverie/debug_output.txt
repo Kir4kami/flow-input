@@ -1,0 +1,38 @@
+============================================
+  调试NS3崩溃问题
+============================================
+输出目录: /tmp/ns3_debug_178185
+
+NS3根目录: /mnt/hgfs/flow-input-yf
+配置加载完成
+  NS3: /mnt/hgfs/flow-input-yf/examples/Reverie/../..
+  N_CORES: 37
+
+检查task1目录:
+总计 22K
+-rwxrwxrwx 1 root root 5.2K 11月  5 10:11 rdma_operate0.txt
+-rwxrwxrwx 1 root root 5.3K 11月  5 10:11 rdma_operate1.txt
+-rwxrwxrwx 1 root root 5.3K 11月  5 10:11 rdma_operate2.txt
+-rwxrwxrwx 1 root root 5.3K 11月  5 10:11 rdma_operate3.txt
+
+============================================
+  直接运行NS3仿真程序
+============================================
+
+Command 'build/examples/Reverie/ns3.39-sim-default --TASKINDEX=1 --DST=1 --START_TIME=0 --END_TIME=100000000000 --FLOW_LAUNCH_END_TIME=5000000000 --fctOutFile=/tmp/ns3_debug_178185/evaluation.fct --torOutFile=/tmp/ns3_debug_178185/evaluation.tor --pfcOutFile=/tmp/ns3_debug_178185/evaluation.pfc' died with <Signals.SIGSEGV: 11>.
+
+============================================
+  退出码: 245
+============================================
+❌ 程序异常退出（退出码 245）
+
+检查生成的文件:
+总计 12K
+-rw-rw-r-- 1 chanel chanel  74 11月  5 10:43 evaluation.fct1
+-rw-rw-r-- 1 chanel chanel  34 11月  5 10:43 evaluation.pfc
+-rw-rw-r-- 1 chanel chanel 126 11月  5 10:43 evaluation.tor
+
+FCT文件内容:
+timestamp flowsize fctus basefctus slowdown baserttus priority incastflow
+
+============================================

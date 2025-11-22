@@ -445,6 +445,9 @@
           <button class="btn btn-secondary" @click="viewCutResults">
             查看切分结果
           </button>
+          <button class="btn btn-secondary" @click="visualizeTreeGroups">
+            可视化树组
+          </button>
           <div v-if="cutResult" class="result-box">
             <p><strong>切分完成</strong></p>
             <p class="info-text">树组数量: {{ cutResult.tree_groups }}</p>
@@ -557,22 +560,6 @@
         </div>
       </div>
 
-      <!-- 文件浏览器 -->
-      <div class="section">
-        <h3 class="section-title">文件浏览器</h3>
-        <div class="input-group">
-          <label>文件路径：</label>
-          <input v-model="fileBrowser.path" type="text" placeholder="例如: TreeGroup/group1/In_dependence_Info.txt">
-        </div>
-        <div class="button-row">
-          <button class="btn btn-primary" @click="readFileDirect">读取文件</button>
-          <button class="btn btn-secondary" @click="listDirectoryDirect">列出目录</button>
-        </div>
-        <div v-if="fileContent" class="result-box">
-          <pre>{{ fileContent }}</pre>
-        </div>
-      </div>
-
       <!-- Toast通知 -->
       <div v-if="toast.show" :class="['toast', `toast-${toast.type}`]" @click="toast.show = false">
         {{ toast.message }}
@@ -611,9 +598,14 @@
             <div v-else-if="modal.type === 'analysis'">
               <pre style="max-height: 500px; overflow: auto;">{{ JSON.stringify(modal.data, null, 2) }}</pre>
             </div>
+            <div v-else-if="modal.type === 'tree-visualization'" v-html="modal.content">
+            </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="closeModal">关闭</button>
+            <button v-if="browseHistory.length > 0" class="btn btn-primary" @click="closeModal" style="margin-right: auto;">
+              ← 返回
+            </button>
+            <button class="btn btn-secondary" @click="closeModalDirectly">关闭</button>
           </div>
         </div>
       </div>
@@ -683,12 +675,6 @@
           isAnalyzing: false,
           analysisResult: null,
 
-          // 文件浏览
-          fileBrowser: {
-            path: ''
-          },
-          fileContent: null,
-
           // 模态框
           modal: {
             show: false,
@@ -700,6 +686,9 @@
             currentPath: null
           },
 
+          // 浏览历史栈（用于返回上一级）
+          browseHistory: [],
+
           // Toast通知
           toast: {
             show: false,
@@ -710,7 +699,7 @@
       },
       mounted() {
         this.showToast('系统已就绪', 'success')
-        this.checkSimulationStatus()
+        this.updateSimulationStatusSilently()  // 页面加载时静默更新，不弹窗
       },
       methods: {
         // 生成拓扑
@@ -798,6 +787,9 @@
             const result = await response.json()
             
             if (result.success) {
+              // 清空浏览历史（新的浏览会话）
+              this.browseHistory = []
+              
               this.modal = {
                 show: true,
                 title: '负载文件列表',
@@ -815,18 +807,38 @@
         async performTreeCut() {
           this.isCutting = true
           try {
-            // 使用示例树数据（包含实际的通信树结构）
+            // 使用示例树数据（包含实际的通信树结构）- 更复杂的演示版本
             const exampleTreeData = {
               nodes: [
                 { name: 'Root', type: 'Root', layer: 0, nodes_passed: [], children: [], isBurr: false },
-                { name: 'DP1_0', type: 'DP', layer: 1, nodes_passed: ['A', 'B', 'C'], children: [], isBurr: false },
-                { name: 'PP1_1', type: 'PP', layer: 1, nodes_passed: ['D', 'E'], children: [], isBurr: false },
-                { name: 'TP2_2', type: 'TP', layer: 2, nodes_passed: ['F', 'G'], children: [], isBurr: false }
+                // 第一层：数据并行
+                { name: 'DP1_0', type: 'DP', layer: 1, nodes_passed: ['Node0', 'Node1', 'Node2', 'Node3'], children: [], isBurr: false },
+                { name: 'DP1_1', type: 'DP', layer: 1, nodes_passed: ['Node4', 'Node5', 'Node6', 'Node7'], children: [], isBurr: false },
+                // 第二层：流水线并行
+                { name: 'PP2_0', type: 'PP', layer: 2, nodes_passed: ['Node8', 'Node9'], children: [], isBurr: false },
+                { name: 'PP2_1', type: 'PP', layer: 2, nodes_passed: ['Node10', 'Node11'], children: [], isBurr: false },
+                { name: 'PP2_2', type: 'PP', layer: 2, nodes_passed: ['Node12', 'Node13'], children: [], isBurr: false },
+                { name: 'PP2_3', type: 'PP', layer: 2, nodes_passed: ['Node14', 'Node15'], children: [], isBurr: false },
+                // 第三层：张量并行
+                { name: 'TP3_0', type: 'TP', layer: 3, nodes_passed: ['Node16', 'Node17'], children: [], isBurr: false },
+                { name: 'TP3_1', type: 'TP', layer: 3, nodes_passed: ['Node18', 'Node19'], children: [], isBurr: false },
+                { name: 'TP3_2', type: 'TP', layer: 3, nodes_passed: ['Node20', 'Node21'], children: [], isBurr: false },
+                { name: 'TP3_3', type: 'TP', layer: 3, nodes_passed: ['Node22', 'Node23'], children: [], isBurr: false }
               ],
               edges: [
+                // Root到DP层
                 { from_node: 'Root', to_node: 'DP1_0' },
-                { from_node: 'Root', to_node: 'PP1_1' },
-                { from_node: 'PP1_1', to_node: 'TP2_2' }
+                { from_node: 'Root', to_node: 'DP1_1' },
+                // DP到PP层
+                { from_node: 'DP1_0', to_node: 'PP2_0' },
+                { from_node: 'DP1_0', to_node: 'PP2_1' },
+                { from_node: 'DP1_1', to_node: 'PP2_2' },
+                { from_node: 'DP1_1', to_node: 'PP2_3' },
+                // PP到TP层
+                { from_node: 'PP2_0', to_node: 'TP3_0' },
+                { from_node: 'PP2_1', to_node: 'TP3_1' },
+                { from_node: 'PP2_2', to_node: 'TP3_2' },
+                { from_node: 'PP2_3', to_node: 'TP3_3' }
               ]
             }
             
@@ -864,6 +876,9 @@
             
             if (result.success) {
               if (result.files && result.files.length > 0) {
+                // 清空浏览历史（新的浏览会话）
+                this.browseHistory = []
+                
                 this.modal = {
                   show: true,
                   title: '切分结果文件',
@@ -876,6 +891,56 @@
               }
             } else {
               this.showToast('目录不存在或读取失败，请先执行切分', 'error')
+            }
+          } catch (error) {
+            this.showToast(`错误: ${error.message}`, 'error')
+          }
+        },
+
+        // 可视化树组
+        async visualizeTreeGroups() {
+          try {
+            this.showToast('正在生成树组可视化...', 'info')
+            
+            const response = await fetch(`${this.apiUrl}/visualize-tree-groups?output_dir=${encodeURIComponent(this.treeCut.output_dir)}`, {
+              method: 'POST'
+            })
+            
+            const result = await response.json()
+            
+            if (result.success) {
+              // 构建HTML内容，显示所有树组的图片
+              const groups = result.groups
+              let htmlContent = `<div style="text-align: center;">`
+              
+              groups.forEach((group, index) => {
+                htmlContent += `
+                  <div style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Tree Group ${group.group_id}</h3>
+                    <p style="color: #666; font-size: 14px;">Nodes: ${group.node_count} | Edges: ${group.edge_count}</p>
+                    <img src="${this.apiUrl}/get-tree-image/${group.group_id}?t=${Date.now()}" 
+                         class="topology-image" 
+                         style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+                  </div>
+                `
+                
+                if (index < groups.length - 1) {
+                  htmlContent += `<hr style="margin: 20px 0; border: 1px dashed #e8e8e8;">`
+                }
+              })
+              
+              htmlContent += `</div>`
+              
+              this.modal = {
+                show: true,
+                title: `Tree Group Visualization (Total: ${result.total_groups})`,
+                type: 'tree-visualization',
+                content: htmlContent
+              }
+              
+              this.showToast(`成功生成${groups.length}个树组的可视化图`, 'success')
+            } else {
+              this.showToast('可视化失败', 'error')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
@@ -940,7 +1005,22 @@
           }
         },
 
-        // 检查仿真状态
+        // 静默更新仿真状态（不弹窗）
+        async updateSimulationStatusSilently() {
+          try {
+            const response = await fetch(`${this.apiUrl}/simulation-status`)
+            const result = await response.json()
+            
+            this.simulationStatus = {
+              is_running: result.is_running,
+              steady_state: result.steady_state
+            }
+          } catch (error) {
+            console.error('检查状态失败:', error)
+          }
+        },
+
+        // 检查仿真状态（显示弹窗）
         async checkSimulationStatus() {
           try {
             const response = await fetch(`${this.apiUrl}/simulation-status`)
@@ -992,7 +1072,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           this.autoMonitoring = true
           this.monitorInterval = setInterval(() => {
             this.monitorSteadyState()
-            this.checkSimulationStatus()
+            this.updateSimulationStatusSilently()  // 静默更新，不弹窗
           }, 2000)
         },
 
@@ -1046,60 +1126,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
         },
 
-        // 从输入框直接读取文件（修复版）
-        async readFileDirect() {
-          const filePath = this.fileBrowser.path
-          if (!filePath) {
-            this.showToast('请输入文件路径', 'error')
-            return
-          }
-          
-          try {
-            const response = await fetch(`${this.apiUrl}/read-file?file_path=${encodeURIComponent(filePath)}`)
-            const result = await response.json()
-            
-            if (result.success) {
-              this.modal = {
-                show: true,
-                title: filePath,
-                type: 'content',
-                content: result.content
-              }
-              this.fileContent = result.content
-              this.showToast('文件读取成功', 'success')
-            } else {
-              this.showToast('读取失败', 'error')
-            }
-          } catch (error) {
-            this.showToast(`错误: ${error.message}`, 'error')
-          }
-        },
-
-        // 从输入框直接列出目录（修复版）
-        async listDirectoryDirect() {
-          const dirPath = this.fileBrowser.path || '.'
-          
-          try {
-            const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(dirPath)}`)
-            const result = await response.json()
-            
-            if (result.success) {
-              this.modal = {
-                show: true,
-                title: `目录: ${dirPath}`,
-                type: 'files',
-                files: result.files,
-                currentPath: dirPath
-              }
-            } else {
-              this.showToast('列出目录失败', 'error')
-            }
-          } catch (error) {
-            this.showToast(`错误: ${error.message}`, 'error')
-          }
-        },
-
-        // 点击文件列表中的项目
+        // 点击文件列表中的项目（供"查看负载文件"和"查看切分结果"使用）
         async readFile(path, isDir) {
           const filePath = path
           if (!filePath) {
@@ -1109,6 +1136,14 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           try {
             // 如果是目录，列出目录内容
             if (isDir) {
+              // 保存当前状态到历史
+              this.browseHistory.push({
+                title: this.modal.title,
+                type: this.modal.type,
+                files: this.modal.files,
+                currentPath: this.modal.currentPath
+              })
+              
               const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(filePath)}`)
               const result = await response.json()
               
@@ -1122,7 +1157,15 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
                 }
               }
             } else {
-              // 如果是文件，读取文件内容
+              // 如果是文件，保存当前文件列表到历史
+              this.browseHistory.push({
+                title: this.modal.title,
+                type: this.modal.type,
+                files: this.modal.files,
+                currentPath: this.modal.currentPath
+              })
+              
+              // 读取文件内容
               const response = await fetch(`${this.apiUrl}/read-file?file_path=${encodeURIComponent(filePath)}`)
               const result = await response.json()
               
@@ -1133,7 +1176,6 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
                   type: 'content',
                   content: result.content
                 }
-                this.fileContent = result.content
               } else {
                 this.showToast('读取文件失败', 'error')
               }
@@ -1166,9 +1208,31 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
         },
 
-        // 关闭模态框
+        // 关闭模态框（智能返回）
         closeModal() {
+          // 如果有浏览历史，返回上一级
+          if (this.browseHistory.length > 0) {
+            const previousState = this.browseHistory.pop()
+            this.modal = {
+              show: true,
+              title: previousState.title,
+              type: previousState.type,
+              files: previousState.files,
+              currentPath: previousState.currentPath,
+              content: '',
+              data: null
+            }
+          } else {
+            // 没有历史，直接关闭
+            this.modal.show = false
+            this.browseHistory = []
+          }
+        },
+
+        // 直接关闭模态框（不返回）
+        closeModalDirectly() {
           this.modal.show = false
+          this.browseHistory = []
         },
 
         // 显示Toast

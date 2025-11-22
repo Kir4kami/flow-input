@@ -1,0 +1,22 @@
+qwen 2 2
+1	TP	Root	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+2	EP	TP1	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+3	PP	EP1	--host_num 512	--msg_len 8*(1024*1024)	--dp 8 --device 0 --forward 1
+4	TP	PP1	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+4	TP	PP1	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 1
+5	EP	TP2	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 1
+5	EP	TP3	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 1
+6	PP	EP2	--host_num 512	--msg_len 8*(1024*1024)	--dp 8 --device 0 --forward 1
+7	TP	PP2/EP3	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 1
+8	EP	TP4	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 1
+9	TP	EP4	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 0
+10	EP	TP5	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 0
+11	PP	EP5	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 0
+12	TP	PP3	--host_num 512	--msg_len 8*(1024*1024)	--dp 8 --device 0 --forward 0
+12	TP	PP3	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 0
+13	EP	TP6	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 0
+13	EP	TP7	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 1 --forward 0
+14	PP	EP7	--host_num 512	--msg_len 8*(1024*1024)	--dp 8 --device 1 --forward 0
+15	TP	EP6/PP4	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 0
+16	EP  TP8	--host_num 512	--msg_len 32*(1024*1024)	--dp 8 --device 0 --forward 0
+17	DP	EP8	--host_num 512	--msg_len 16*(1024*1024)	--dp 8 

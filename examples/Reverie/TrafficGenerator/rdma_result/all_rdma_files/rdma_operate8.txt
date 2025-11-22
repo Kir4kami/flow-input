@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 0 src_port 1008 dst_node 8 dst_port 1008 priority 0 msg_len 8388608
-Type rdma_send src_node 1 src_port 1008 dst_node 9 dst_port 1008 priority 0 msg_len 8388608
-Type rdma_send src_node 2 src_port 1008 dst_node 10 dst_port 1008 priority 0 msg_len 8388608
-Type rdma_send src_node 3 src_port 1008 dst_node 11 dst_port 1008 priority 0 msg_len 8388608
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 128 src_port 1008 dst_node 129 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 129 src_port 1008 dst_node 130 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 130 src_port 1008 dst_node 131 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 131 src_port 1008 dst_node 132 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 132 src_port 1008 dst_node 133 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 133 src_port 1008 dst_node 134 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1008 dst_node 135 dst_port 1008 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1008 dst_node 128 dst_port 1008 priority 0 msg_len 33554432

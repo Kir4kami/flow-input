@@ -1,18 +1,303 @@
 {
   "nodes": [
     {
-      "name": "root"
+      "name": "3_PP3",
+      "type": "PP",
+      "layer": 3,
+      "nodes_passed": [
+        "A"
+      ],
+      "children": [],
+      "isBurr": false
     },
     {
-      "name": "DP1_0",
-      "range": "0-127",
-      "group": "group3"
+      "name": "4_TP4",
+      "type": "TP",
+      "layer": 4,
+      "nodes_passed": [
+        "E",
+        "B"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "5_TP4",
+      "type": "TP",
+      "layer": 4,
+      "nodes_passed": [
+        "B",
+        "A",
+        "D"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "6_EP5",
+      "type": "EP",
+      "layer": 5,
+      "nodes_passed": [
+        "A",
+        "E",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "7_EP5",
+      "type": "EP",
+      "layer": 5,
+      "nodes_passed": [
+        "C",
+        "C",
+        "A"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "8_PP6",
+      "type": "PP",
+      "layer": 6,
+      "nodes_passed": [
+        "E"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "9_TP7",
+      "type": "TP",
+      "layer": 7,
+      "nodes_passed": [
+        "C",
+        "D"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "10_EP8",
+      "type": "EP",
+      "layer": 8,
+      "nodes_passed": [
+        "B"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "11_TP9",
+      "type": "TP",
+      "layer": 9,
+      "nodes_passed": [
+        "B",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "12_EP10",
+      "type": "EP",
+      "layer": 10,
+      "nodes_passed": [
+        "A",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "13_PP11",
+      "type": "PP",
+      "layer": 11,
+      "nodes_passed": [
+        "E",
+        "A",
+        "E"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "14_TP12",
+      "type": "TP",
+      "layer": 12,
+      "nodes_passed": [
+        "B",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "15_TP12",
+      "type": "TP",
+      "layer": 12,
+      "nodes_passed": [
+        "A",
+        "E",
+        "D"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "16_EP13",
+      "type": "EP",
+      "layer": 13,
+      "nodes_passed": [
+        "B"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "17_EP13",
+      "type": "EP",
+      "layer": 13,
+      "nodes_passed": [
+        "A"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "18_PP14",
+      "type": "PP",
+      "layer": 14,
+      "nodes_passed": [
+        "B",
+        "C"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "19_TP15",
+      "type": "TP",
+      "layer": 15,
+      "nodes_passed": [
+        "D"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "20_EP16",
+      "type": "EP",
+      "layer": 16,
+      "nodes_passed": [
+        "C",
+        "E",
+        "B"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "21_DP17",
+      "type": "DP",
+      "layer": 17,
+      "nodes_passed": [
+        "A",
+        "C",
+        "B"
+      ],
+      "children": [],
+      "isBurr": false
+    },
+    {
+      "name": "Root"
     }
   ],
   "edges": [
     {
+      "from_node": "3_PP3",
+      "to_node": "4_TP4"
+    },
+    {
+      "from_node": "3_PP3",
+      "to_node": "5_TP4"
+    },
+    {
+      "from_node": "4_TP4",
+      "to_node": "6_EP5"
+    },
+    {
+      "from_node": "5_TP4",
+      "to_node": "7_EP5"
+    },
+    {
+      "from_node": "6_EP5",
+      "to_node": "8_PP6"
+    },
+    {
+      "from_node": "7_EP5",
+      "to_node": "9_TP7"
+    },
+    {
+      "from_node": "8_PP6",
+      "to_node": "9_TP7"
+    },
+    {
+      "from_node": "9_TP7",
+      "to_node": "10_EP8"
+    },
+    {
+      "from_node": "10_EP8",
+      "to_node": "11_TP9"
+    },
+    {
+      "from_node": "11_TP9",
+      "to_node": "12_EP10"
+    },
+    {
+      "from_node": "12_EP10",
+      "to_node": "13_PP11"
+    },
+    {
+      "from_node": "13_PP11",
+      "to_node": "14_TP12"
+    },
+    {
+      "from_node": "13_PP11",
+      "to_node": "15_TP12"
+    },
+    {
+      "from_node": "14_TP12",
+      "to_node": "16_EP13"
+    },
+    {
+      "from_node": "15_TP12",
+      "to_node": "17_EP13"
+    },
+    {
+      "from_node": "16_EP13",
+      "to_node": "19_TP15"
+    },
+    {
+      "from_node": "17_EP13",
+      "to_node": "18_PP14"
+    },
+    {
+      "from_node": "18_PP14",
+      "to_node": "19_TP15"
+    },
+    {
+      "from_node": "19_TP15",
+      "to_node": "20_EP16"
+    },
+    {
+      "from_node": "20_EP16",
+      "to_node": "21_DP17"
+    },
+    {
       "from_node": "Root",
-      "to_node": "DP1_0"
+      "to_node": "3_PP3"
     }
   ]
 }

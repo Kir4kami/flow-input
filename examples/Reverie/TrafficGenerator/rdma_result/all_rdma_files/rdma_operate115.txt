@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 20 src_port 2015 dst_node 28 dst_port 2015 priority 0 msg_len 8388608
-Type rdma_send src_node 21 src_port 2015 dst_node 29 dst_port 2015 priority 0 msg_len 8388608
-Type rdma_send src_node 22 src_port 2015 dst_node 30 dst_port 2015 priority 0 msg_len 8388608
-Type rdma_send src_node 23 src_port 2015 dst_node 31 dst_port 2015 priority 0 msg_len 8388608
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 184 src_port 1115 dst_node 185 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 185 src_port 1115 dst_node 186 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 186 src_port 1115 dst_node 187 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 187 src_port 1115 dst_node 188 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 188 src_port 1115 dst_node 189 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 189 src_port 1115 dst_node 190 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 190 src_port 1115 dst_node 191 dst_port 1115 priority 0 msg_len 33554432
+Type rdma_send src_node 191 src_port 1115 dst_node 184 dst_port 1115 priority 0 msg_len 33554432

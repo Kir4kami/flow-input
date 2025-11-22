@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 24 src_port 1082 dst_node 16 dst_port 1082 priority 0 msg_len 8388608
-Type rdma_send src_node 25 src_port 1082 dst_node 17 dst_port 1082 priority 0 msg_len 8388608
-Type rdma_send src_node 26 src_port 1082 dst_node 18 dst_port 1082 priority 0 msg_len 8388608
-Type rdma_send src_node 27 src_port 1082 dst_node 19 dst_port 1082 priority 0 msg_len 8388608
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 160 src_port 1082 dst_node 161 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 161 src_port 1082 dst_node 162 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 162 src_port 1082 dst_node 163 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 163 src_port 1082 dst_node 164 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 164 src_port 1082 dst_node 165 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 165 src_port 1082 dst_node 166 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 166 src_port 1082 dst_node 167 dst_port 1082 priority 0 msg_len 33554432
+Type rdma_send src_node 167 src_port 1082 dst_node 160 dst_port 1082 priority 0 msg_len 33554432

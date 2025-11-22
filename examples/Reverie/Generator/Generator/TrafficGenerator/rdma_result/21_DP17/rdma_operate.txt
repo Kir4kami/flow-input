@@ -1,0 +1,55 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 16 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 32 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 48 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 64 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 80 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 96 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 112 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 8388608
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 16 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 32 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 48 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 64 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 80 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 96 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 112 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 4194304
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 16 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 32 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 48 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 64 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 80 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 96 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 112 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 2097152
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 16 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 32 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 48 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 64 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 80 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 96 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 2097152
+Type rdma_send src_node 112 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 2097152
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 16 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 32 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 48 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 64 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 80 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 96 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 4194304
+Type rdma_send src_node 112 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 4194304
+phase:3000
+Type rdma_send src_node 0 src_port 1160 dst_node 16 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 16 src_port 1160 dst_node 0 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 32 src_port 1160 dst_node 48 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 48 src_port 1160 dst_node 32 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 64 src_port 1160 dst_node 80 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 80 src_port 1160 dst_node 64 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 96 src_port 1160 dst_node 112 dst_port 1160 priority 0 msg_len 8388608
+Type rdma_send src_node 112 src_port 1160 dst_node 96 dst_port 1160 priority 0 msg_len 8388608

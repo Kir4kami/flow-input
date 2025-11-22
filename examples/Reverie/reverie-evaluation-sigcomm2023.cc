@@ -33,6 +33,7 @@
 #include <algorithm>
 
 #include "kira_functions.h"
+#include "ns3/flow-acc.h"
 
 using namespace ns3;
 using namespace std;
@@ -351,6 +352,7 @@ vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个D
 uint16_t systemId=0;
 uint16_t systemNum=0;
 uint16_t operateNum=0;
+std::string filePrefix = "rdma_operate"; // 流量文件前缀
 vector<uint16_t> phaseCur;
 vector<uint16_t> flowCom;
 std::unordered_map<FlowKey,uint16_t> flowToPar;//多个DP并行
@@ -567,10 +569,18 @@ void parseDependenceFile() {
         int depStart, depEnd, preStart, preEnd;
         parseRange(dependent, depStart, depEnd);
         parseRange(prerequisite, preStart, preEnd);
-        // 为每个依赖operate设置范围
-        for (int i = depStart; i <= depEnd; i++)
-            for(int j = preStart; j <= preEnd; j++)
+        // 为每个依赖operate设置范围（需进行越界检查）
+        for (int i = depStart; i <= depEnd; i++) {
+            if (i < 0 || i >= static_cast<int>(operateNum)) {
+                continue;
+            }
+            for (int j = preStart; j <= preEnd; j++) {
+                if (j < 0 || j >= static_cast<int>(operateNum)) {
+                    continue;
+                }
                 opDependence[i].emplace_back(j);
+            }
+        }
     }
     fin.close();
 }
@@ -583,10 +593,10 @@ void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double ST
     opStart.resize(operateNum,false);
     std::string line;
     for(int i=0;i<operateNum;i++){
-        std::string flowInputFileName= workFolder+"/rdma_operate"+to_string(i)+".txt";
+        std::string flowInputFileName= workFolder+"/"+filePrefix+to_string(i)+".txt";
         flowInput.open(flowInputFileName.c_str());
         if (!flowInput.is_open())
-            kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;
+            kira::cout << "system :"<< systemId <<" unable to open flowInputFile: " << flowInputFileName << std::endl;
         int phase = -1;
         while (std::getline(flowInput, line)) {
             if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
@@ -737,30 +747,53 @@ int main(int argc, char *argv[]){
     workFolder += to_string(taskIndex);
     kira::cout << "workFolder:" << workFolder << std::endl;
     int maxOperateNum = -1;
-    // 遍历工作目录
-    for (const auto& entry : fs::directory_iterator(workFolder)) {
-        if (entry.is_regular_file()) {
-            std::string filename = entry.path().filename().string();
-            // 检查文件名前缀
-            if (filename.rfind("rdma_operate", 0) == 0) { // 以rdma_operate开头
-                // 提取数字部分
-                std::string numStr = filename.substr(12); // 12是"rdma_operate"的长度
-                size_t dotPos = numStr.find('.');
-                if (dotPos != std::string::npos) {
-                    numStr = numStr.substr(0, dotPos);
-                }
-                // 转换为数字
-                try {
-                    int num = std::stoi(numStr);
-                    maxOperateNum = std::max(maxOperateNum, num);
-                } catch (const std::exception& e) {
-                    // 忽略非数字后缀的文件
+    filePrefix = "rdma_operate"; // 默认前缀，重置为默认值
+    
+    // 检查目录是否存在
+    if (!fs::exists(workFolder)) {
+        kira::cout << "ERROR: workFolder does not exist: " << workFolder << std::endl;
+        return -1;
+    }
+    if (!fs::is_directory(workFolder)) {
+        kira::cout << "ERROR: workFolder is not a directory: " << workFolder << std::endl;
+        return -1;
+    }
+    
+    // 遍历工作目录，查找 rdma_operate 文件
+    try {
+        for (const auto& entry : fs::directory_iterator(workFolder)) {
+            if (entry.is_regular_file()) {
+                std::string filename = entry.path().filename().string();
+                // 检查文件名前缀
+                if (filename.rfind("rdma_operate", 0) == 0) { // 以rdma_operate开头
+                    // 提取数字部分
+                    std::string numStr = filename.substr(12); // 12是"rdma_operate"的长度
+                    size_t dotPos = numStr.find('.');
+                    if (dotPos != std::string::npos) {
+                        numStr = numStr.substr(0, dotPos);
+                    }
+                    // 转换为数字
+                    try {
+                        int num = std::stoi(numStr);
+                        maxOperateNum = std::max(maxOperateNum, num);
+                    } catch (const std::exception& e) {
+                        // 忽略非数字后缀的文件
+                    }
                 }
             }
         }
+    } catch (const std::exception& e) {
+        kira::cout << "ERROR: Exception while iterating directory: " << e.what() << std::endl;
+        return -1;
     }
+    
+    if (maxOperateNum == -1) {
+        kira::cout << "ERROR: No valid traffic files found in " << workFolder << std::endl;
+        return -1;
+    }
+    
     operateNum = maxOperateNum + 1; // 编号从0开始
-    kira::cout << "Found " << operateNum << " rdma_operate files" << std::endl;
+    kira::cout << "Found " << operateNum << " " << filePrefix << " files" << std::endl;
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
@@ -1372,6 +1405,11 @@ int main(int argc, char *argv[]){
     tracef.close();
     double delay = 1.5 * maxRtt * 1e-9; // 10 micro seconds
     //Simulator::Schedule(Seconds(START_TIME), printBuffer, torStats, spineNodes, delay);
+    
+    // 添加定期采样函数用于带宽动画（补充方案）
+    // 注意：主要数据由 calculateRate 输出，这里作为补充确保时间连续性
+    // 由于 calculateRate 已经会输出数据，这个定期采样主要用于填充可能缺失的时间点
+    
     NS_LOG_INFO("Run Simulation.");
     kira::cout << "Run Simulation." << std::endl;
     auto simulation_start_time = std::chrono::high_resolution_clock::now();

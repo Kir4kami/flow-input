@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 44 src_port 1085 dst_node 36 dst_port 1085 priority 0 msg_len 8388608
-Type rdma_send src_node 45 src_port 1085 dst_node 37 dst_port 1085 priority 0 msg_len 8388608
-Type rdma_send src_node 46 src_port 1085 dst_node 38 dst_port 1085 priority 0 msg_len 8388608
-Type rdma_send src_node 47 src_port 1085 dst_node 39 dst_port 1085 priority 0 msg_len 8388608
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 208 src_port 1085 dst_node 209 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 209 src_port 1085 dst_node 210 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 210 src_port 1085 dst_node 211 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 211 src_port 1085 dst_node 212 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 212 src_port 1085 dst_node 213 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 213 src_port 1085 dst_node 214 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 214 src_port 1085 dst_node 215 dst_port 1085 priority 0 msg_len 33554432
+Type rdma_send src_node 215 src_port 1085 dst_node 208 dst_port 1085 priority 0 msg_len 33554432

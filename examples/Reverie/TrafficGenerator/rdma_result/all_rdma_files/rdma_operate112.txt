@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 0 src_port 2012 dst_node 8 dst_port 2012 priority 0 msg_len 8388608
-Type rdma_send src_node 1 src_port 2012 dst_node 9 dst_port 2012 priority 0 msg_len 8388608
-Type rdma_send src_node 2 src_port 2012 dst_node 10 dst_port 2012 priority 0 msg_len 8388608
-Type rdma_send src_node 3 src_port 2012 dst_node 11 dst_port 2012 priority 0 msg_len 8388608
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 136 src_port 1112 dst_node 137 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 137 src_port 1112 dst_node 138 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 138 src_port 1112 dst_node 139 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 139 src_port 1112 dst_node 140 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 140 src_port 1112 dst_node 141 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 141 src_port 1112 dst_node 142 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 142 src_port 1112 dst_node 143 dst_port 1112 priority 0 msg_len 33554432
+Type rdma_send src_node 143 src_port 1112 dst_node 136 dst_port 1112 priority 0 msg_len 33554432

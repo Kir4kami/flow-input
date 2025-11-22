@@ -17,19 +17,28 @@ plt.rcParams['axes.unicode_minus'] = False
 def parse_topology_file_corrected(file_path):
     """
     正确解析拓扑文件
+    格式：第一行是"总节点数 总交换机数 TOR数(Leaf数) 总链路数 服务器带宽 交换机带宽"
+    第二行是所有交换机ID列表（先Leaf后Spine）
     """
     with open(file_path, 'r') as f:
         lines = f.readlines()
     
-    # 第一行：总链路数 leaf数 spine数 主机数 带宽 带宽
+    # 第一行：总节点数 总交换机数 TOR数 总链路数 带宽 带宽
     first_line = lines[0].strip().split()
-    total_links = int(first_line[0])
-    num_leaves = int(first_line[1])
-    num_spines = int(first_line[2])
-    num_hosts = int(first_line[3])
+    total_nodes = int(first_line[0])
+    total_switches = int(first_line[1])
+    num_leaves = int(first_line[2])  # TOR数就是Leaf数
+    total_links = int(first_line[3])
     
-    # 第二行：spine交换机ID列表
-    spine_ids_list = [int(x) for x in lines[1].strip().split()]
+    # 计算主机数和Spine数
+    num_hosts = total_nodes - total_switches
+    num_spines = total_switches - num_leaves
+    
+    # 第二行：所有交换机ID列表（先Leaf后Spine）
+    all_switch_ids = [int(x) for x in lines[1].strip().split()]
+    # 前num_leaves个是Leaf，后面的是Spine
+    leaf_ids_list = all_switch_ids[:num_leaves]
+    spine_ids_list = all_switch_ids[num_leaves:]
     
     # 根据连接关系正确分类节点
     nodes = {}
@@ -53,29 +62,21 @@ def parse_topology_file_corrected(file_path):
     
     # 使用文件中提供的信息来分类节点
     hosts = set()
-    leaves = set()
-    spines = set(spine_ids_list)  # Spine节点从文件第二行获取
+    leaves = set(leaf_ids_list)  # Leaf节点从文件第二行获取（前半部分）
+    spines = set(spine_ids_list)  # Spine节点从文件第二行获取（后半部分）
     
-    # 主机范围：0 到 num_hosts-1
-    # Leaf范围：num_hosts 到 num_hosts+num_leaves-1
-    # Spine范围：从文件第二行读取
-    
-    host_max_id = num_hosts - 1
-    leaf_start_id = num_hosts
-    leaf_end_id = num_hosts + num_leaves - 1
-    
-    # 根据ID范围和连接关系分类节点
+    # 根据ID列表和节点ID范围分类节点
     for node in all_nodes:
         if node in spines:
             nodes[node] = 'spine'
-        elif leaf_start_id <= node <= leaf_end_id:
+        elif node in leaves:
             nodes[node] = 'leaf'
-            leaves.add(node)
-        elif node <= host_max_id:
+        elif node < num_hosts:
+            # 主机ID范围：0 到 num_hosts-1
             nodes[node] = 'host'
             hosts.add(node)
         else:
-            # 未知节点，通过连接关系推断
+            # 未知节点
             nodes[node] = 'unknown'
     
     return nodes, edges, len(hosts), len(leaves), len(spines)

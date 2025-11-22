@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 8 src_port 2084 dst_node 0 dst_port 2084 priority 0 msg_len 8388608
-Type rdma_send src_node 9 src_port 2084 dst_node 1 dst_port 2084 priority 0 msg_len 8388608
-Type rdma_send src_node 10 src_port 2084 dst_node 2 dst_port 2084 priority 0 msg_len 8388608
-Type rdma_send src_node 11 src_port 2084 dst_node 3 dst_port 2084 priority 0 msg_len 8388608
+Type rdma_send src_node 48 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 48 src_port 1184 dst_node 496 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 112 src_port 1184 dst_node 48 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 176 src_port 1184 dst_node 112 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 240 src_port 1184 dst_node 176 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 304 src_port 1184 dst_node 240 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 368 src_port 1184 dst_node 304 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 432 src_port 1184 dst_node 368 dst_port 1184 priority 0 msg_len 33554432
+Type rdma_send src_node 496 src_port 1184 dst_node 432 dst_port 1184 priority 0 msg_len 33554432

@@ -1,0 +1,10 @@
+stat rdma operate:
+phase:3000
+Type:rdma_send, src_node:120, src_port:2151, dst_node:112, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:121, src_port:2151, dst_node:113, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:122, src_port:2151, dst_node:114, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:123, src_port:2151, dst_node:115, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:124, src_port:2151, dst_node:116, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:125, src_port:2151, dst_node:117, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:126, src_port:2151, dst_node:118, dst_port:2151, priority:0, msg_len:8388608
+Type:rdma_send, src_node:127, src_port:2151, dst_node:119, dst_port:2151, priority:0, msg_len:8388608

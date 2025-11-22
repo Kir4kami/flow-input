@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 52 src_port 1039 dst_node 60 dst_port 1039 priority 0 msg_len 8388608
-Type rdma_send src_node 53 src_port 1039 dst_node 61 dst_port 1039 priority 0 msg_len 8388608
-Type rdma_send src_node 54 src_port 1039 dst_node 62 dst_port 1039 priority 0 msg_len 8388608
-Type rdma_send src_node 55 src_port 1039 dst_node 63 dst_port 1039 priority 0 msg_len 8388608
+Type rdma_send src_node 7 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 7 src_port 1039 dst_node 455 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 71 src_port 1039 dst_node 7 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 135 src_port 1039 dst_node 71 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 199 src_port 1039 dst_node 135 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 263 src_port 1039 dst_node 199 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 327 src_port 1039 dst_node 263 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 391 src_port 1039 dst_node 327 dst_port 1039 priority 0 msg_len 33554432
+Type rdma_send src_node 455 src_port 1039 dst_node 391 dst_port 1039 priority 0 msg_len 33554432

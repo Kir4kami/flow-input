@@ -6,6 +6,7 @@ import math
 import argparse
 import shutil
 import re
+import json
 
 # Root node
 root_node = 'Root'
@@ -424,6 +425,52 @@ def generate_traffic_from_tree(T, iteration=0):
             except ValueError as e:
                 print(f"Error generating traffic for node {node}, group {group_idx}: {e}")
 
+def export_tree_to_json(G, output_file="communication_tree.json"):
+    """
+    将 networkx.DiGraph 导出为 TreeCut 标准的 JSON 格式
+    
+    Args:
+        G: networkx.DiGraph 通信树
+        output_file: 输出文件路径
+    
+    Returns:
+        导出的JSON数据字典
+    """
+    nodes = []
+    edges = []
+    
+    # 导出所有节点
+    for node in G.nodes():
+        node_data = G.nodes[node]
+        nodes.append({
+            "name": node_data.get('name', node),
+            "type": node_data.get('type', 'Root'),
+            "layer": int(node_data.get('layer', 0)),
+            "nodes_passed": node_data.get('nodes_passed', []),
+            "children": node_data.get('children', []),
+            "isBurr": node_data.get('isBurr', False)
+        })
+    
+    # 导出所有边
+    for src, dst in G.edges():
+        edges.append({
+            "from_node": src,
+            "to_node": dst
+        })
+    
+    tree_json = {
+        "nodes": nodes,
+        "edges": edges
+    }
+    
+    # 写入文件
+    os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else '.', exist_ok=True)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(tree_json, f, indent=2, ensure_ascii=False)
+    
+    print(f"✅ 通信树已导出到 {output_file}: {len(nodes)} 个节点, {len(edges)} 条边")
+    return tree_json
+
 def main(args):
     global model_identifier, max_devices, max_iterations, global_node_counter, first_tp_args
     model_identifier = None
@@ -464,6 +511,11 @@ def main(args):
                 print(f"Iteration {iteration}: No DP node found")
                 return 1
             generate_traffic_from_tree(T, iteration)
+            
+            # 导出通信树为JSON格式
+            json_file = f"rdma_result/communication_tree_iter{iteration}.json"
+            export_tree_to_json(T, json_file)
+            
             prev_dp_node = dp_node
             prev_dp_args = dp_args
         except Exception as e:

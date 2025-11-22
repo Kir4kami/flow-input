@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 24 src_port 1058 dst_node 16 dst_port 1058 priority 0 msg_len 33554432
-Type rdma_send src_node 25 src_port 1058 dst_node 17 dst_port 1058 priority 0 msg_len 33554432
-Type rdma_send src_node 26 src_port 1058 dst_node 18 dst_port 1058 priority 0 msg_len 33554432
-Type rdma_send src_node 27 src_port 1058 dst_node 19 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 26 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 26 src_port 1058 dst_node 474 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 90 src_port 1058 dst_node 26 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 154 src_port 1058 dst_node 90 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 218 src_port 1058 dst_node 154 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 282 src_port 1058 dst_node 218 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 346 src_port 1058 dst_node 282 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 410 src_port 1058 dst_node 346 dst_port 1058 priority 0 msg_len 33554432
+Type rdma_send src_node 474 src_port 1058 dst_node 410 dst_port 1058 priority 0 msg_len 33554432

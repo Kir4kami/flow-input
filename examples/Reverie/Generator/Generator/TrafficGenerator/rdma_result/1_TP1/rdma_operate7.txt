@@ -1,0 +1,64 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 112 src_port 1007 dst_node 113 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 113 src_port 1007 dst_node 114 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 114 src_port 1007 dst_node 115 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 115 src_port 1007 dst_node 116 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1007 dst_node 117 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 117 src_port 1007 dst_node 118 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 118 src_port 1007 dst_node 119 dst_port 1007 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1007 dst_node 112 dst_port 1007 priority 0 msg_len 33554432

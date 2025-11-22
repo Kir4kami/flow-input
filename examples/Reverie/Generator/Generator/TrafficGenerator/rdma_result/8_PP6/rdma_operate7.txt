@@ -1,0 +1,10 @@
+stat rdma operate:
+phase:3000
+Type rdma_send src_node 112 src_port 1063 dst_node 120 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 113 src_port 1063 dst_node 121 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 114 src_port 1063 dst_node 122 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 115 src_port 1063 dst_node 123 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 116 src_port 1063 dst_node 124 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 117 src_port 1063 dst_node 125 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 118 src_port 1063 dst_node 126 dst_port 1063 priority 0 msg_len 8388608
+Type rdma_send src_node 119 src_port 1063 dst_node 127 dst_port 1063 priority 0 msg_len 8388608

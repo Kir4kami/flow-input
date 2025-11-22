@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 60 src_port 2091 dst_node 52 dst_port 2091 priority 0 msg_len 8388608
-Type rdma_send src_node 61 src_port 2091 dst_node 53 dst_port 2091 priority 0 msg_len 8388608
-Type rdma_send src_node 62 src_port 2091 dst_node 54 dst_port 2091 priority 0 msg_len 8388608
-Type rdma_send src_node 63 src_port 2091 dst_node 55 dst_port 2091 priority 0 msg_len 8388608
+Type rdma_send src_node 55 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 55 src_port 1191 dst_node 503 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 119 src_port 1191 dst_node 55 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 183 src_port 1191 dst_node 119 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 247 src_port 1191 dst_node 183 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 311 src_port 1191 dst_node 247 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 375 src_port 1191 dst_node 311 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 439 src_port 1191 dst_node 375 dst_port 1191 priority 0 msg_len 33554432
+Type rdma_send src_node 503 src_port 1191 dst_node 439 dst_port 1191 priority 0 msg_len 33554432

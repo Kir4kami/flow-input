@@ -1,17 +1,15 @@
 {
   "nodes": [
     {
-      "name": "PP1_1",
-      "type": "PP",
+      "name": "1_TP1",
+      "type": "TP",
       "layer": 1,
       "nodes_passed": [
-        "D",
-        "E"
+        "B",
+        "C"
       ],
       "children": [],
-      "isBurr": false,
-      "range": "0-0",
-      "group": "group1"
+      "isBurr": false
     },
     {
       "name": "Root"
@@ -20,7 +18,7 @@
   "edges": [
     {
       "from_node": "Root",
-      "to_node": "PP1_1"
+      "to_node": "1_TP1"
     }
   ]
 }

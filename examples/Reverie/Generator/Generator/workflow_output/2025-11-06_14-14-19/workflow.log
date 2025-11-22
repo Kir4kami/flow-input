@@ -1,0 +1,704 @@
+2025-11-06 14:14:19 - INFO - ======================================================================
+2025-11-06 14:14:19 - INFO - 工作流自动化日志
+2025-11-06 14:14:19 - INFO - ======================================================================
+2025-11-06 14:14:19 - INFO - 日志文件: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/workflow.log
+2025-11-06 14:14:19 - INFO - 开始时间: 2025-11-06 14:14:19
+2025-11-06 14:14:19 - INFO - 
+2025-11-06 14:14:19 - INFO - 配置参数:
+2025-11-06 14:14:19 - INFO -   host_num: 128
+2025-11-06 14:14:19 - INFO -   leaf_num: 16
+2025-11-06 14:14:19 - INFO -   spine_num: 8
+2025-11-06 14:14:19 - INFO -   host_bw: 200
+2025-11-06 14:14:19 - INFO -   leaf_spine_bw: 800
+2025-11-06 14:14:19 - INFO -   model: qwen
+2025-11-06 14:14:19 - INFO -   traffic_input: deepseek.txt
+2025-11-06 14:14:19 - INFO -   max_devices: 2
+2025-11-06 14:14:19 - INFO -   max_iterations: 2
+2025-11-06 14:14:19 - INFO -   enable_treecut: True
+2025-11-06 14:14:19 - INFO - 
+2025-11-06 14:14:19 - INFO - 📂 统一输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19
+2025-11-06 14:14:19 - INFO - 
+2025-11-06 14:14:19 - INFO - ╔====================================================================╗
+2025-11-06 14:14:19 - INFO - ║                    自动化工作流程                                 ║
+2025-11-06 14:14:19 - INFO - ╚====================================================================╝
+2025-11-06 14:14:19 - INFO - 
+2025-11-06 14:14:19 - INFO - 开始步骤1: 拓扑生成
+2025-11-06 14:14:19 - INFO - ======================================================================
+2025-11-06 14:14:19 - INFO - 步骤 1/4: 生成网络拓扑
+2025-11-06 14:14:19 - INFO - ======================================================================
+2025-11-06 14:14:19 - INFO - 创建拓扑输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology
+2025-11-06 14:14:19 - INFO - 执行命令: /usr/bin/python3 /home/flow-input/examples/Reverie/Generator/TopoGenerator/clos/auto_gen_topo.py --hosts 128 --leafs 16 --spines 8 --host-bw 200 --leaf-spine-bw 800 --output-dir /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology
+2025-11-06 14:14:22 - INFO - --- 拓扑生成输出 ---
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO -   Clos 拓扑自动化生成工具
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 参数验证通过: 每个Leaf将连接 8 台主机
+2025-11-06 14:14:22 - INFO - 初始化 Clos 拓扑生成器
+2025-11-06 14:14:22 - INFO -    主机数: 128
+2025-11-06 14:14:22 - INFO -    Leaf数: 16 (每个连接 8 台主机)
+2025-11-06 14:14:22 - INFO -    Spine数: 8
+2025-11-06 14:14:22 - INFO -    超额订阅比: 2.0:1
+2025-11-06 14:14:22 - INFO -    输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 开始生成拓扑 (连接模式: sequential)...
+2025-11-06 14:14:22 - INFO -    添加 128 个主机节点...
+2025-11-06 14:14:22 - INFO -    添加 16 个Leaf交换机...
+2025-11-06 14:14:22 - INFO -    添加 8 个Spine交换机...
+2025-11-06 14:14:22 - INFO -    连接 Spine-Leaf (全连接)...
+2025-11-06 14:14:22 - INFO -    连接 Host-Leaf (sequential模式)...
+2025-11-06 14:14:22 - INFO - 拓扑生成完成
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 生成配置文件...
+2025-11-06 14:14:22 - INFO - 配置文件已写入： /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/dcn2.0_config.xml
+2025-11-06 14:14:22 - INFO - 配置文件已生成: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/dcn2.0_config.xml
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 生成路由表 (算法: shortest)...
+2025-11-06 14:14:22 - INFO - 路由文件已写入： /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/router_mine.xml
+2025-11-06 14:14:22 - INFO - 路由表已生成: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/router_mine.xml
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 拓扑生成摘要
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 网络规模:
+2025-11-06 14:14:22 - INFO -   - 主机数:         128
+2025-11-06 14:14:22 - INFO -   - Leaf交换机:     16
+2025-11-06 14:14:22 - INFO -   - Spine交换机:    8
+2025-11-06 14:14:22 - INFO -   - 总节点数:       152
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 网络参数:
+2025-11-06 14:14:22 - INFO -   - 每Leaf主机数:   8
+2025-11-06 14:14:22 - INFO -   - 超额订阅比:     2.0:1
+2025-11-06 14:14:22 - INFO -   - Host带宽:       200 Gbps
+2025-11-06 14:14:22 - INFO -   - Leaf-Spine带宽: 800 Gbps
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 生成文件:
+2025-11-06 14:14:22 - INFO -   - 配置文件:       /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/dcn2.0_config.xml
+2025-11-06 14:14:22 - INFO -   - 路由表:         /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/router_mine.xml
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - INFO - 输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 全部完成！
+2025-11-06 14:14:22 - INFO - 
+2025-11-06 14:14:22 - ERROR - --- 拓扑生成错误 ---
+2025-11-06 14:14:22 - ERROR - 
+2025-11-06 14:14:22 - ERROR -   0%|          | 0/152 [00:00<?, ?it/s]
+2025-11-06 14:14:22 - ERROR - 100%|██████████| 152/152 [00:00<00:00, 845536.08it/s]
+2025-11-06 14:14:22 - ERROR - 
+2025-11-06 14:14:22 - ERROR - 生成拓扑连线:   0%|          | 0/256 [00:00<?, ?it/s]
+2025-11-06 14:14:22 - ERROR - 生成拓扑连线: 100%|██████████| 256/256 [00:00<00:00, 127598.55it/s]
+2025-11-06 14:14:22 - ERROR - 
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:   0%|          | 0/128 [00:00<?, ?it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:   4%|▍         | 5/128 [00:00<00:03, 40.94it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:   8%|▊         | 10/128 [00:00<00:02, 42.83it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  12%|█▏        | 15/128 [00:00<00:02, 44.51it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  16%|█▌        | 20/128 [00:00<00:02, 46.06it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  20%|██        | 26/128 [00:00<00:02, 48.34it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  25%|██▌       | 32/128 [00:00<00:01, 50.56it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  30%|██▉       | 38/128 [00:00<00:01, 53.23it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  35%|███▌      | 45/128 [00:00<00:01, 56.46it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  41%|████      | 52/128 [00:00<00:01, 59.76it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  47%|████▋     | 60/128 [00:01<00:01, 63.42it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  53%|█████▎    | 68/128 [00:01<00:00, 67.41it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  60%|██████    | 77/128 [00:01<00:00, 70.97it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  67%|██████▋   | 86/128 [00:01<00:00, 75.32it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径:  78%|███████▊  | 100/128 [00:01<00:00, 93.56it/s]
+2025-11-06 14:14:22 - ERROR - 算法all_shortest_paths寻找所有可用路径: 100%|██████████| 128/128 [00:01<00:00, 78.97it/s]
+2025-11-06 14:14:22 - ERROR - 
+2025-11-06 14:14:22 - ERROR - 填写路由表项:   0%|          | 0/62016 [00:00<?, ?it/s]
+2025-11-06 14:14:22 - ERROR - 填写路由表项:  22%|██▏       | 13410/62016 [00:00<00:00, 134093.73it/s]
+2025-11-06 14:14:22 - ERROR - 填写路由表项:  44%|████▎     | 27065/62016 [00:00<00:00, 135534.84it/s]
+2025-11-06 14:14:22 - ERROR - 填写路由表项:  67%|██████▋   | 41296/62016 [00:00<00:00, 138626.69it/s]
+2025-11-06 14:14:22 - ERROR - 填写路由表项:  89%|████████▉ | 55176/62016 [00:00<00:00, 138690.72it/s]
+2025-11-06 14:14:22 - ERROR - 填写路由表项: 100%|██████████| 62016/62016 [00:00<00:00, 137687.12it/s]
+2025-11-06 14:14:22 - ERROR - 
+2025-11-06 14:14:22 - ERROR - 写入路由表:   0%|          | 0/152 [00:00<?, ?it/s]
+2025-11-06 14:14:22 - ERROR - 写入路由表:  67%|██████▋   | 102/152 [00:00<00:00, 1014.80it/s]
+2025-11-06 14:14:22 - ERROR - 写入路由表: 100%|██████████| 152/152 [00:00<00:00, 1145.64it/s]
+2025-11-06 14:14:22 - INFO - ✅ 拓扑生成完成
+2025-11-06 14:14:22 - INFO -    - 配置文件: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/dcn2.0_config.xml
+2025-11-06 14:14:22 - INFO -    - 路由表: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/1_topology/router_mine.xml
+2025-11-06 14:14:22 - INFO - 开始步骤2: 流量生成
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 步骤 2/4: 生成流量模式
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 执行命令: /usr/bin/python3 trafficGen_add.py --input_file /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/2_traffic/traffic_input.txt
+2025-11-06 14:14:22 - INFO - --- 流量生成输出 ---
+2025-11-06 14:14:22 - INFO - Iteration 0: Parsed model=deepseek, devices=2, iterations=2
+2025-11-06 14:14:22 - INFO - Iteration 0: Stored first TP args: {'host_num': 128, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+2025-11-06 14:14:22 - INFO - max_iterations after initial parse: 2
+2025-11-06 14:14:22 - INFO - Starting iteration 0
+2025-11-06 14:14:22 - INFO - Iteration 0: Parsed model=deepseek, devices=2, iterations=2
+2025-11-06 14:14:22 - INFO - Iteration 0: Stored first TP args: {'host_num': 128, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 0 (mode: tp, iteration: 0) with port 1000
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 1 (mode: tp, iteration: 0) with port 1001
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 2 (mode: tp, iteration: 0) with port 1002
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 3 (mode: tp, iteration: 0) with port 1003
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 4 (mode: tp, iteration: 0) with port 1004
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 5 (mode: tp, iteration: 0) with port 1005
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 6 (mode: tp, iteration: 0) with port 1006
+2025-11-06 14:14:22 - INFO - Generated traffic for node 1_TP1, group 7 (mode: tp, iteration: 0) with port 1007
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 0 (mode: tp, iteration: 0) with port 1008
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 1 (mode: tp, iteration: 0) with port 1009
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 2 (mode: tp, iteration: 0) with port 1010
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 3 (mode: tp, iteration: 0) with port 1011
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 4 (mode: tp, iteration: 0) with port 1012
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 5 (mode: tp, iteration: 0) with port 1013
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 6 (mode: tp, iteration: 0) with port 1014
+2025-11-06 14:14:22 - INFO - Generated traffic for node 2_EP2, group 7 (mode: tp, iteration: 0) with port 1015
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 0 (mode: pp, iteration: 0) with port 1016
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 1 (mode: pp, iteration: 0) with port 1017
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 2 (mode: pp, iteration: 0) with port 1018
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 3 (mode: pp, iteration: 0) with port 1019
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 4 (mode: pp, iteration: 0) with port 1020
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 5 (mode: pp, iteration: 0) with port 1021
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 6 (mode: pp, iteration: 0) with port 1022
+2025-11-06 14:14:22 - INFO - Generated traffic for node 3_PP3, group 7 (mode: pp, iteration: 0) with port 1023
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 0 (mode: tp, iteration: 0) with port 1024
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 1 (mode: tp, iteration: 0) with port 1025
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 2 (mode: tp, iteration: 0) with port 1026
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 3 (mode: tp, iteration: 0) with port 1027
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 4 (mode: tp, iteration: 0) with port 1028
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 5 (mode: tp, iteration: 0) with port 1029
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 6 (mode: tp, iteration: 0) with port 1030
+2025-11-06 14:14:22 - INFO - Generated traffic for node 4_TP4, group 7 (mode: tp, iteration: 0) with port 1031
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 0 (mode: tp, iteration: 0) with port 1032
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 1 (mode: tp, iteration: 0) with port 1033
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 2 (mode: tp, iteration: 0) with port 1034
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 3 (mode: tp, iteration: 0) with port 1035
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 4 (mode: tp, iteration: 0) with port 1036
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 5 (mode: tp, iteration: 0) with port 1037
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 6 (mode: tp, iteration: 0) with port 1038
+2025-11-06 14:14:22 - INFO - Generated traffic for node 5_TP4, group 7 (mode: tp, iteration: 0) with port 1039
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 0 (mode: tp, iteration: 0) with port 1040
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 1 (mode: tp, iteration: 0) with port 1041
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 2 (mode: tp, iteration: 0) with port 1042
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 3 (mode: tp, iteration: 0) with port 1043
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 4 (mode: tp, iteration: 0) with port 1044
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 5 (mode: tp, iteration: 0) with port 1045
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 6 (mode: tp, iteration: 0) with port 1046
+2025-11-06 14:14:22 - INFO - Generated traffic for node 6_EP5, group 7 (mode: tp, iteration: 0) with port 1047
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 0 (mode: tp, iteration: 0) with port 1048
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 1 (mode: tp, iteration: 0) with port 1049
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 2 (mode: tp, iteration: 0) with port 1050
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 3 (mode: tp, iteration: 0) with port 1051
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 4 (mode: tp, iteration: 0) with port 1052
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 5 (mode: tp, iteration: 0) with port 1053
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 6 (mode: tp, iteration: 0) with port 1054
+2025-11-06 14:14:22 - INFO - Generated traffic for node 7_EP5, group 7 (mode: tp, iteration: 0) with port 1055
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 0 (mode: pp, iteration: 0) with port 1056
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 1 (mode: pp, iteration: 0) with port 1057
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 2 (mode: pp, iteration: 0) with port 1058
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 3 (mode: pp, iteration: 0) with port 1059
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 4 (mode: pp, iteration: 0) with port 1060
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 5 (mode: pp, iteration: 0) with port 1061
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 6 (mode: pp, iteration: 0) with port 1062
+2025-11-06 14:14:22 - INFO - Generated traffic for node 8_PP6, group 7 (mode: pp, iteration: 0) with port 1063
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 0 (mode: tp, iteration: 0) with port 1064
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 1 (mode: tp, iteration: 0) with port 1065
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 2 (mode: tp, iteration: 0) with port 1066
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 3 (mode: tp, iteration: 0) with port 1067
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 4 (mode: tp, iteration: 0) with port 1068
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 5 (mode: tp, iteration: 0) with port 1069
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 6 (mode: tp, iteration: 0) with port 1070
+2025-11-06 14:14:22 - INFO - Generated traffic for node 9_TP7, group 7 (mode: tp, iteration: 0) with port 1071
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 0 (mode: tp, iteration: 0) with port 1072
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 1 (mode: tp, iteration: 0) with port 1073
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 2 (mode: tp, iteration: 0) with port 1074
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 3 (mode: tp, iteration: 0) with port 1075
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 4 (mode: tp, iteration: 0) with port 1076
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 5 (mode: tp, iteration: 0) with port 1077
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 6 (mode: tp, iteration: 0) with port 1078
+2025-11-06 14:14:22 - INFO - Generated traffic for node 10_EP8, group 7 (mode: tp, iteration: 0) with port 1079
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 0 (mode: tp, iteration: 0) with port 1080
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 1 (mode: tp, iteration: 0) with port 1081
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 2 (mode: tp, iteration: 0) with port 1082
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 3 (mode: tp, iteration: 0) with port 1083
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 4 (mode: tp, iteration: 0) with port 1084
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 5 (mode: tp, iteration: 0) with port 1085
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 6 (mode: tp, iteration: 0) with port 1086
+2025-11-06 14:14:22 - INFO - Generated traffic for node 11_TP9, group 7 (mode: tp, iteration: 0) with port 1087
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 0 (mode: tp, iteration: 0) with port 1088
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 1 (mode: tp, iteration: 0) with port 1089
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 2 (mode: tp, iteration: 0) with port 1090
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 3 (mode: tp, iteration: 0) with port 1091
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 4 (mode: tp, iteration: 0) with port 1092
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 5 (mode: tp, iteration: 0) with port 1093
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 6 (mode: tp, iteration: 0) with port 1094
+2025-11-06 14:14:22 - INFO - Generated traffic for node 12_EP10, group 7 (mode: tp, iteration: 0) with port 1095
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 0 (mode: pp, iteration: 0) with port 1096
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 1 (mode: pp, iteration: 0) with port 1097
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 2 (mode: pp, iteration: 0) with port 1098
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 3 (mode: pp, iteration: 0) with port 1099
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 4 (mode: pp, iteration: 0) with port 1100
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 5 (mode: pp, iteration: 0) with port 1101
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 6 (mode: pp, iteration: 0) with port 1102
+2025-11-06 14:14:22 - INFO - Generated traffic for node 13_PP11, group 7 (mode: pp, iteration: 0) with port 1103
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 0 (mode: tp, iteration: 0) with port 1104
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 1 (mode: tp, iteration: 0) with port 1105
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 2 (mode: tp, iteration: 0) with port 1106
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 3 (mode: tp, iteration: 0) with port 1107
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 4 (mode: tp, iteration: 0) with port 1108
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 5 (mode: tp, iteration: 0) with port 1109
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 6 (mode: tp, iteration: 0) with port 1110
+2025-11-06 14:14:22 - INFO - Generated traffic for node 14_TP12, group 7 (mode: tp, iteration: 0) with port 1111
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 0 (mode: tp, iteration: 0) with port 1112
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 1 (mode: tp, iteration: 0) with port 1113
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 2 (mode: tp, iteration: 0) with port 1114
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 3 (mode: tp, iteration: 0) with port 1115
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 4 (mode: tp, iteration: 0) with port 1116
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 5 (mode: tp, iteration: 0) with port 1117
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 6 (mode: tp, iteration: 0) with port 1118
+2025-11-06 14:14:22 - INFO - Generated traffic for node 15_TP12, group 7 (mode: tp, iteration: 0) with port 1119
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 0 (mode: tp, iteration: 0) with port 1120
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 1 (mode: tp, iteration: 0) with port 1121
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 2 (mode: tp, iteration: 0) with port 1122
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 3 (mode: tp, iteration: 0) with port 1123
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 4 (mode: tp, iteration: 0) with port 1124
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 5 (mode: tp, iteration: 0) with port 1125
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 6 (mode: tp, iteration: 0) with port 1126
+2025-11-06 14:14:22 - INFO - Generated traffic for node 16_EP13, group 7 (mode: tp, iteration: 0) with port 1127
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 0 (mode: tp, iteration: 0) with port 1128
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 1 (mode: tp, iteration: 0) with port 1129
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 2 (mode: tp, iteration: 0) with port 1130
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 3 (mode: tp, iteration: 0) with port 1131
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 4 (mode: tp, iteration: 0) with port 1132
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 5 (mode: tp, iteration: 0) with port 1133
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 6 (mode: tp, iteration: 0) with port 1134
+2025-11-06 14:14:22 - INFO - Generated traffic for node 17_EP13, group 7 (mode: tp, iteration: 0) with port 1135
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 0 (mode: pp, iteration: 0) with port 1136
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 1 (mode: pp, iteration: 0) with port 1137
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 2 (mode: pp, iteration: 0) with port 1138
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 3 (mode: pp, iteration: 0) with port 1139
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 4 (mode: pp, iteration: 0) with port 1140
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 5 (mode: pp, iteration: 0) with port 1141
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 6 (mode: pp, iteration: 0) with port 1142
+2025-11-06 14:14:22 - INFO - Generated traffic for node 18_PP14, group 7 (mode: pp, iteration: 0) with port 1143
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 0 (mode: tp, iteration: 0) with port 1144
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 1 (mode: tp, iteration: 0) with port 1145
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 2 (mode: tp, iteration: 0) with port 1146
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 3 (mode: tp, iteration: 0) with port 1147
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 4 (mode: tp, iteration: 0) with port 1148
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 5 (mode: tp, iteration: 0) with port 1149
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 6 (mode: tp, iteration: 0) with port 1150
+2025-11-06 14:14:22 - INFO - Generated traffic for node 19_TP15, group 7 (mode: tp, iteration: 0) with port 1151
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 0 (mode: tp, iteration: 0) with port 1152
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 1 (mode: tp, iteration: 0) with port 1153
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 2 (mode: tp, iteration: 0) with port 1154
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 3 (mode: tp, iteration: 0) with port 1155
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 4 (mode: tp, iteration: 0) with port 1156
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 5 (mode: tp, iteration: 0) with port 1157
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 6 (mode: tp, iteration: 0) with port 1158
+2025-11-06 14:14:22 - INFO - Generated traffic for node 20_EP16, group 7 (mode: tp, iteration: 0) with port 1159
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 0 (mode: dp, iteration: 0) with port 1160
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 1 (mode: dp, iteration: 0) with port 1161
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 2 (mode: dp, iteration: 0) with port 1162
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 3 (mode: dp, iteration: 0) with port 1163
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 4 (mode: dp, iteration: 0) with port 1164
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 5 (mode: dp, iteration: 0) with port 1165
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 6 (mode: dp, iteration: 0) with port 1166
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 7 (mode: dp, iteration: 0) with port 1167
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 8 (mode: dp, iteration: 0) with port 1168
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 9 (mode: dp, iteration: 0) with port 1169
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 10 (mode: dp, iteration: 0) with port 1170
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 11 (mode: dp, iteration: 0) with port 1171
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 12 (mode: dp, iteration: 0) with port 1172
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 13 (mode: dp, iteration: 0) with port 1173
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 14 (mode: dp, iteration: 0) with port 1174
+2025-11-06 14:14:22 - INFO - Generated traffic for node 21_DP17, group 15 (mode: dp, iteration: 0) with port 1175
+2025-11-06 14:14:22 - INFO - Starting iteration 1
+2025-11-06 14:14:22 - INFO - Iteration 1: Parsed model=deepseek, devices=2, iterations=2
+2025-11-06 14:14:22 - INFO - Iteration 1: Adding extra TP node with args: {'host_num': 128, 'num_nodes': 8, 'dp': 8, 'msg_len': 33554432, 'num_phases': 7, 'num_iterations': 1, 'device': 0, 'forward': 1}
+2025-11-06 14:14:22 - INFO - Node 21_DP17: No valid hosts in nodes_passed []
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 0 (mode: tp, iteration: 1) with port 2000
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 1 (mode: tp, iteration: 1) with port 2001
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 2 (mode: tp, iteration: 1) with port 2002
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 3 (mode: tp, iteration: 1) with port 2003
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 4 (mode: tp, iteration: 1) with port 2004
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 5 (mode: tp, iteration: 1) with port 2005
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 6 (mode: tp, iteration: 1) with port 2006
+2025-11-06 14:14:22 - INFO - Generated traffic for node 22_TP18, group 7 (mode: tp, iteration: 1) with port 2007
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 0 (mode: tp, iteration: 1) with port 2008
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 1 (mode: tp, iteration: 1) with port 2009
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 2 (mode: tp, iteration: 1) with port 2010
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 3 (mode: tp, iteration: 1) with port 2011
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 4 (mode: tp, iteration: 1) with port 2012
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 5 (mode: tp, iteration: 1) with port 2013
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 6 (mode: tp, iteration: 1) with port 2014
+2025-11-06 14:14:22 - INFO - Generated traffic for node 43_TP34, group 7 (mode: tp, iteration: 1) with port 2015
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 0 (mode: tp, iteration: 1) with port 2016
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 1 (mode: tp, iteration: 1) with port 2017
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 2 (mode: tp, iteration: 1) with port 2018
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 3 (mode: tp, iteration: 1) with port 2019
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 4 (mode: tp, iteration: 1) with port 2020
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 5 (mode: tp, iteration: 1) with port 2021
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 6 (mode: tp, iteration: 1) with port 2022
+2025-11-06 14:14:22 - INFO - Generated traffic for node 23_EP19, group 7 (mode: tp, iteration: 1) with port 2023
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 0 (mode: pp, iteration: 1) with port 2024
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 1 (mode: pp, iteration: 1) with port 2025
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 2 (mode: pp, iteration: 1) with port 2026
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 3 (mode: pp, iteration: 1) with port 2027
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 4 (mode: pp, iteration: 1) with port 2028
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 5 (mode: pp, iteration: 1) with port 2029
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 6 (mode: pp, iteration: 1) with port 2030
+2025-11-06 14:14:22 - INFO - Generated traffic for node 24_PP20, group 7 (mode: pp, iteration: 1) with port 2031
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 0 (mode: tp, iteration: 1) with port 2032
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 1 (mode: tp, iteration: 1) with port 2033
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 2 (mode: tp, iteration: 1) with port 2034
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 3 (mode: tp, iteration: 1) with port 2035
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 4 (mode: tp, iteration: 1) with port 2036
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 5 (mode: tp, iteration: 1) with port 2037
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 6 (mode: tp, iteration: 1) with port 2038
+2025-11-06 14:14:22 - INFO - Generated traffic for node 25_TP21, group 7 (mode: tp, iteration: 1) with port 2039
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 0 (mode: tp, iteration: 1) with port 2040
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 1 (mode: tp, iteration: 1) with port 2041
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 2 (mode: tp, iteration: 1) with port 2042
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 3 (mode: tp, iteration: 1) with port 2043
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 4 (mode: tp, iteration: 1) with port 2044
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 5 (mode: tp, iteration: 1) with port 2045
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 6 (mode: tp, iteration: 1) with port 2046
+2025-11-06 14:14:22 - INFO - Generated traffic for node 26_TP21, group 7 (mode: tp, iteration: 1) with port 2047
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 0 (mode: tp, iteration: 1) with port 2048
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 1 (mode: tp, iteration: 1) with port 2049
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 2 (mode: tp, iteration: 1) with port 2050
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 3 (mode: tp, iteration: 1) with port 2051
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 4 (mode: tp, iteration: 1) with port 2052
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 5 (mode: tp, iteration: 1) with port 2053
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 6 (mode: tp, iteration: 1) with port 2054
+2025-11-06 14:14:22 - INFO - Generated traffic for node 27_EP22, group 7 (mode: tp, iteration: 1) with port 2055
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 0 (mode: tp, iteration: 1) with port 2056
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 1 (mode: tp, iteration: 1) with port 2057
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 2 (mode: tp, iteration: 1) with port 2058
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 3 (mode: tp, iteration: 1) with port 2059
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 4 (mode: tp, iteration: 1) with port 2060
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 5 (mode: tp, iteration: 1) with port 2061
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 6 (mode: tp, iteration: 1) with port 2062
+2025-11-06 14:14:22 - INFO - Generated traffic for node 28_EP22, group 7 (mode: tp, iteration: 1) with port 2063
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 0 (mode: pp, iteration: 1) with port 2064
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 1 (mode: pp, iteration: 1) with port 2065
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 2 (mode: pp, iteration: 1) with port 2066
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 3 (mode: pp, iteration: 1) with port 2067
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 4 (mode: pp, iteration: 1) with port 2068
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 5 (mode: pp, iteration: 1) with port 2069
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 6 (mode: pp, iteration: 1) with port 2070
+2025-11-06 14:14:22 - INFO - Generated traffic for node 29_PP23, group 7 (mode: pp, iteration: 1) with port 2071
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 0 (mode: tp, iteration: 1) with port 2072
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 1 (mode: tp, iteration: 1) with port 2073
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 2 (mode: tp, iteration: 1) with port 2074
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 3 (mode: tp, iteration: 1) with port 2075
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 4 (mode: tp, iteration: 1) with port 2076
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 5 (mode: tp, iteration: 1) with port 2077
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 6 (mode: tp, iteration: 1) with port 2078
+2025-11-06 14:14:22 - INFO - Generated traffic for node 30_TP24, group 7 (mode: tp, iteration: 1) with port 2079
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 0 (mode: tp, iteration: 1) with port 2080
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 1 (mode: tp, iteration: 1) with port 2081
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 2 (mode: tp, iteration: 1) with port 2082
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 3 (mode: tp, iteration: 1) with port 2083
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 4 (mode: tp, iteration: 1) with port 2084
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 5 (mode: tp, iteration: 1) with port 2085
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 6 (mode: tp, iteration: 1) with port 2086
+2025-11-06 14:14:22 - INFO - Generated traffic for node 31_EP25, group 7 (mode: tp, iteration: 1) with port 2087
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 0 (mode: tp, iteration: 1) with port 2088
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 1 (mode: tp, iteration: 1) with port 2089
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 2 (mode: tp, iteration: 1) with port 2090
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 3 (mode: tp, iteration: 1) with port 2091
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 4 (mode: tp, iteration: 1) with port 2092
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 5 (mode: tp, iteration: 1) with port 2093
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 6 (mode: tp, iteration: 1) with port 2094
+2025-11-06 14:14:22 - INFO - Generated traffic for node 32_TP26, group 7 (mode: tp, iteration: 1) with port 2095
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 0 (mode: tp, iteration: 1) with port 2096
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 1 (mode: tp, iteration: 1) with port 2097
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 2 (mode: tp, iteration: 1) with port 2098
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 3 (mode: tp, iteration: 1) with port 2099
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 4 (mode: tp, iteration: 1) with port 2100
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 5 (mode: tp, iteration: 1) with port 2101
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 6 (mode: tp, iteration: 1) with port 2102
+2025-11-06 14:14:22 - INFO - Generated traffic for node 33_EP27, group 7 (mode: tp, iteration: 1) with port 2103
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 0 (mode: pp, iteration: 1) with port 2104
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 1 (mode: pp, iteration: 1) with port 2105
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 2 (mode: pp, iteration: 1) with port 2106
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 3 (mode: pp, iteration: 1) with port 2107
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 4 (mode: pp, iteration: 1) with port 2108
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 5 (mode: pp, iteration: 1) with port 2109
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 6 (mode: pp, iteration: 1) with port 2110
+2025-11-06 14:14:22 - INFO - Generated traffic for node 34_PP28, group 7 (mode: pp, iteration: 1) with port 2111
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 0 (mode: tp, iteration: 1) with port 2112
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 1 (mode: tp, iteration: 1) with port 2113
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 2 (mode: tp, iteration: 1) with port 2114
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 3 (mode: tp, iteration: 1) with port 2115
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 4 (mode: tp, iteration: 1) with port 2116
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 5 (mode: tp, iteration: 1) with port 2117
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 6 (mode: tp, iteration: 1) with port 2118
+2025-11-06 14:14:22 - INFO - Generated traffic for node 35_TP29, group 7 (mode: tp, iteration: 1) with port 2119
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 0 (mode: tp, iteration: 1) with port 2120
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 1 (mode: tp, iteration: 1) with port 2121
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 2 (mode: tp, iteration: 1) with port 2122
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 3 (mode: tp, iteration: 1) with port 2123
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 4 (mode: tp, iteration: 1) with port 2124
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 5 (mode: tp, iteration: 1) with port 2125
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 6 (mode: tp, iteration: 1) with port 2126
+2025-11-06 14:14:22 - INFO - Generated traffic for node 36_TP29, group 7 (mode: tp, iteration: 1) with port 2127
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 0 (mode: tp, iteration: 1) with port 2128
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 1 (mode: tp, iteration: 1) with port 2129
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 2 (mode: tp, iteration: 1) with port 2130
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 3 (mode: tp, iteration: 1) with port 2131
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 4 (mode: tp, iteration: 1) with port 2132
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 5 (mode: tp, iteration: 1) with port 2133
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 6 (mode: tp, iteration: 1) with port 2134
+2025-11-06 14:14:22 - INFO - Generated traffic for node 37_EP30, group 7 (mode: tp, iteration: 1) with port 2135
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 0 (mode: tp, iteration: 1) with port 2136
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 1 (mode: tp, iteration: 1) with port 2137
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 2 (mode: tp, iteration: 1) with port 2138
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 3 (mode: tp, iteration: 1) with port 2139
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 4 (mode: tp, iteration: 1) with port 2140
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 5 (mode: tp, iteration: 1) with port 2141
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 6 (mode: tp, iteration: 1) with port 2142
+2025-11-06 14:14:22 - INFO - Generated traffic for node 38_EP30, group 7 (mode: tp, iteration: 1) with port 2143
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 0 (mode: pp, iteration: 1) with port 2144
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 1 (mode: pp, iteration: 1) with port 2145
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 2 (mode: pp, iteration: 1) with port 2146
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 3 (mode: pp, iteration: 1) with port 2147
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 4 (mode: pp, iteration: 1) with port 2148
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 5 (mode: pp, iteration: 1) with port 2149
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 6 (mode: pp, iteration: 1) with port 2150
+2025-11-06 14:14:22 - INFO - Generated traffic for node 39_PP31, group 7 (mode: pp, iteration: 1) with port 2151
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 0 (mode: tp, iteration: 1) with port 2152
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 1 (mode: tp, iteration: 1) with port 2153
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 2 (mode: tp, iteration: 1) with port 2154
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 3 (mode: tp, iteration: 1) with port 2155
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 4 (mode: tp, iteration: 1) with port 2156
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 5 (mode: tp, iteration: 1) with port 2157
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 6 (mode: tp, iteration: 1) with port 2158
+2025-11-06 14:14:22 - INFO - Generated traffic for node 40_TP32, group 7 (mode: tp, iteration: 1) with port 2159
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 0 (mode: tp, iteration: 1) with port 2160
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 1 (mode: tp, iteration: 1) with port 2161
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 2 (mode: tp, iteration: 1) with port 2162
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 3 (mode: tp, iteration: 1) with port 2163
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 4 (mode: tp, iteration: 1) with port 2164
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 5 (mode: tp, iteration: 1) with port 2165
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 6 (mode: tp, iteration: 1) with port 2166
+2025-11-06 14:14:22 - INFO - Generated traffic for node 41_EP33, group 7 (mode: tp, iteration: 1) with port 2167
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 0 (mode: dp, iteration: 1) with port 2168
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 1 (mode: dp, iteration: 1) with port 2169
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 2 (mode: dp, iteration: 1) with port 2170
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 3 (mode: dp, iteration: 1) with port 2171
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 4 (mode: dp, iteration: 1) with port 2172
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 5 (mode: dp, iteration: 1) with port 2173
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 6 (mode: dp, iteration: 1) with port 2174
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 7 (mode: dp, iteration: 1) with port 2175
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 8 (mode: dp, iteration: 1) with port 2176
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 9 (mode: dp, iteration: 1) with port 2177
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 10 (mode: dp, iteration: 1) with port 2178
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 11 (mode: dp, iteration: 1) with port 2179
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 12 (mode: dp, iteration: 1) with port 2180
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 13 (mode: dp, iteration: 1) with port 2181
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 14 (mode: dp, iteration: 1) with port 2182
+2025-11-06 14:14:22 - INFO - Generated traffic for node 42_DP34, group 15 (mode: dp, iteration: 1) with port 2183
+2025-11-06 14:14:22 - INFO - Traffic generation completed for model deepseek with 2 devices and 2 iterations
+2025-11-06 14:14:22 - INFO - ✅ 流量生成完成
+2025-11-06 14:14:22 - INFO -    - 输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/2_traffic/rdma_result
+2025-11-06 14:14:22 - INFO - 开始步骤3: ECMP路径生成
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 步骤 3/4: 生成ECMP路径
+2025-11-06 14:14:22 - INFO - ======================================================================
+2025-11-06 14:14:22 - INFO - 复制配置文件到流量目录...
+2025-11-06 14:14:22 - INFO - 已复制到 43 个子目录
+2025-11-06 14:14:22 - INFO - 开始生成ECMP路径，输出到: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/3_paths/ecmp_outputs
+2025-11-06 14:14:22 - INFO - 处理目录: 38_EP30
+2025-11-06 14:14:22 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:22 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:22 - INFO -   38_EP30: 保存 1344 条路径到 38_EP30.txt
+2025-11-06 14:14:22 - INFO - 处理目录: 39_PP31
+2025-11-06 14:14:22 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:22 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:23 - INFO -   39_PP31: 保存 320 条路径到 39_PP31.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 7_EP5
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:23 - INFO -   7_EP5: 保存 1344 条路径到 7_EP5.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 3_PP3
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:23 - INFO -   3_PP3: 保存 320 条路径到 3_PP3.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 29_PP23
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:23 - INFO -   29_PP23: 保存 320 条路径到 29_PP23.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 22_TP18
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:23 - INFO -   22_TP18: 保存 1344 条路径到 22_TP18.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 24_PP20
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:23 - INFO -   24_PP20: 保存 320 条路径到 24_PP20.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 32_TP26
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:23 - INFO -   32_TP26: 保存 1344 条路径到 32_TP26.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 37_EP30
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:23 - INFO -   37_EP30: 保存 1344 条路径到 37_EP30.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 28_EP22
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:23 - INFO -   28_EP22: 保存 1344 条路径到 28_EP22.txt
+2025-11-06 14:14:23 - INFO - 处理目录: 2_EP2
+2025-11-06 14:14:23 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:23 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   2_EP2: 保存 1344 条路径到 2_EP2.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 34_PP28
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:24 - INFO -   34_PP28: 保存 320 条路径到 34_PP28.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 20_EP16
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   20_EP16: 保存 1344 条路径到 20_EP16.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 43_TP34
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   43_TP34: 保存 1344 条路径到 43_TP34.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 41_EP33
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   41_EP33: 保存 1344 条路径到 41_EP33.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 27_EP22
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   27_EP22: 保存 1344 条路径到 27_EP22.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 23_EP19
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   23_EP19: 保存 1344 条路径到 23_EP19.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 25_TP21
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   25_TP21: 保存 1344 条路径到 25_TP21.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 1_TP1
+2025-11-06 14:14:24 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:24 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:24 - INFO -   1_TP1: 保存 1344 条路径到 1_TP1.txt
+2025-11-06 14:14:24 - INFO - 处理目录: 42_DP34
+2025-11-06 14:14:24 - DEBUG -   加载 16 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 768
+2025-11-06 14:14:25 - INFO -   42_DP34: 保存 3840 条路径到 42_DP34.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 35_TP29
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   35_TP29: 保存 1344 条路径到 35_TP29.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 30_TP24
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   30_TP24: 保存 1344 条路径到 30_TP24.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 12_EP10
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   12_EP10: 保存 1344 条路径到 12_EP10.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 5_TP4
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   5_TP4: 保存 1344 条路径到 5_TP4.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 10_EP8
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   10_EP8: 保存 1344 条路径到 10_EP8.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 18_PP14
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:25 - INFO -   18_PP14: 保存 320 条路径到 18_PP14.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 26_TP21
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   26_TP21: 保存 1344 条路径到 26_TP21.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 36_TP29
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:25 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:25 - INFO -   36_TP29: 保存 1344 条路径到 36_TP29.txt
+2025-11-06 14:14:25 - INFO - 处理目录: 14_TP12
+2025-11-06 14:14:25 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   14_TP12: 保存 1344 条路径到 14_TP12.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 31_EP25
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   31_EP25: 保存 1344 条路径到 31_EP25.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 9_TP7
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   9_TP7: 保存 1344 条路径到 9_TP7.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 40_TP32
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   40_TP32: 保存 1344 条路径到 40_TP32.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 11_TP9
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   11_TP9: 保存 1344 条路径到 11_TP9.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 8_PP6
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:26 - INFO -   8_PP6: 保存 320 条路径到 8_PP6.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 21_DP17
+2025-11-06 14:14:26 - DEBUG -   加载 16 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 768
+2025-11-06 14:14:26 - INFO -   21_DP17: 保存 3840 条路径到 21_DP17.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 13_PP11
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 64
+2025-11-06 14:14:26 - INFO -   13_PP11: 保存 320 条路径到 13_PP11.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 19_TP15
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:26 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:26 - INFO -   19_TP15: 保存 1344 条路径到 19_TP15.txt
+2025-11-06 14:14:26 - INFO - 处理目录: 17_EP13
+2025-11-06 14:14:26 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   17_EP13: 保存 1344 条路径到 17_EP13.txt
+2025-11-06 14:14:27 - INFO - 处理目录: 15_TP12
+2025-11-06 14:14:27 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   15_TP12: 保存 1344 条路径到 15_TP12.txt
+2025-11-06 14:14:27 - INFO - 处理目录: 4_TP4
+2025-11-06 14:14:27 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   4_TP4: 保存 1344 条路径到 4_TP4.txt
+2025-11-06 14:14:27 - INFO - 处理目录: 6_EP5
+2025-11-06 14:14:27 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   6_EP5: 保存 1344 条路径到 6_EP5.txt
+2025-11-06 14:14:27 - INFO - 处理目录: 33_EP27
+2025-11-06 14:14:27 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   33_EP27: 保存 1344 条路径到 33_EP27.txt
+2025-11-06 14:14:27 - INFO - 处理目录: 16_EP13
+2025-11-06 14:14:27 - DEBUG -   加载 8 个RDMA文件
+2025-11-06 14:14:27 - DEBUG -   查找ECMP路径，流数量: 448
+2025-11-06 14:14:27 - INFO -   16_EP13: 保存 1344 条路径到 16_EP13.txt
+2025-11-06 14:14:27 - INFO - ✅ ECMP路径生成完成
+2025-11-06 14:14:27 - INFO -    - 输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/3_paths/ecmp_outputs
+2025-11-06 14:14:27 - INFO -    - 生成路径文件: 43 个
+2025-11-06 14:14:27 - INFO - 开始步骤4: 通信树分割
+2025-11-06 14:14:27 - INFO - ======================================================================
+2025-11-06 14:14:27 - INFO - 步骤 4/4: 通信树分割
+2025-11-06 14:14:27 - INFO - ======================================================================
+2025-11-06 14:14:28 - INFO -    构建通信树...
+2025-11-06 14:14:28 - INFO - 使用流量输入文件: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/2_traffic/traffic_input.txt
+2025-11-06 14:14:28 - INFO -    预处理毛刺节点...
+2025-11-06 14:14:28 - INFO -    深拷贝树结构...
+2025-11-06 14:14:28 - INFO -    分割通信树...
+2025-11-06 14:14:28 - INFO -    生成依赖信息...
+2025-11-06 14:14:28 - INFO -    分割完成: 共生成 3 个子树
+2025-11-06 14:14:28 - INFO - ✅ TreeCut分割完成
+2025-11-06 14:14:28 - INFO -    - 输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/4_treecut/TreeGroup
+2025-11-06 14:14:28 - INFO -    - 子树数量: 3
+2025-11-06 14:14:28 - INFO - ======================================================================
+2025-11-06 14:14:28 - INFO - ✅ 全部完成！总耗时: 8.77 秒
+2025-11-06 14:14:28 - INFO - 📂 输出目录: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19
+2025-11-06 14:14:28 - INFO - ======================================================================
+2025-11-06 14:14:28 - INFO - 📄 摘要已保存: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/SUMMARY.txt
+2025-11-06 14:14:28 - INFO - 📋 详细日志: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/workflow.log
+2025-11-06 14:14:28 - INFO - 工作流完成，总耗时: 8.77 秒
+2025-11-06 14:14:28 - INFO - 日志已保存到: /home/flow-input/examples/Reverie/Generator/workflow_output/2025-11-06_14-14-19/workflow.log

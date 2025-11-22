@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "last_mode": "actual",
+    "updated_at": 1763036876.0427995
+  },
+  "expected": {
+    "timestamp": 1763036876.0292757,
+    "rdma_root": "/home/chanel/flow-input-local/examples/Reverie/rdma_result",
+    "count": 0,
+    "paths": []
+  },
+  "actual": {
+    "timestamp": 1763036876.0427165,
+    "rdma_root": "/home/chanel/flow-input-local/examples/Reverie/rdma_result",
+    "count": 0,
+    "paths": []
+  }
+}

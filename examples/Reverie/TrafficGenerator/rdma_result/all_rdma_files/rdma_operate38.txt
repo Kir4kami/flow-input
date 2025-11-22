@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 48 src_port 1038 dst_node 56 dst_port 1038 priority 0 msg_len 8388608
-Type rdma_send src_node 49 src_port 1038 dst_node 57 dst_port 1038 priority 0 msg_len 8388608
-Type rdma_send src_node 50 src_port 1038 dst_node 58 dst_port 1038 priority 0 msg_len 8388608
-Type rdma_send src_node 51 src_port 1038 dst_node 59 dst_port 1038 priority 0 msg_len 8388608
+Type rdma_send src_node 6 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 6 src_port 1038 dst_node 454 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 70 src_port 1038 dst_node 6 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 134 src_port 1038 dst_node 70 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 198 src_port 1038 dst_node 134 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 262 src_port 1038 dst_node 198 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 326 src_port 1038 dst_node 262 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 390 src_port 1038 dst_node 326 dst_port 1038 priority 0 msg_len 33554432
+Type rdma_send src_node 454 src_port 1038 dst_node 390 dst_port 1038 priority 0 msg_len 33554432

@@ -1,0 +1,10 @@
+stat rdma operate:
+phase:3000
+Type:rdma_send, src_node:32, src_port:1018, dst_node:40, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:33, src_port:1018, dst_node:41, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:34, src_port:1018, dst_node:42, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:35, src_port:1018, dst_node:43, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:36, src_port:1018, dst_node:44, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:37, src_port:1018, dst_node:45, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:38, src_port:1018, dst_node:46, dst_port:1018, priority:0, msg_len:8388608
+Type:rdma_send, src_node:39, src_port:1018, dst_node:47, dst_port:1018, priority:0, msg_len:8388608

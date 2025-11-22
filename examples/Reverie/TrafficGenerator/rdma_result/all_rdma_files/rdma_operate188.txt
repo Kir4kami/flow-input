@@ -1,6 +1,64 @@
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 40 src_port 2088 dst_node 32 dst_port 2088 priority 0 msg_len 8388608
-Type rdma_send src_node 41 src_port 2088 dst_node 33 dst_port 2088 priority 0 msg_len 8388608
-Type rdma_send src_node 42 src_port 2088 dst_node 34 dst_port 2088 priority 0 msg_len 8388608
-Type rdma_send src_node 43 src_port 2088 dst_node 35 dst_port 2088 priority 0 msg_len 8388608
+Type rdma_send src_node 52 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+phase:3000
+Type rdma_send src_node 52 src_port 1188 dst_node 500 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 116 src_port 1188 dst_node 52 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 180 src_port 1188 dst_node 116 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 244 src_port 1188 dst_node 180 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 308 src_port 1188 dst_node 244 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 372 src_port 1188 dst_node 308 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 436 src_port 1188 dst_node 372 dst_port 1188 priority 0 msg_len 33554432
+Type rdma_send src_node 500 src_port 1188 dst_node 436 dst_port 1188 priority 0 msg_len 33554432

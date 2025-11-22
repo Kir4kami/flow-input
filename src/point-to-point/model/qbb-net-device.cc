@@ -22,6 +22,8 @@
 #define __STDC_LIMIT_MACROS 1
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "ns3/qbb-net-device.h"
 #include "ns3/log.h"
 #include "ns3/boolean.h"
@@ -55,9 +57,10 @@
 
 
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
-
 #define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
 
 bool allSteadyStateReached=false;
@@ -747,6 +750,22 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		cout << "跃迁时间: " << transitionTime << " ns" << endl;
 		cout << "========================================" << endl;
 		
+		// 写入跃迁标记到单独的标记文件（避免与主数据文件冲突）
+		{
+			const std::string markerPath = "/tmp/bandwidth_markers.txt";
+			double time_sec = transitionTime / 1e9;
+			
+			FILE* fp = fopen(markerPath.c_str(), "a");
+			if (fp != nullptr) {
+				fprintf(fp, "# TRANSITION %.9f\n", time_sec);
+				fflush(fp);
+				fclose(fp);
+				std::cout << "[bandwidth_animation] 写入跃迁标记: " << time_sec << " (第" << transition_cnt << "次)" << std::endl;
+			} else {
+				std::cout << "[bandwidth_animation] ERROR: 无法打开标记文件" << std::endl;
+			}
+		}
+		
 		flag_steady=true;
 	}
 	if(allSteadyStateReached == false&&flag_steady==false && !flag_ENABLE_JUMP_TRANSITION){
@@ -875,13 +894,84 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
     //判断系统稳态的变量
 	allSteadyStateReached = flowStats.size()>0;
 
+    // 打开带宽动画输出文件（专门用于稳态动画图）
+    static const std::string bandwidthAnimPath = "/tmp/bandwidth_animation_task.txt";
+    static std::ofstream bandwidthAnimationFile;
+    static bool isFirstOpenAnimation = true;
+    
+    // 确保文件流始终打开
+    if (!bandwidthAnimationFile.is_open()) {
+        if (isFirstOpenAnimation) {
+            // 第一次打开：检查文件是否存在，如果存在则追加，否则创建新文件
+            FILE* testFp = fopen(bandwidthAnimPath.c_str(), "r");
+            bool fileExists = (testFp != nullptr);
+            if (testFp) fclose(testFp);
+            
+            if (fileExists) {
+                // 文件已存在（可能已有标记），使用追加模式
+                bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::app);
+                std::cout << "[bandwidth_animation] File exists, opened in append mode" << std::endl;
+            } else {
+                // 文件不存在，创建新文件并写入注释头
+                bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::out);
+                if (bandwidthAnimationFile.is_open()) {
+                    bandwidthAnimationFile << "# 格式: time_sec flow_id bandwidth_gbps" << std::endl;
+                    bandwidthAnimationFile.flush();
+                    std::cout << "[bandwidth_animation] File created (first time), flowStats.size()=" << flowStats.size() << std::endl;
+                }
+            }
+            isFirstOpenAnimation = false;
+        } else {
+            // 后续打开：追加模式
+            bandwidthAnimationFile.clear();
+            bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::app);
+            if (bandwidthAnimationFile.is_open()) {
+                std::cout << "[bandwidth_animation] File reopened (append mode)" << std::endl;
+            } else {
+                std::cout << "[bandwidth_animation] ERROR: failed to reopen file" << std::endl;
+            }
+        }
+    }
+
     // 遍历所有流，找出与flowid对应的流，计算速率
+    if (flowStats.empty()) {
+        std::cout << "[bandwidth_animation] WARNING: flowStats is empty!" << std::endl;
+    }
     for (auto& entry : flowStats) {
         string flow_id = entry.first;
         FlowStat& stat = entry.second;
 
         // 判断是否超过监测周期
 		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
+            // 计算速率（无论是否有新数据包，都输出以保持时间连续性）
+            double rate = 0.0;
+            if (stat.byteCount > 0) {
+                rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // Gbps
+            } else if (!stat.rate.empty()) {
+                // 如果没有新数据包，使用上一个周期的速率（保持连续性）
+                rate = stat.rate.back();
+            }
+
+            // 输出到带宽动画文件（改进格式：时间戳 流ID 带宽）
+            if (bandwidthAnimationFile.is_open()) {
+                double time_sec = currentTime / 1e9;  // 转换为秒
+                bandwidthAnimationFile << std::fixed << std::setprecision(9) 
+                                       << time_sec << " " 
+                                       << flow_id << " " 
+                                       << std::setprecision(6) << rate << std::endl;
+                if (bandwidthAnimationFile.fail()) {
+                    std::cout << "[bandwidth_animation] ERROR: write failed!" << std::endl;
+                    bandwidthAnimationFile.clear();
+                }
+                bandwidthAnimationFile.flush();
+                if (bandwidthAnimationFile.fail()) {
+                    std::cout << "[bandwidth_animation] ERROR: flush failed!" << std::endl;
+                    bandwidthAnimationFile.clear();
+                }
+                // 调试输出已删除，减少控制台噪音（保留错误信息用于排查问题）
+            } else {
+                std::cout << "[bandwidth_animation] file not open when writing" << std::endl;
+            }
 
 			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
 				// 计算速率（单位：字节/纳秒）
@@ -905,7 +995,6 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 				SwitchStats.clear();
 			}*/
 
-				double rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // 
 				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
 				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
 				stat.ifnewpacket =false;
@@ -937,6 +1026,8 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
 		}
 	}
 
+    // 注意：文件保持打开状态，在程序结束时自动关闭
+
 	for (auto& entry_SteadyState : flowStats) {				
 		if (!entry_SteadyState.second.steadyStateReached) {
 			allSteadyStateReached = false;
@@ -960,6 +1051,22 @@ void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::of
         
         cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
 		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
+		
+		// 写入稳态进入标记到单独的标记文件（避免与主数据文件冲突）
+		{
+			const std::string markerPath = "/tmp/bandwidth_markers.txt";
+			double time_sec = steadyStateStartTime / 1e9;
+			
+			FILE* fp = fopen(markerPath.c_str(), "a");
+			if (fp != nullptr) {
+				fprintf(fp, "# STEADY_STATE_ENTER %.9f\n", time_sec);
+				fflush(fp);
+				fclose(fp);
+				std::cout << "[bandwidth_animation] 写入稳态进入标记: " << time_sec << " (第" << steady_state_count << "次)" << std::endl;
+			} else {
+				std::cout << "[bandwidth_animation] ERROR: 无法打开标记文件" << std::endl;
+			}
+		}
 		flowstatsFile << "Steady state count: " << steady_state_count << endl;
 		flowstatsFile << "Current transition count: " << transition_cnt << endl;
 		
