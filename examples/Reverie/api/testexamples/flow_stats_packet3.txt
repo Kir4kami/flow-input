@@ -1,0 +1,69 @@
+Flow ID: 0-1-1016-1016 - Rate: 8.19312 Gbps currentTime: 104835
+Flow ID: 0-2-1016-1016 - Rate: 8.19312 Gbps currentTime: 105170
+Flow ID: 0-3-1016-1016 - Rate: 8.19312 Gbps currentTime: 105505
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 205000
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 205335
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 205670
+Flow ID: 0-1-1016-1016 - Rate: 8.03088 Gbps currentTime: 305165
+Flow ID: 0-2-1016-1016 - Rate: 8.03088 Gbps currentTime: 305500
+Flow ID: 0-3-1016-1016 - Rate: 8.03088 Gbps currentTime: 305835
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 405330
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 405665
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 406000
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 505495
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 505830
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 506165
+Flow ID: 0-1-1016-1016 - Rate: 8.03088 Gbps currentTime: 605660
+Flow ID: 0-2-1016-1016 - Rate: 8.03088 Gbps currentTime: 605995
+Flow ID: 0-3-1016-1016 - Rate: 8.03088 Gbps currentTime: 606330
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 705825
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 706160
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 706495
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 805990
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 806325
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 806660
+Flow ID: 0-1-1016-1016 - Rate: 8.03088 Gbps currentTime: 906155
+Flow ID: 0-2-1016-1016 - Rate: 8.03088 Gbps currentTime: 906490
+Flow ID: 0-3-1016-1016 - Rate: 8.03088 Gbps currentTime: 906825
+Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 1006320
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 1006655
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 1006990
+System entered steady state at time: 1006990 ns
+最小流完成时间: 7299221.717597
+System exit
+Flow ID: 0-2-1016-1016 - Rate: 11.8435 Gbps currentTime: 3470565
+Flow ID: 0-3-1016-1016 - Rate: 11.9246 Gbps currentTime: 3470565
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 3570730
+Flow ID: 0-3-1016-1016 - Rate: 12.0869 Gbps currentTime: 3570730
+Flow ID: 0-2-1016-1016 - Rate: 12.0869 Gbps currentTime: 3670895
+Flow ID: 0-3-1016-1016 - Rate: 12.168 Gbps currentTime: 3670895
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 3771060
+Flow ID: 0-3-1016-1016 - Rate: 12.0869 Gbps currentTime: 3771060
+Flow ID: 0-2-1016-1016 - Rate: 12.0869 Gbps currentTime: 3871225
+Flow ID: 0-3-1016-1016 - Rate: 12.168 Gbps currentTime: 3871225
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 3971390
+Flow ID: 0-3-1016-1016 - Rate: 12.0869 Gbps currentTime: 3971390
+Flow ID: 0-2-1016-1016 - Rate: 12.0869 Gbps currentTime: 4071555
+Flow ID: 0-3-1016-1016 - Rate: 12.168 Gbps currentTime: 4071555
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 4171720
+Flow ID: 0-3-1016-1016 - Rate: 12.0869 Gbps currentTime: 4171720
+Flow ID: 0-2-1016-1016 - Rate: 12.0869 Gbps currentTime: 4271885
+Flow ID: 0-3-1016-1016 - Rate: 12.168 Gbps currentTime: 4271885
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 4372050
+Flow ID: 0-3-1016-1016 - Rate: 12.0869 Gbps currentTime: 4372050
+System entered steady state at time: 4372050 ns
+最小流完成时间: 4557250.768067
+System exit
+Flow ID: 0-3-1016-1016 - Rate: 23.5248 Gbps currentTime: 6678185
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 6778350
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 6878515
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 6978680
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7078845
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7179010
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7279175
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7379340
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7479505
+Flow ID: 0-3-1016-1016 - Rate: 24.2549 Gbps currentTime: 7579670
+System entered steady state at time: 7579670 ns
+最小流完成时间: 4562166.899238
+System exit

@@ -24,6 +24,9 @@ FILES_TO_SYNC=(
     "quick_comparison.py"
     "complete_api.py"
     "complete_frontend.html"
+    "bandwidth_animation.html"
+    "d3.v7.min.js"
+    "plotly-2.32.0.min.js"
 )
 
 # 检查源目录
@@ -102,6 +105,9 @@ fi
 
 echo ""
 echo "完成！"
+
+
+
 
 
 

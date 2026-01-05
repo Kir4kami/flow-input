@@ -1238,15 +1238,36 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
             if not output_base.exists():
                 raise HTTPException(status_code=404, detail=f"Workflow输出目录不存在: {output_base}")
             
-            # 查找最新的输出目录
+            # 查找最新的输出目录（只查找包含 2_traffic/rdma_result 的目录）
+            output_dirs = []
+            for d in output_base.iterdir():
+                if d.is_dir():
+                    rdma_dir = d / "2_traffic" / "rdma_result"
+                    if rdma_dir.exists():
+                        output_dirs.append(d)
+            
+            if not output_dirs:
+                # 如果没找到包含 rdma_result 的目录，尝试查找所有目录
+                all_dirs = sorted(
+                    [d for d in output_base.iterdir() if d.is_dir()],
+                    key=lambda x: x.stat().st_mtime,
+                    reverse=True
+                )
+                if not all_dirs:
+                    raise HTTPException(status_code=404, detail="未找到Workflow输出目录")
+                # 返回所有目录列表供调试
+                dir_list = [str(d.name) for d in all_dirs[:5]]
+                raise HTTPException(
+                    status_code=404, 
+                    detail=f"未找到包含 2_traffic/rdma_result 的Workflow目录。最新5个目录: {', '.join(dir_list)}"
+                )
+            
+            # 按修改时间排序，获取最新的包含 rdma_result 的目录
             output_dirs = sorted(
-                [d for d in output_base.iterdir() if d.is_dir()],
+                output_dirs,
                 key=lambda x: x.stat().st_mtime,
                 reverse=True
             )
-            if not output_dirs:
-                raise HTTPException(status_code=404, detail="未找到Workflow输出目录")
-            
             latest_dir = output_dirs[0]
             load_dir = latest_dir / "2_traffic" / "rdma_result"
             if not load_dir.exists():
@@ -1490,7 +1511,9 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
             },
             "topology_layout": {
                 "host_to_tor": host_to_tor,
-                "tor_to_hosts": {str(tor): sorted(hosts) for tor, hosts in tor_to_hosts.items()}
+                "tor_to_hosts": {str(tor): sorted(hosts) for tor, hosts in tor_to_hosts.items()},
+                "tor_ids": sorted(list(tor_ids)),  # 添加TOR ID列表
+                "spine_ids": sorted(list(spine_ids))  # 添加Spine ID列表
             },
             "flow_records": flows,
             "ecmp_paths": ecmp_paths
@@ -1501,6 +1524,424 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
+
+# ==================== 链路竞争分析相关 ====================
+
+def _get_node_type(node_id: int, num_hosts: int = 80, tor_ids: Optional[List[int]] = None, spine_ids: Optional[List[int]] = None) -> str:
+    """
+    判断节点类型（主机/TOR/Spine）
+    
+    Args:
+        node_id: 节点ID
+        num_hosts: 主机数量（默认80）
+        tor_ids: TOR节点ID列表（可选）
+        spine_ids: Spine节点ID列表（可选）
+    
+    Returns:
+        节点类型：'host', 'tor', 'spine', 或 'unknown'
+    """
+    # 如果提供了明确的ID列表，使用它们
+    if tor_ids and node_id in tor_ids:
+        return 'tor'
+    if spine_ids and node_id in spine_ids:
+        return 'spine'
+    
+    # 默认判断逻辑：如果提供了ID列表，优先使用；否则使用范围判断
+    # 通常主机ID < num_hosts，TOR和Spine ID >= num_hosts
+    # 但实际拓扑中，TOR和Spine的ID可能不是连续的，所以需要从拓扑文件读取
+    if node_id < num_hosts:
+        return 'host'
+    # 如果没有提供ID列表，使用范围判断（可能不准确）
+    # 假设TOR在 num_hosts 到 num_hosts+8 之间，Spine在之后
+    elif not tor_ids and not spine_ids:
+        if num_hosts <= node_id < num_hosts + 8:  # 假设8个TOR
+            return 'tor'
+        elif node_id >= num_hosts + 8:
+            return 'spine'
+    # 如果提供了ID列表但节点不在列表中，可能是未知类型
+    return 'unknown'
+
+def _format_path_description(node_path: List[int], num_hosts: int = 80, tor_ids: Optional[List[int]] = None, spine_ids: Optional[List[int]] = None) -> str:
+    """
+    格式化路径描述，显示每个节点的类型
+    
+    Args:
+        node_path: 节点路径，如 [14, 65, 74, 64, 6]
+        num_hosts: 主机数量
+        tor_ids: TOR节点ID列表（可选）
+        spine_ids: Spine节点ID列表（可选）
+    
+    Returns:
+        格式化的路径描述，如 "H14 -> TOR65 -> Spine74 -> TOR64 -> H6"
+    """
+    if not node_path:
+        return "无路径"
+    
+    path_parts = []
+    for node_id in node_path:
+        node_type = _get_node_type(node_id, num_hosts, tor_ids, spine_ids)
+        if node_type == 'host':
+            path_parts.append(f"H{node_id}")
+        elif node_type == 'tor':
+            path_parts.append(f"TOR{node_id}")
+        elif node_type == 'spine':
+            path_parts.append(f"Spine{node_id}")
+        else:
+            path_parts.append(f"N{node_id}")
+    
+    return " -> ".join(path_parts)
+
+def _extract_links_from_path(node_path: List[int]) -> List[Tuple[int, int]]:
+    """
+    从节点路径中提取所有链路（边）
+    
+    Args:
+        node_path: 节点路径，如 [H0, TOR1, Spine2, TOR3, H4]
+    
+    Returns:
+        链路列表，如 [(H0, TOR1), (TOR1, Spine2), (Spine2, TOR3), (TOR3, H4)]
+    """
+    if not node_path or len(node_path) < 2:
+        return []
+    links = []
+    for i in range(len(node_path) - 1):
+        links.append((node_path[i], node_path[i + 1]))
+    return links
+
+def _parse_port_from_rdma_file(file_path: Path) -> Tuple[int, int, int]:
+    """
+    从 rdma_operate*.txt 文件中解析端口号和 phase 值
+    
+    Args:
+        file_path: rdma_operate 文件路径
+    
+    Returns:
+        (src_port, dst_port, phase) 元组，如果解析失败则返回默认值
+    """
+    default_src_port = 1016
+    default_dst_port = 1016
+    default_phase = 3000
+    
+    if not file_path.exists():
+        return (default_src_port, default_dst_port, default_phase)
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            phase = default_phase
+            src_port = default_src_port
+            dst_port = default_dst_port
+            
+            for line in lines:
+                line = line.strip()
+                # 解析 phase
+                if line.startswith("phase:"):
+                    try:
+                        phase = int(line.split(":")[1])
+                    except:
+                        pass
+                # 解析端口号（从第一条 Type rdma_send 行）
+                elif line.startswith("Type rdma_send") and src_port == default_src_port:
+                    # 格式: Type rdma_send src_node X src_port Y dst_node Z dst_port W priority 0 msg_len SIZE
+                    match = re.search(r'src_port[:\s]+(\d+).*?dst_port[:\s]+(\d+)', line)
+                    if match:
+                        src_port = int(match.group(1))
+                        dst_port = int(match.group(2))
+            
+            return (src_port, dst_port, phase)
+    except Exception as e:
+        print(f"[WARNING] 解析端口号失败 {file_path}: {e}")
+        return (default_src_port, default_dst_port, default_phase)
+
+@app.post("/extract-link-competition-flows")
+async def extract_link_competition_flows(use_latest_workflow: bool = True):
+    """
+    找出共享同一链路的流组，并生成 rdma_operate0_new.txt 文件
+    
+    Args:
+        use_latest_workflow: 是否使用最新的 workflow 输出目录
+    
+    Returns:
+        包含提取结果的响应
+    """
+    try:
+        base_dir = Path(__file__).parent.parent
+        
+        # 1. 获取流量数据和路径信息
+        parse_result = await parse_load_files(directory="rdma_result", use_latest_workflow=use_latest_workflow)
+        
+        if not parse_result.get("success"):
+            raise HTTPException(status_code=500, detail="获取流量数据失败")
+        
+        flow_records = parse_result.get("flow_records", [])
+        ecmp_paths = parse_result.get("ecmp_paths", {})
+        
+        if not flow_records:
+            raise HTTPException(status_code=404, detail="未找到流量数据")
+        
+        print(f"[DEBUG] 总流量记录数: {len(flow_records)}")
+        
+        # 2. 获取路径信息（优先使用 actual，但如果 actual 路径太少，则使用 expected）
+        actual_data = ecmp_paths.get("actual", {})
+        expected_data = ecmp_paths.get("expected", {})
+        
+        actual_paths = actual_data.get("paths", []) if isinstance(actual_data, dict) else []
+        expected_paths = expected_data.get("paths", []) if isinstance(expected_data, dict) else []
+        
+        # 如果 actual 路径数量少于总流量的10%，则使用 expected 路径
+        # 这样可以确保有足够的路径数据进行分析
+        min_paths_threshold = max(100, len(flow_records) * 0.1)
+        
+        if len(actual_paths) >= min_paths_threshold:
+            paths_data = actual_data
+            paths_list = actual_paths
+            print(f"[DEBUG] 使用 actual 路径数据 ({len(actual_paths)} 条)")
+        elif len(expected_paths) > 0:
+            paths_data = expected_data
+            paths_list = expected_paths
+            print(f"[DEBUG] 使用 expected 路径数据 ({len(expected_paths)} 条)")
+            if len(actual_paths) > 0:
+                print(f"[DEBUG] 注意：actual 路径数据太少 ({len(actual_paths)} 条)，已切换到 expected 路径")
+        else:
+            paths_data = {}
+            paths_list = []
+            print(f"[DEBUG] 警告：未找到路径数据")
+        
+        print(f"[DEBUG] 路径数据总数: {len(paths_list)}")
+        
+        if not paths_list:
+            raise HTTPException(status_code=404, detail="未找到路径信息，请先计算 ECMP 路径")
+        
+        # 3. 建立流到路径的映射
+        flow_to_path = {}
+        for path_item in paths_list:
+            src = path_item.get("src")
+            dst = path_item.get("dst")
+            node_path = path_item.get("node_path", [])
+            if src is not None and dst is not None and node_path:
+                flow_key = (src, dst)
+                # 如果有多条路径，选择第一条
+                if flow_key not in flow_to_path:
+                    flow_to_path[flow_key] = node_path
+        
+        print(f"[DEBUG] 有路径信息的流数: {len(flow_to_path)}")
+        print(f"[DEBUG] 无路径信息的流数: {len(flow_records) - len(flow_to_path)}")
+        
+        # 4. 提取所有流的链路信息，并按链路分组
+        link_to_flows = defaultdict(list)
+        flows_without_path = 0
+        
+        for flow in flow_records:
+            src = flow.get("src")
+            dst = flow.get("dst")
+            flow_key = (src, dst)
+            
+            # 获取该流的路径
+            node_path = flow_to_path.get(flow_key)
+            if not node_path:
+                flows_without_path += 1
+                continue
+            
+            # 提取链路
+            links = _extract_links_from_path(node_path)
+            
+            # 将流添加到每个链路的流组中（使用 flow_key 去重，避免同一条流在同一链路组中重复）
+            flow_info = {
+                "src": src,
+                "dst": dst,
+                "size": flow.get("size", 0),
+                "file": flow.get("file", ""),
+                "path": node_path
+            }
+            
+            for link in links:
+                # 检查该流是否已经在该链路组中（避免重复）
+                if not any(f["src"] == src and f["dst"] == dst for f in link_to_flows[link]):
+                    link_to_flows[link].append(flow_info)
+        
+        if not link_to_flows:
+            raise HTTPException(status_code=404, detail="未找到共享链路的流组")
+        
+        print(f"[DEBUG] 成功提取链路的流数: {len(flow_records) - flows_without_path}")
+        if flows_without_path > 0:
+            print(f"[WARNING] 有 {flows_without_path} 条流没有路径信息，已被跳过")
+            print(f"[WARNING] 建议：重新计算 ECMP 路径以确保所有流都有路径信息")
+        
+        # 5. 统计所有链路组的信息
+        link_stats = []
+        for link, flows in link_to_flows.items():
+            total_bandwidth = sum(f['size'] for f in flows)
+            link_stats.append({
+                "link": {"from": link[0], "to": link[1]},
+                "flow_count": len(flows),
+                "total_bandwidth": total_bandwidth,
+                "flows": flows
+            })
+        
+        # 按流数量降序排序
+        link_stats.sort(key=lambda x: x["flow_count"], reverse=True)
+        
+        # 打印统计信息（前10个）
+        print(f"[INFO] 链路组统计（共 {len(link_stats)} 个链路组）:")
+        for i, stat in enumerate(link_stats[:10], 1):
+            print(f"  {i}. 链路 {stat['link']['from']} -> {stat['link']['to']}: "
+                  f"{stat['flow_count']} 条流, 总带宽 {stat['total_bandwidth']} bytes")
+        
+        # 优先选择流数量>=2的链路组，如果没有则选择流数量最多的
+        selected_stat = None
+        for stat in link_stats:
+            if stat["flow_count"] >= 2:
+                selected_stat = stat
+                break
+        
+        if selected_stat is None:
+            # 如果没有流数量>=2的，选择流数量最多的
+            selected_stat = link_stats[0] if link_stats else None
+            print(f"[WARNING] 所有链路组都只有1条流，选择流数量最多的链路组")
+        
+        if not selected_stat:
+            raise HTTPException(status_code=404, detail="未找到有效的流组")
+        
+        selected_link = (selected_stat["link"]["from"], selected_stat["link"]["to"])
+        selected_flows = selected_stat["flows"]
+        
+        print(f"[INFO] 选择的链路: {selected_link[0]} -> {selected_link[1]}, 流数量: {len(selected_flows)}")
+        
+        # 6. 解析端口号和 phase（从第一条流的原文件）
+        src_port = 1016
+        dst_port = 1016
+        phase = 3000
+        
+        if selected_flows and selected_flows[0].get("file"):
+            flow_file = selected_flows[0]["file"]
+            # 构建完整路径
+            if use_latest_workflow:
+                generator_dir = base_dir / "Generator" / "Generator"
+                output_base = generator_dir / "workflow_output"
+                output_dirs = sorted(
+                    [d for d in output_base.iterdir() if d.is_dir() and (d / "2_traffic" / "rdma_result").exists()],
+                    key=lambda x: x.stat().st_mtime,
+                    reverse=True
+                )
+                if output_dirs:
+                    rdma_file_path = output_dirs[0] / "2_traffic" / flow_file
+                else:
+                    rdma_file_path = base_dir / flow_file
+            else:
+                rdma_file_path = base_dir / flow_file
+            
+            parsed_src_port, parsed_dst_port, parsed_phase = _parse_port_from_rdma_file(rdma_file_path)
+            src_port = parsed_src_port
+            dst_port = parsed_dst_port
+            phase = parsed_phase
+        
+        # 7. 生成输出文件
+        output_file = base_dir / "rdma_operate0_new.txt"
+        
+        # 获取拓扑信息以确定节点类型
+        topology_info = parse_result.get("topology_info", {})
+        topology_layout = parse_result.get("topology_layout", {})
+        num_hosts = topology_info.get("num_hosts", 80)
+        tor_ids = topology_layout.get("tor_ids", [])
+        spine_ids = topology_layout.get("spine_ids", [])
+        
+        # 生成共享链路的描述
+        link_from_type = _get_node_type(selected_link[0], num_hosts, tor_ids, spine_ids)
+        link_to_type = _get_node_type(selected_link[1], num_hosts, tor_ids, spine_ids)
+        link_from_label = f"{link_from_type.upper()}{selected_link[0]}" if link_from_type != 'unknown' else f"N{selected_link[0]}"
+        link_to_label = f"{link_to_type.upper()}{selected_link[1]}" if link_to_type != 'unknown' else f"N{selected_link[1]}"
+        shared_link_desc = f"{link_from_label} -> {link_to_label}"
+        
+        output_lines = [
+            "stat rdma operate:",
+            f"phase:{phase}",
+            f"# 共享链路: {selected_link[0]} -> {selected_link[1]} ({shared_link_desc})",
+            f"# 流数量: {len(selected_flows)}",
+            f"# 总带宽需求: {sum(f['size'] for f in selected_flows)} bytes",
+            f"# 说明：以下所有流都经过共享链路 {shared_link_desc}，会竞争该链路的带宽",
+            ""
+        ]
+        
+        for flow in selected_flows:
+            path_desc = _format_path_description(flow.get("path", []), num_hosts, tor_ids, spine_ids)
+            output_lines.append(f"# 路径: {path_desc}")
+            output_lines.append(
+                f"Type rdma_send src_node {flow['src']} src_port {src_port} "
+                f"dst_node {flow['dst']} dst_port {dst_port} "
+                f"priority 0 msg_len {flow['size']}"
+            )
+            output_lines.append("")  # 空行分隔
+        
+        # 写入文件
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(output_lines))
+        
+        print(f"[INFO] 已生成文件: {output_file}")
+        print(f"[INFO] 包含 {len(selected_flows)} 条流，共享链路 {selected_link[0]} -> {selected_link[1]}")
+        
+        # 获取拓扑信息以确定节点类型（尝试从parse_result获取）
+        topology_info = parse_result.get("topology_info", {})
+        topology_layout = parse_result.get("topology_layout", {})
+        num_hosts = topology_info.get("num_hosts", 80)
+        tor_ids = topology_layout.get("tor_ids", [])
+        spine_ids = topology_layout.get("spine_ids", [])
+        
+        # 格式化每条流的路径描述
+        flows_with_path_desc = []
+        for f in selected_flows:
+            path_desc = _format_path_description(f.get("path", []), num_hosts, tor_ids, spine_ids)
+            flows_with_path_desc.append({
+                "src": f["src"],
+                "dst": f["dst"],
+                "size": f["size"],
+                "path": f["path"],
+                "path_description": path_desc
+            })
+        
+        # 生成共享链路的描述
+        link_from_type = _get_node_type(selected_link[0], num_hosts, tor_ids, spine_ids)
+        link_to_type = _get_node_type(selected_link[1], num_hosts, tor_ids, spine_ids)
+        link_from_label = f"{link_from_type.upper()}{selected_link[0]}" if link_from_type != 'unknown' else f"N{selected_link[0]}"
+        link_to_label = f"{link_to_type.upper()}{selected_link[1]}" if link_to_type != 'unknown' else f"N{selected_link[1]}"
+        shared_link_desc = f"{link_from_label} -> {link_to_label}"
+        
+        return {
+            "success": True,
+            "message": f"成功提取 {len(selected_flows)} 条共享链路的流",
+            "output_file": str(output_file.relative_to(base_dir)),
+            "link": {
+                "from": selected_link[0],
+                "to": selected_link[1],
+                "description": shared_link_desc
+            },
+            "flow_count": len(selected_flows),
+            "total_bandwidth_demand": sum(f['size'] for f in selected_flows),
+            "flows": flows_with_path_desc,
+            "all_link_stats": [
+                {
+                    "link": stat["link"],
+                    "flow_count": stat["flow_count"],
+                    "total_bandwidth": stat["total_bandwidth"]
+                }
+                for stat in link_stats[:20]  # 返回前20个链路组的统计信息
+            ],
+            "total_links": len(link_stats),
+            "statistics": {
+                "total_flows": len(flow_records),
+                "flows_with_path": len(flow_to_path),
+                "flows_without_path": flows_without_path,
+                "flows_with_link": len(flow_records) - flows_without_path,
+                "total_paths": len(paths_list)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] 提取链路竞争流失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"提取失败: {str(e)}")
 
 # ==================== 拓扑切分接口相关 ====================
 

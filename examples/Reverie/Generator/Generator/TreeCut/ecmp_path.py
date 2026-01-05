@@ -9,13 +9,26 @@ node_in_set = 16
 
 
 class FlowInfo:
-    def __init__(self, flow_id, src_node, dst_node):
+    def __init__(self, flow_id, src_node, dst_node, src_port=1016, dst_port=1016, protocol=6):
+        """
+        流信息类
+        Args:
+            flow_id: 流ID
+            src_node: 源节点ID
+            dst_node: 目标节点ID
+            src_port: 源端口（默认1016）
+            dst_port: 目标端口（默认1016）
+            protocol: 协议类型（6=TCP, 17=UDP，默认6）
+        """
         self.flow_id = flow_id
         self.src_node = src_node
         self.dst_node = dst_node
+        self.src_port = src_port
+        self.dst_port = dst_port
+        self.protocol = protocol
 
     def __repr__(self):
-        return f"{self.flow_id} (src_node={self.src_node}, dst_node={self.dst_node})"
+        return f"{self.flow_id} (src_node={self.src_node}, dst_node={self.dst_node}, src_port={self.src_port}, dst_port={self.dst_port}, protocol={self.protocol})"
 
 
 class LinkInfo:
@@ -56,20 +69,45 @@ class RouteEntry:
 
 
 def parse_rdma_operate(file_path):
+    """
+    解析rdma_operate文件，提取流信息（包括端口号）
+    """
     flow_list = []
     flow_id_count = 1
+    default_src_port = 1016
+    default_dst_port = 1016
+    default_protocol = 6  # TCP
+    
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
     for line in lines:
         if "rdma_send" in line:
-            match = re.search(r'src_node[:\s]+(\d+)[,\s].*dst_node[:\s]+(\d+)', line)
-            if match:
-                src_node = int(match.group(1))
-                dst_node = int(match.group(2))
-                flow = FlowInfo(flow_id_count, src_node, dst_node)
-                flow_list.append(flow)
-                flow_id_count += 1
+            # 解析: Type rdma_send src_node X src_port Y dst_node Z dst_port W priority 0 msg_len SIZE
+            # 先尝试匹配完整格式（包含端口）
+            match_full = re.search(
+                r'src_node[:\s]+(\d+).*?src_port[:\s]+(\d+).*?dst_node[:\s]+(\d+).*?dst_port[:\s]+(\d+)',
+                line
+            )
+            if match_full:
+                src_node = int(match_full.group(1))
+                src_port = int(match_full.group(2))
+                dst_node = int(match_full.group(3))
+                dst_port = int(match_full.group(4))
+            else:
+                # 回退到只匹配节点（兼容旧格式）
+                match = re.search(r'src_node[:\s]+(\d+)[,\s].*dst_node[:\s]+(\d+)', line)
+                if match:
+                    src_node = int(match.group(1))
+                    dst_node = int(match.group(2))
+                    src_port = default_src_port
+                    dst_port = default_dst_port
+                else:
+                    continue
+            
+            flow = FlowInfo(flow_id_count, src_node, dst_node, src_port, dst_port, default_protocol)
+            flow_list.append(flow)
+            flow_id_count += 1
         if "phase" in line:
             continue
     return flow_list
@@ -140,6 +178,137 @@ def parse_route_xml(file_path):
                                      metrics=metrics)
             route_table.append(route_entry)
     return route_table
+
+
+def node_id_to_ip(node_id):
+    """
+    将节点ID转换为IP地址格式（与NS-3一致）
+    参考: kira_functions.cc 第59-60行
+    IP格式: 0x0b000001 + ((node_id / 256) * 0x00010000) + ((node_id % 256) * 0x00000100)
+    即: 11.0.0.1 + (node_id的高8位 << 16) + (node_id的低8位 << 8)
+    """
+    return 0x0b000001 + ((node_id // 256) * 0x00010000) + ((node_id % 256) * 0x00000100)
+
+
+def ecmp_hash(key_bytes, seed):
+    """
+    ECMP Hash函数，与NS-3的SwitchNode::EcmpHash完全一致
+    参考: switch-node.cc 第182-218行
+    
+    Args:
+        key_bytes: 字节数组（12字节：src_ip 4字节 + dst_ip 4字节 + ports 4字节）
+        seed: 种子值（通常是节点ID）
+    
+    Returns:
+        hash值（uint32）
+    """
+    h = seed & 0xFFFFFFFF  # 确保是32位无符号整数
+    key_len = len(key_bytes)
+    
+    # 处理4字节对齐的部分
+    if key_len > 3:
+        i = key_len >> 2  # 除以4
+        key_idx = 0
+        while i > 0:
+            # 读取4字节（小端序）
+            k = (key_bytes[key_idx] |
+                 (key_bytes[key_idx + 1] << 8) |
+                 (key_bytes[key_idx + 2] << 16) |
+                 (key_bytes[key_idx + 3] << 24))
+            k = k & 0xFFFFFFFF  # 确保是32位
+            
+            # MurmurHash3的混合步骤
+            k *= 0xcc9e2d51
+            k = ((k << 15) | (k >> 17)) & 0xFFFFFFFF
+            k *= 0x1b873593
+            k = k & 0xFFFFFFFF
+            
+            h ^= k
+            h = h & 0xFFFFFFFF
+            h = ((h << 13) | (h >> 19)) & 0xFFFFFFFF
+            h = (h + ((h << 2) + 0xe6546b64)) & 0xFFFFFFFF
+            
+            key_idx += 4
+            i -= 1
+    
+    # 处理剩余的字节（1-3字节）
+    if key_len & 3:
+        i = key_len & 3
+        k = 0
+        key_idx = key_len - 1
+        while i > 0:
+            k = ((k << 8) | key_bytes[key_idx]) & 0xFFFFFFFF
+            key_idx -= 1
+            i -= 1
+        
+        k *= 0xcc9e2d51
+        k = ((k << 15) | (k >> 17)) & 0xFFFFFFFF
+        k *= 0x1b873593
+        k = k & 0xFFFFFFFF
+        h ^= k
+        h = h & 0xFFFFFFFF
+    
+    # 最终混合
+    h ^= key_len
+    h = h & 0xFFFFFFFF
+    h ^= (h >> 16)
+    h = h & 0xFFFFFFFF
+    h = (h * 0x85ebca6b) & 0xFFFFFFFF
+    h ^= (h >> 13)
+    h = h & 0xFFFFFFFF
+    h = (h * 0xc2b2ae35) & 0xFFFFFFFF
+    h ^= (h >> 16)
+    h = h & 0xFFFFFFFF
+    
+    return h
+
+
+def compute_ecmp_hash_for_flow(src_node, dst_node, src_port, dst_port, current_node_id):
+    """
+    为流计算ECMP hash值（与NS-3的GetOutDev函数一致）
+    参考: switch-node.cc 第90-107行, kira_functions.cc 第54-63行
+    
+    Args:
+        src_node: 源节点ID
+        dst_node: 目标节点ID
+        src_port: 源端口
+        dst_port: 目标端口
+        current_node_id: 当前节点ID（作为seed）
+    
+    Returns:
+        hash值
+    """
+    # 将节点ID转换为IP地址格式
+    src_ip = node_id_to_ip(src_node)
+    dst_ip = node_id_to_ip(dst_node)
+    
+    # 构建12字节的key（与NS-3一致）
+    # buf.u32[0] = src_ip (4字节)
+    # buf.u32[1] = dst_ip (4字节)
+    # buf.u32[2] = src_port | (dst_port << 16) (4字节)
+    key_bytes = bytearray(12)
+    
+    # src_ip (小端序)
+    key_bytes[0] = src_ip & 0xFF
+    key_bytes[1] = (src_ip >> 8) & 0xFF
+    key_bytes[2] = (src_ip >> 16) & 0xFF
+    key_bytes[3] = (src_ip >> 24) & 0xFF
+    
+    # dst_ip (小端序)
+    key_bytes[4] = dst_ip & 0xFF
+    key_bytes[5] = (dst_ip >> 8) & 0xFF
+    key_bytes[6] = (dst_ip >> 16) & 0xFF
+    key_bytes[7] = (dst_ip >> 24) & 0xFF
+    
+    # ports: src_port | (dst_port << 16) (小端序)
+    ports = src_port | (dst_port << 16)
+    key_bytes[8] = ports & 0xFF
+    key_bytes[9] = (ports >> 8) & 0xFF
+    key_bytes[10] = (ports >> 16) & 0xFF
+    key_bytes[11] = (ports >> 24) & 0xFF
+    
+    # 使用当前节点ID作为seed（与NS-3一致：m_ecmpSeed = m_id）
+    return ecmp_hash(key_bytes, current_node_id)
 
 
 #def find_ecmp_path(flow_info_list, link_info_list, route_info_table, link_map, reverse_link_map):
@@ -259,8 +428,22 @@ def find_ecmp_path(flow_info_list, link_info_list, route_info_table, link_map, r
             if not route_entry:
                 raise RuntimeError(f"路由表缺失：节点 {current_node} 无到 {dst_node} 的路由")
 
-            # 根据入端口选择出端口（ECMP hash 模拟）
-            out_port = route_entry.port_ids[in_port % len(route_entry.port_ids)]
+            # 使用正确的ECMP hash算法选择出端口（与NS-3一致）
+            if len(route_entry.port_ids) == 0:
+                raise RuntimeError(f"路由条目无可用端口：节点 {current_node} 到 {dst_node}")
+            elif len(route_entry.port_ids) == 1:
+                # 只有一个端口，直接使用
+                out_port = route_entry.port_ids[0]
+            else:
+                # 多个端口，使用ECMP hash选择
+                # 使用5元组hash: (src_node, dst_node, src_port, dst_port, current_node)
+                hash_value = compute_ecmp_hash_for_flow(
+                    flow.src_node, flow.dst_node,
+                    flow.src_port, flow.dst_port,
+                    current_node
+                )
+                port_index = hash_value % len(route_entry.port_ids)
+                out_port = route_entry.port_ids[port_index]
 
             # 查找对应的链路
             link = None

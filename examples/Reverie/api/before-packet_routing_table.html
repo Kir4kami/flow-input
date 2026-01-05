@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据包路由表实时监控</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --card: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-2: #f472b6;
+            --accent-3: #facc15;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(circle at top, #1e1b4b, #020617 60%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 16px 64px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.08em;
+        }
+        header p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .panel {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 60px rgba(15,23,42,0.45);
+            backdrop-filter: blur(18px);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.35rem;
+            margin-bottom: 18px;
+        }
+        .file-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .file-picker label {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+        input[type="file"] {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text);
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(15,23,42,0.6);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: rgba(56,189,248,0.2);
+            border-color: var(--accent);
+        }
+        .hint {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .stats-grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .stat-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(15,23,42,0.55);
+        }
+        .stat-card span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+        .stat-card strong {
+            font-size: 1.2rem;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(15,23,42,0.4);
+            border-radius: 8px;
+        }
+        .controls button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .time-display {
+            margin: 0 10px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .routing-table-container {
+            background: rgba(2,6,23,0.85);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        thead {
+            background: rgba(15,23,42,0.6);
+        }
+        th {
+            padding: 12px;
+            text-align: left;
+            color: var(--accent);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(56,189,248,0.3);
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        tbody tr:hover {
+            background: rgba(56,189,248,0.1);
+        }
+        .transition-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--accent-2);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .notice {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        @media (max-width: 768px) {
+            body { padding: 20px 10px 40px; }
+            .panel { padding: 18px; }
+            header h1 { font-size: 1.8rem; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>数据包路由表实时监控</h1>
+            <p>载入数据包路由信息文件，实时显示数据包的发送、路由和到达情况。
+               与带宽监控同步，展示同一时间维度下的数据包传输状态。</p>
+        </header>
+
+        <section class="panel">
+            <h2>1. 载入数据包路由信息</h2>
+            <div class="file-picker">
+                <label for="fileInput">选择数据包路由文件：</label>
+                <input type="file" id="fileInput" accept=".txt">
+                <button id="demoBtn" title="使用内置示例数据">使用示例数据</button>
+            </div>
+            <div class="hint">
+                提示：文件格式为 <code>time_sec packet_id src_node dst_node send_time arrive_time</code> 或包含 <code># TRANSITION</code> 标记。
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>数据包总数</span>
+                    <strong id="packetCount">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>已发送</span>
+                    <strong id="sentCount">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>已到达</span>
+                    <strong id="arrivedCount">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>当前时间 (μs)</span>
+                    <strong id="currentTime">--</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>2. 数据包路由表</h2>
+            <div class="controls">
+                <button id="playBtn" class="active">▶ 播放</button>
+                <button id="pauseBtn">⏸ 暂停</button>
+                <span class="time-display" id="timeDisplay">时间: 0.00 μs</span>
+                <input type="range" id="timeSlider" min="0" max="100" value="0" style="flex: 1; margin: 0 10px; cursor: pointer;">
+            </div>
+            <div class="routing-table-container">
+                <div id="transitionMessage" class="transition-message" style="display: none;">
+                    正在发生跃迁
+                </div>
+                <table id="routingTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>源节点 (src)</th>
+                            <th>目的节点 (dst)</th>
+                            <th>发送时间 (μs)</th>
+                            <th>到达时间 (μs)</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="notice">
+                表格实时更新，显示当前时间点已发送和已到达的数据包。跃迁期间不仿真数据包，显示"正在发生跃迁"提示。
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 全局数据存储
+        let globalData = {
+            packets: [], // [{id, src, dst, sendTime, arriveTime, time}]
+            timeline: [],
+            transitions: [],
+            fileName: ""
+        };
+        
+        // 动画控制
+        let animation = {
+            currentFrame: 0,
+            isPlaying: false,
+            timer: null,
+            speed: 400 // 每帧间隔（毫秒）
+        };
+
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => handleRawData(ev.target.result, file.name);
+            reader.readAsText(file);
+        });
+
+        document.getElementById("demoBtn").addEventListener("click", () => {
+            const demo = `# 示例数据包路由信息
+# 格式: time_sec packet_id src_node dst_node send_time arrive_time
+0.000019390 P001 12 4 0.000019390 0.000019450
+0.000019725 P002 12 4 0.000019725 0.000019785
+0.000020060 P003 12 4 0.000020060 0.000020120
+0.000029440 P004 12 4 0.000029440 0.000029500
+0.000029775 P005 12 4 0.000029775 0.000029835
+# TRANSITION 0.000110510
+0.000110510 P006 12 4 0.000110510 0.000110570`;
+            handleRawData(demo, "示例数据");
+        });
+
+        function handleRawData(text, fileName) {
+            const lines = text.split(/\r?\n/);
+            const packets = [];
+            const transitions = [];
+            const timeSet = new Set();
+            
+            for (const raw of lines) {
+                const line = raw.trim();
+                if (!line) continue;
+                
+                // 解析TRANSITION标记
+                if (line.startsWith("# TRANSITION")) {
+                    const parts = line.split(/\s+/);
+                    if (parts.length >= 3) {
+                        const time = Number(parts[2]);
+                        if (!isNaN(time)) {
+                            transitions.push(time);
+                            timeSet.add(time);
+                        }
+                    }
+                    continue;
+                }
+                
+                // 跳过其他注释行
+                if (line.startsWith("#")) continue;
+                
+                // 解析数据包信息
+                // 格式: time_sec packet_id src_node dst_node send_time arrive_time
+                const parts = line.split(/\s+/);
+                if (parts.length >= 6) {
+                    const time = Number(parts[0]);
+                    const packetId = parts[1];
+                    const srcNode = parts[2];
+                    const dstNode = parts[3];
+                    const sendTime = Number(parts[4]);
+                    const arriveTime = Number(parts[5]);
+                    
+                    if (!isNaN(time) && !isNaN(sendTime) && !isNaN(arriveTime)) {
+                        packets.push({
+                            id: packetId,
+                            src: srcNode,
+                            dst: dstNode,
+                            sendTime: sendTime,
+                            arriveTime: arriveTime,
+                            time: time // 记录时间，用于排序和过滤
+                        });
+                        timeSet.add(time);
+                        timeSet.add(sendTime);
+                        timeSet.add(arriveTime);
+                    }
+                }
+            }
+            
+            // 创建时间轴
+            const timeline = Array.from(timeSet).sort((a, b) => a - b);
+            
+            // 保存全局数据
+            globalData = {
+                packets: packets.sort((a, b) => a.time - b.time),
+                timeline: timeline,
+                transitions: transitions.sort((a, b) => a - b),
+                fileName: fileName
+            };
+            
+            updateStats();
+            renderTable();
+            
+            // 设置滑块
+            const slider = document.getElementById("timeSlider");
+            if (slider) {
+                slider.max = timeline.length - 1;
+                slider.value = timeline.length - 1; // 初始显示最后状态
+            }
+            
+            // 更新到最后一帧
+            animation.currentFrame = timeline.length - 1;
+            updateTimeDisplay();
+        }
+        
+        function updateStats() {
+            const totalPackets = globalData.packets.length;
+            const currentTime = globalData.timeline[animation.currentFrame] || 0;
+            
+            // 统计已发送和已到达的数据包
+            const sentPackets = globalData.packets.filter(p => p.sendTime <= currentTime + 1e-9);
+            const arrivedPackets = globalData.packets.filter(p => p.arriveTime <= currentTime + 1e-9);
+            
+            document.getElementById("packetCount").textContent = totalPackets;
+            document.getElementById("sentCount").textContent = sentPackets.length;
+            document.getElementById("arrivedCount").textContent = arrivedPackets.length;
+            document.getElementById("currentTime").textContent = (currentTime * 1e6).toFixed(2);
+        }
+        
+        function renderTable() {
+            const currentTime = globalData.timeline[animation.currentFrame] || 0;
+            const tableBody = document.getElementById("tableBody");
+            const table = document.getElementById("routingTable");
+            const transitionMsg = document.getElementById("transitionMessage");
+            
+            // 检查是否在跃迁期间
+            const isTransition = globalData.transitions.some(t => Math.abs(t - currentTime) < 1e-9);
+            
+            if (isTransition) {
+                // 显示跃迁消息
+                table.style.display = "none";
+                transitionMsg.style.display = "block";
+                return;
+            }
+            
+            // 显示表格
+            transitionMsg.style.display = "none";
+            table.style.display = "table";
+            
+            // 过滤当前时间点可见的数据包（已发送的）
+            const visiblePackets = globalData.packets.filter(p => p.sendTime <= currentTime + 1e-9);
+            
+            // 清空表格
+            tableBody.innerHTML = "";
+            
+            if (visiblePackets.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 6;
+                cell.textContent = "当前时间点没有数据包";
+                cell.style.textAlign = "center";
+                cell.style.color = "var(--text-dim)";
+                return;
+            }
+            
+            // 按发送时间排序
+            visiblePackets.sort((a, b) => a.sendTime - b.sendTime);
+            
+            // 填充表格
+            visiblePackets.forEach(packet => {
+                const row = tableBody.insertRow();
+                
+                // ID
+                const idCell = row.insertCell();
+                idCell.textContent = packet.id;
+                
+                // 源节点
+                const srcCell = row.insertCell();
+                srcCell.textContent = packet.src;
+                
+                // 目的节点
+                const dstCell = row.insertCell();
+                dstCell.textContent = packet.dst;
+                
+                // 发送时间
+                const sendCell = row.insertCell();
+                sendCell.textContent = (packet.sendTime * 1e6).toFixed(2);
+                
+                // 到达时间
+                const arriveCell = row.insertCell();
+                if (packet.arriveTime <= currentTime + 1e-9) {
+                    arriveCell.textContent = (packet.arriveTime * 1e6).toFixed(2);
+                    arriveCell.style.color = "var(--accent-3)"; // 已到达，显示黄色
+                } else {
+                    arriveCell.textContent = "--";
+                    arriveCell.style.color = "var(--text-dim)";
+                }
+                
+                // 状态
+                const statusCell = row.insertCell();
+                if (packet.arriveTime <= currentTime + 1e-9) {
+                    statusCell.textContent = "已到达";
+                    statusCell.style.color = "var(--accent-3)";
+                } else if (packet.sendTime <= currentTime + 1e-9) {
+                    statusCell.textContent = "传输中";
+                    statusCell.style.color = "var(--accent)";
+                } else {
+                    statusCell.textContent = "未发送";
+                    statusCell.style.color = "var(--text-dim)";
+                }
+            });
+        }
+        
+        function updateTimeDisplay() {
+            const currentTime = globalData.timeline[animation.currentFrame] || 0;
+            const timeDisplay = document.getElementById("timeDisplay");
+            if (timeDisplay) {
+                timeDisplay.textContent = `时间: ${(currentTime * 1e6).toFixed(2)} μs`;
+            }
+            
+            updateStats();
+            renderTable();
+        }
+        
+        // 播放控制
+        document.getElementById("playBtn").addEventListener("click", () => {
+            if (globalData.timeline.length === 0) return;
+            
+            // 如果已经在最后一帧，重置到第一帧
+            if (animation.currentFrame >= globalData.timeline.length - 1) {
+                animation.currentFrame = 0;
+                const slider = document.getElementById("timeSlider");
+                if (slider) {
+                    slider.value = 0;
+                }
+                updateTimeDisplay();
+            }
+            
+            animation.isPlaying = true;
+            document.getElementById("playBtn").classList.remove("active");
+            document.getElementById("pauseBtn").classList.add("active");
+            
+            function animate() {
+                if (!animation.isPlaying) return;
+                
+                if (animation.currentFrame >= globalData.timeline.length - 1) {
+                    animation.isPlaying = false;
+                    document.getElementById("playBtn").classList.add("active");
+                    document.getElementById("pauseBtn").classList.remove("active");
+                    return;
+                }
+                
+                animation.currentFrame++;
+                const slider = document.getElementById("timeSlider");
+                if (slider) {
+                    slider.value = animation.currentFrame;
+                }
+                
+                updateTimeDisplay();
+                animation.timer = setTimeout(animate, animation.speed);
+            }
+            
+            animate();
+        });
+        
+        document.getElementById("pauseBtn").addEventListener("click", () => {
+            animation.isPlaying = false;
+            if (animation.timer) {
+                clearTimeout(animation.timer);
+            }
+            document.getElementById("playBtn").classList.add("active");
+            document.getElementById("pauseBtn").classList.remove("active");
+        });
+        
+        // 滑块控制
+        document.getElementById("timeSlider").addEventListener("input", (e) => {
+            if (!animation.isPlaying) {
+                animation.currentFrame = parseInt(e.target.value);
+                updateTimeDisplay();
+            } else {
+                // 如果正在播放，拖动滑块时暂停播放
+                animation.isPlaying = false;
+                if (animation.timer) {
+                    clearTimeout(animation.timer);
+                }
+                document.getElementById("playBtn").classList.add("active");
+                document.getElementById("pauseBtn").classList.remove("active");
+                animation.currentFrame = parseInt(e.target.value);
+                updateTimeDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
+

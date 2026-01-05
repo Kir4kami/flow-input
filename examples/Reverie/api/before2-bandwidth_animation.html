@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三流带宽-时间动画可视化</title>
+    <script src="./plotly-2.32.0.min.js"></script>
+    <script src="./d3.v7.min.js"></script>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --card: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-2: #f472b6;
+            --accent-3: #facc15;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(circle at top, #1e1b4b, #020617 60%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 16px 64px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.08em;
+        }
+        header p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .panel {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 60px rgba(15,23,42,0.45);
+            backdrop-filter: blur(18px);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.35rem;
+            margin-bottom: 18px;
+        }
+        .file-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .file-picker label {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+        input[type="file"] {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text);
+        }
+        .hint {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .stats-grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .stat-card {
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+            background: rgba(15,23,42,0.55);
+        }
+        .stat-card span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+        .stat-card strong {
+            font-size: 1.2rem;
+        }
+        #chart {
+            width: 100%;
+            min-height: 520px;
+        }
+        .phases {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .phase {
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+        .phase:first-child { border-color: var(--accent); }
+        .phase:nth-child(2) { border-color: var(--accent-2); }
+        .phase:nth-child(3) { border-color: var(--accent-3); }
+        .phase em {
+            color: var(--text-dim);
+            font-style: normal;
+            font-size: 0.9rem;
+        }
+        .notice {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .chip {
+            padding: 6px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.08);
+            font-size: 0.85rem;
+        }
+        .view-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .view-toggle button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(15,23,42,0.6);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .view-toggle button:hover {
+            background: rgba(56,189,248,0.2);
+            border-color: var(--accent);
+        }
+        .view-toggle button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+        }
+        #streamgraph {
+            width: 100%;
+            min-height: 520px;
+            background: rgba(2,6,23,0.85);
+            border-radius: 8px;
+            position: relative;
+        }
+        #streamgraph svg {
+            display: block;
+            background: rgba(2,6,23,0.85);
+        }
+        #streamgraph svg {
+            display: block;
+        }
+        .streamgraph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(15,23,42,0.4);
+            border-radius: 8px;
+        }
+        .streamgraph-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .streamgraph-legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            body { padding: 20px 10px 40px; }
+            .panel { padding: 18px; }
+            header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>节点0→{1,2,3} 带宽-时间折线动画</h1>
+            <p>载入 <code>/tmp/bandwidth_animation_task.txt</code>（或同步到 Windows 后的副本），自动解析三条 RDMA 流的瞬时带宽，
+               通过时间轴动画展示“抢占→稳态→流完成→跃迁”的全过程。</p>
+        </header>
+
+        <section class="panel">
+            <h2>1. 载入仿真输出</h2>
+            <div class="file-picker">
+                <label for="fileInput">选择 bandwidth_animation_task.txt：</label>
+                <input type="file" id="fileInput" accept=".txt">
+                <button id="demoBtn" title="使用内置示例数据">使用示例数据</button>
+            </div>
+            <div class="hint">
+                提示：在 Linux VM 中运行仿真后，将 <code>/tmp/bandwidth_animation_task.txt</code> 拷贝回 Windows，再在此处选择该文件。
+            </div>
+            <div class="chips" id="flowLegend"></div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>流数量</span>
+                    <strong id="flowCount">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>样本点数</span>
+                    <strong id="sampleCount">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>时间跨度 (μs)</span>
+                    <strong id="timeSpan">--</strong>
+                </div>
+                <div class="stat-card">
+                    <span>检测到的稳态阶段</span>
+                    <strong id="phaseCount">--</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>2. 带宽-时间可视化</h2>
+            <div class="view-toggle">
+                <button id="lineChartBtn" class="active">📈 折线图</button>
+                <button id="streamgraphBtn">🌊 河流图</button>
+            </div>
+            <div id="chart" style="display: block;"></div>
+            <div id="streamgraphContainer" style="display: none;">
+                <div id="streamgraphControls" style="display: none; margin-bottom: 10px; text-align: center; padding: 10px; background: rgba(15,23,42,0.4); border-radius: 8px;">
+                    <button id="streamgraphPlayBtn" onclick="streamgraphPlay()" style="padding: 8px 16px; margin: 0 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15,23,42,0.6); color: #e2e8f0; cursor: pointer; transition: all 0.3s;">▶ 播放</button>
+                    <button id="streamgraphPauseBtn" onclick="streamgraphPause()" style="padding: 8px 16px; margin: 0 5px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15,23,42,0.6); color: #e2e8f0; cursor: pointer; transition: all 0.3s; display: none;">⏸ 暂停</button>
+                    <span id="streamgraphTimeDisplay" style="margin: 0 10px; color: #e2e8f0; font-size: 0.9rem;">时间: 0.00 μs</span>
+                </div>
+                <input type="range" id="streamgraphSlider" min="0" max="100" value="0" style="width: 100%; margin: 10px 0; display: none; cursor: pointer;">
+                <div id="streamgraph"></div>
+            </div>
+            <div class="streamgraph-legend" id="streamgraphLegend" style="display: none;"></div>
+            <div class="notice" id="chartNotice">
+                可使用 Plotly 自带工具栏导出 PNG / SVG 或放大细节；点击图例可临时隐藏某条流。播放控件（左下角）用于逐帧观察稳态/跃迁过程。
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>3. 稳态与跃迁推断</h2>
+            <div class="phases" id="phaseList">
+                <div class="phase">等待载入数据...</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const colorPalette = ["#60a5fa", "#f472b6", "#facc15", "#34d399", "#a78bfa", "#fb7185"];
+        const chartDiv = document.getElementById("chart");
+        const streamgraphDiv = document.getElementById("streamgraph");
+        const streamgraphContainer = document.getElementById("streamgraphContainer");
+        const streamgraphLegend = document.getElementById("streamgraphLegend");
+        const flowLegend = document.getElementById("flowLegend");
+        const phaseList = document.getElementById("phaseList");
+        const stats = {
+            flow: document.getElementById("flowCount"),
+            sample: document.getElementById("sampleCount"),
+            span: document.getElementById("timeSpan"),
+            phase: document.getElementById("phaseCount")
+        };
+        
+        // 全局数据存储
+        let globalData = {
+            seriesMap: null,
+            timeline: null,
+            slotMap: null,
+            steadyStateEnters: [],
+            transitions: [],
+            fileName: ""
+        };
+        
+        // 当前视图模式
+        let currentView = "line"; // "line" 或 "streamgraph"
+
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => handleRawData(ev.target.result, file.name);
+            reader.readAsText(file);
+        });
+
+        document.getElementById("demoBtn").addEventListener("click", () => {
+            const demo = `# demo data
+0.010584000 0-1-1016-1016 8.112
+0.010550500 0-2-1016-1016 8.112
+0.010584000 0-3-1016-1016 8.112
+0.276669000 0-2-1016-1016 11.3568
+0.276702500 0-3-1016-1016 11.3568
+0.277674000 0-2-1016-1016 12.168
+0.277707500 0-3-1016-1016 12.168
+0.559468000 0-3-1016-1016 24.336`;
+            handleRawData(demo, "示例数据");
+        });
+
+        function handleRawData(text, fileName) {
+            console.log("handleRawData 被调用，文件名:", fileName);
+            console.log("文件内容前100个字符:", text.substring(0, 100));
+            console.log("文件内容后200个字符:", text.substring(Math.max(0, text.length - 200)));
+            const lines = text.split(/\r?\n/);
+            console.log("分割后的行数:", lines.length);
+            console.log("最后5行:", lines.slice(-5));
+            const seriesMap = new Map();
+            const slotMap = new Map(); // time -> {flow: rate}
+            const steadyStateEnters = []; // 稳态进入时间点
+            const transitions = []; // 跃迁时间点
+            let totalSamples = 0;
+            let commentLineCount = 0;
+            for (const raw of lines) {
+                const line = raw.trim();
+                if (!line) continue;
+                // 调试：打印所有以 # 开头的行
+                if (line.startsWith("#")) {
+                    commentLineCount++;
+                    if (commentLineCount <= 5 || line.includes("STEADY") || line.includes("TRANSITION")) {
+                        console.log("找到注释行 #" + commentLineCount + ":", line, "长度:", line.length);
+                    }
+                }
+                // 解析稳态/跃迁标记
+                if (line.startsWith("# STEADY_STATE_ENTER")) {
+                    const parts = line.split(/\s+/);
+                    console.log("找到 STEADY_STATE_ENTER 行:", line, "parts:", parts);
+                    if (parts.length >= 3) {
+                        const time = Number(parts[2]);
+                        console.log("解析时间:", time, "isNaN:", isNaN(time));
+                        if (!isNaN(time)) {
+                            steadyStateEnters.push(time);
+                            console.log("已添加稳态进入时间:", time);
+                        }
+                    }
+                    continue;
+                }
+                if (line.startsWith("# TRANSITION")) {
+                    const parts = line.split(/\s+/);
+                    console.log("找到 TRANSITION 行:", line, "parts:", parts);
+                    if (parts.length >= 3) {
+                        const time = Number(parts[2]);
+                        console.log("解析时间:", time, "isNaN:", isNaN(time));
+                        if (!isNaN(time)) {
+                            transitions.push(time);
+                            console.log("已添加跃迁时间:", time);
+                        }
+                    }
+                    continue;
+                }
+                // 跳过其他注释行
+                if (line.startsWith("#")) continue;
+                const parts = line.split(/\s+/);
+                if (parts.length < 3) continue;
+                const time = Number(parts[0]);
+                const flow = parts[1];
+                const rate = Number(parts[2]);
+                if (!seriesMap.has(flow)) seriesMap.set(flow, []);
+                seriesMap.get(flow).push({ t: time, rate });
+                if (!slotMap.has(time)) slotMap.set(time, new Map());
+                slotMap.get(time).set(flow, rate);
+                totalSamples++;
+            }
+            if (!seriesMap.size) {
+                alert("未解析到有效数据，请确认文件格式为：time_sec flow_id bandwidth_gbps");
+                return;
+            }
+            for (const [, arr] of seriesMap) {
+                arr.sort((a, b) => a.t - b.t);
+            }
+            const allTimes = Array.from(slotMap.keys()).sort((a, b) => a - b);
+            const timeline = allTimes.length ? allTimes : Array.from(new Set(
+                [...seriesMap.values()].flatMap(v => v.map(p => p.t))
+            )).sort((a, b) => a - b);
+
+            // 调试输出
+            console.log("总行数:", lines.length, "注释行数:", commentLineCount);
+            console.log("解析到的稳态进入时间点:", steadyStateEnters);
+            console.log("解析到的跃迁时间点:", transitions);
+            
+            // 保存全局数据
+            globalData = {
+                seriesMap,
+                timeline,
+                slotMap,
+                steadyStateEnters,
+                transitions,
+                fileName: fileName
+            };
+            
+            updateStats(seriesMap.size, totalSamples, timeline);
+            renderLegend(seriesMap);
+            renderPhases(slotMap, timeline);
+            
+            // 根据当前视图模式渲染
+            if (currentView === "line") {
+                renderLineChart(seriesMap, timeline, fileName, steadyStateEnters, transitions);
+            } else {
+                renderStreamgraph(seriesMap, timeline, fileName, steadyStateEnters, transitions);
+            }
+        }
+        
+        // 视图切换事件
+        document.getElementById("lineChartBtn").addEventListener("click", () => {
+            if (currentView === "streamgraph") {
+                currentView = "line";
+                document.getElementById("lineChartBtn").classList.add("active");
+                document.getElementById("streamgraphBtn").classList.remove("active");
+                chartDiv.style.display = "block";
+                document.getElementById("streamgraphContainer").style.display = "none";
+                streamgraphLegend.style.display = "none";
+                document.getElementById("chartNotice").textContent = 
+                    "可使用 Plotly 自带工具栏导出 PNG / SVG 或放大细节；点击图例可临时隐藏某条流。播放控件（左下角）用于逐帧观察稳态/跃迁过程。";
+                
+                if (globalData.seriesMap) {
+                    renderLineChart(globalData.seriesMap, globalData.timeline, globalData.fileName, 
+                                  globalData.steadyStateEnters, globalData.transitions);
+                }
+            }
+        });
+        
+        document.getElementById("streamgraphBtn").addEventListener("click", () => {
+            if (currentView === "line") {
+                currentView = "streamgraph";
+                document.getElementById("streamgraphBtn").classList.add("active");
+                document.getElementById("lineChartBtn").classList.remove("active");
+                chartDiv.style.display = "none";
+                document.getElementById("streamgraphContainer").style.display = "block";
+                streamgraphLegend.style.display = "block";
+                document.getElementById("chartNotice").textContent = 
+                    "河流图展示总带宽及各流占比。每条河流代表一条流，宽度表示带宽大小。流完成时对应河流会消失。使用播放按钮可观看动画效果。";
+                
+                if (globalData.seriesMap) {
+                    renderStreamgraph(globalData.seriesMap, globalData.timeline, globalData.fileName, 
+                                    globalData.steadyStateEnters, globalData.transitions);
+                }
+            }
+        });
+
+        function updateStats(flowCount, sampleCount, timeline) {
+            stats.flow.textContent = flowCount;
+            stats.sample.textContent = sampleCount;
+            if (timeline.length >= 2) {
+                const span = (timeline.at(-1) - timeline[0]) * 1e6;
+                stats.span.textContent = span.toFixed(2);
+            } else {
+                stats.span.textContent = "--";
+            }
+        }
+
+        function renderLegend(seriesMap) {
+            flowLegend.innerHTML = "";
+            Array.from(seriesMap.keys()).sort().forEach((flow, idx) => {
+                const div = document.createElement("div");
+                div.className = "chip";
+                div.style.border = `1px solid ${colorPalette[idx % colorPalette.length]}`;
+                div.textContent = `Flow ${flow}`;
+                flowLegend.appendChild(div);
+            });
+        }
+
+        function renderPhases(slotMap, timeline) {
+            if (!timeline.length) {
+                phaseList.innerHTML = "<div class='phase'>解析不足，无法推断稳态。</div>";
+                stats.phase.textContent = "0";
+                return;
+            }
+            const phases = [];
+            let prevActive = null;
+            let phaseStart = timeline[0];
+            for (const time of timeline) {
+                const flows = slotMap.get(time) ?? new Map();
+                const activeFlows = [...flows.entries()].filter(([, rate]) => rate > 0.001).map(([flow]) => flow).sort();
+                const key = activeFlows.join("|");
+                if (prevActive === null) {
+                    prevActive = key;
+                    phaseStart = time;
+                    continue;
+                }
+                if (key !== prevActive) {
+                    phases.push({ start: phaseStart, end: time, flows: prevActive.split("|").filter(Boolean) });
+                    phaseStart = time;
+                    prevActive = key;
+                }
+            }
+            phases.push({ start: phaseStart, end: timeline.at(-1), flows: (prevActive ?? "").split("|").filter(Boolean) });
+            stats.phase.textContent = phases.length;
+            phaseList.innerHTML = phases.map((p, idx) => {
+                const label = labelPhase(p.flows, idx);
+                return `<div class="phase">
+                    <strong>${label}</strong><br>
+                    <em>${(p.start * 1e6).toFixed(0)} μs → ${(p.end * 1e6).toFixed(0)} μs</em><br>
+                    活跃流：${p.flows.length ? p.flows.join(", ") : "无"}
+                </div>`;
+            }).join("");
+        }
+
+        function labelPhase(flows, idx) {
+            if (!flows.length) return `阶段 ${idx + 1}: 空闲`;
+            if (flows.length === 3) return `阶段 ${idx + 1}: 三流争用稳态`;
+            if (flows.length === 2) return `阶段 ${idx + 1}: 两流稳态`;
+            if (flows.length === 1) return `阶段 ${idx + 1}: 单流冲刺`;
+            return `阶段 ${idx + 1}`;
+        }
+
+        // 计算总带宽数据
+        function calculateTotalBandwidth(seriesMap, timeline) {
+            const totalData = [];
+            for (const time of timeline) {
+                let total = 0;
+                for (const [flow, points] of seriesMap) {
+                    const point = points.find(p => Math.abs(p.t - time) < 1e-9);
+                    if (point) {
+                        total += point.rate;
+                    }
+                }
+                totalData.push({ t: time, rate: total });
+            }
+            return totalData;
+        }
+        
+        function renderLineChart(seriesMap, timeline, title, steadyStateEnters = [], transitions = []) {
+            // 调试输出
+            console.log("renderChart 接收到的稳态进入:", steadyStateEnters);
+            console.log("renderChart 接收到的跃迁:", transitions);
+            console.log("时间轴范围:", timeline[0] * 1e6, "到", timeline[timeline.length - 1] * 1e6, "µs");
+            
+            const flowIds = Array.from(seriesMap.keys()).sort();
+            const initialTime = timeline?.[0] ?? 0;
+            
+            // 各流的折线图
+            const traces = flowIds.map((flow, idx) => {
+                const pts = seriesMap.get(flow).filter(pt => pt.t <= initialTime);
+                return {
+                    x: pts.map(p => p.t * 1e6),
+                    y: pts.map(p => p.rate),
+                    mode: "lines+markers",
+                    line: { width: 3, color: colorPalette[idx % colorPalette.length] },
+                    marker: { size: 7 },
+                    name: `Flow ${flow}`
+                };
+            });
+            
+            // 不再添加总带宽曲线（用户要求去掉白色虚线）
+            // const totalBandwidth = calculateTotalBandwidth(seriesMap, timeline);
+            // const totalTrace = {
+            //     x: totalBandwidth.filter(p => p.t <= initialTime).map(p => p.t * 1e6),
+            //     y: totalBandwidth.filter(p => p.t <= initialTime).map(p => p.rate),
+            //     mode: "lines",
+            //     line: { 
+            //         width: 4, 
+            //         color: "#ffffff",
+            //         dash: "dot"
+            //     },
+            //     name: "总带宽",
+            //     yaxis: "y"
+            // };
+            // traces.push(totalTrace);
+            const frames = timeline.map((time, frameIdx) => {
+                // 各流数据
+                const flowData = flowIds.map((flow) => {
+                    const pts = seriesMap.get(flow).filter(pt => pt.t <= time);
+                    return {
+                        x: pts.map(p => p.t * 1e6),
+                        y: pts.map(p => p.rate)
+                    };
+                });
+                
+                // 不再包含总带宽数据
+                // const totalData = {
+                //     x: totalBandwidth.filter(p => p.t <= time).map(p => p.t * 1e6),
+                //     y: totalBandwidth.filter(p => p.t <= time).map(p => p.rate)
+                // };
+                
+                return {
+                    name: frameIdx.toString(),
+                    data: flowData,
+                    // 动态添加稳态标记线和标注
+                    layout: {
+                    shapes: steadyStateEnters.filter(steadyTime => steadyTime <= time).map((steadyTime, idx) => {
+                        const xPos = steadyTime * 1e6;
+                        return {
+                            type: "line",
+                            xref: "x",
+                            yref: "paper",
+                            x0: xPos,
+                            x1: xPos,
+                            y0: 0,
+                            y1: 1,
+                            line: {
+                                color: "#10b981",
+                                width: 2,
+                                dash: "dash"
+                            }
+                        };
+                    }),
+                    annotations: steadyStateEnters.filter(steadyTime => steadyTime <= time).map((steadyTime, idx) => {
+                        const xPos = steadyTime * 1e6;
+                        return {
+                            text: `进入稳态${idx + 1}<br>${(steadyTime * 1e6).toFixed(0)}µs`,
+                            showarrow: false,
+                            x: xPos,
+                            y: 1.02,
+                            yref: "paper",
+                            xref: "x",
+                            font: { color: "#10b981", size: 10 },
+                            bgcolor: "rgba(16,185,129,0.2)",
+                            bordercolor: "#10b981",
+                            borderwidth: 1
+                        };
+                    })
+                    }
+                };
+            });
+            
+            // 初始状态不显示任何标记线（将在动画过程中动态添加）
+            const shapes = [];
+            const annotations = [];
+            // transitions.forEach((time, idx) => {
+            //     const xPos = time * 1e6;
+            //     shapes.push({
+            //         type: "line",
+            //         xref: "x",
+            //         yref: "paper",
+            //         x0: xPos,
+            //         x1: xPos,
+            //         y0: 0,
+            //         y1: 1,
+            //         line: {
+            //             color: "#ef4444",
+            //             width: 2,
+            //             dash: "dot"
+            //         }
+            //     });
+            //     annotations.push({
+            //         text: `跃迁${idx + 1}<br>${(time * 1e6).toFixed(0)}µs`,
+            //         showarrow: false,
+            //         x: xPos,
+            //         y: 1.02,
+            //         yref: "paper",
+            //         xref: "x",
+            //         font: { color: "#ef4444", size: 10 },
+            //         bgcolor: "rgba(239,68,68,0.2)",
+            //         bordercolor: "#ef4444",
+            //         borderwidth: 1
+            //     });
+            // });
+            
+            const layout = {
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(2,6,23,0.85)",
+                hovermode: "closest",
+                shapes: shapes,
+                annotations: annotations,
+                legend: { orientation: "h", y: -0.2, font: { color: "#e2e8f0" } },
+                xaxis: {
+                    title: "时间 (μs)",
+                    gridcolor: "rgba(148,163,184,0.2)",
+                    zeroline: false,
+                    tickfont: { color: "#e2e8f0" },
+                    titlefont: { color: "#e2e8f0" }
+                },
+                yaxis: {
+                    title: "带宽 (Gbps)",
+                    gridcolor: "rgba(148,163,184,0.2)",
+                    tickfont: { color: "#e2e8f0" },
+                    titlefont: { color: "#e2e8f0" }
+                },
+                updatemenus: [{
+                    type: "buttons",
+                    direction: "left",
+                    x: 0.1,
+                    y: -0.25,
+                    buttons: [
+                        { label: "▶ 播放", method: "animate", args: [null, { fromcurrent: true, frame: { duration: 400, redraw: true }, transition: { duration: 200 } }] },
+                        { label: "⏸ 暂停", method: "animate", args: [[null], { mode: "immediate", frame: { duration: 0 }, transition: { duration: 0 } }] }
+                    ]
+                }],
+                sliders: [{
+                    active: 0,
+                    x: 0.1,
+                    y: -0.1,
+                    len: 0.8,
+                    currentvalue: { prefix: "当前 μs: ", font: { color: "#e2e8f0" } },
+                    transition: { duration: 200 },
+                    steps: timeline.map((time, idx) => ({
+                        label: (time * 1e6).toFixed(2),
+                        method: "animate",
+                        args: [[idx.toString()], { mode: "immediate", frame: { duration: 0, redraw: true } }]
+                    }))
+                }],
+                title: {
+                    text: title ? `数据源：${title}` : "已载入数据",
+                    font: { color: "#e2e8f0", size: 16 },
+                    x: 0.02
+                }
+            };
+
+            Plotly.newPlot(chartDiv, traces, layout, { displaylogo: false }).then(() => {
+                // 修改frames结构，包含layout更新
+                const animationFrames = frames.map(frame => ({
+                    name: frame.name,
+                    data: frame.data,
+                    layout: {
+                        shapes: frame.layout.shapes,
+                        annotations: frame.layout.annotations
+                    }
+                }));
+                
+                Plotly.addFrames(chartDiv, animationFrames);
+                if (animationFrames.length) {
+                    Plotly.animate(chartDiv, [animationFrames[0].name], { transition: { duration: 0 }, frame: { duration: 0, redraw: true } });
+                }
+            });
+        }
+        
+        // 生成bumps函数（参考D3示例）
+        function bumps(n, m) {
+            const a = [];
+            for (let i = 0; i < n; ++i) a[i] = 0;
+            for (let i = 0; i < m; ++i) {
+                const x = 1 / (0.1 + Math.random());
+                const y = 2 * Math.random() - 0.5;
+                const z = 10 / (0.1 + Math.random());
+                for (let j = 0; j < n; ++j) {
+                    const w = (j / n - y) * z;
+                    a[j] += x * Math.exp(-w * w);
+                }
+            }
+            return a;
+        }
+        
+        // 全局变量：河流图动画控制
+        let streamgraphAnimation = {
+            currentFrame: 0,
+            isPlaying: false,
+            animationTimer: null,
+            frames: [],
+            timeline: []
+        };
+        
+        // 渲染河流图
+        function renderStreamgraph(seriesMap, timeline, title, steadyStateEnters = [], transitions = []) {
+            console.log("开始渲染河流图，timeline长度:", timeline.length, "流数量:", seriesMap.size);
+            
+            if (!timeline || timeline.length === 0) {
+                console.error("河流图：timeline为空");
+                return;
+            }
+            
+            if (!seriesMap || seriesMap.size === 0) {
+                console.error("河流图：seriesMap为空");
+                return;
+            }
+            
+            const width = 928;
+            const height = 500;
+            const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // 保存timeline用于动画
+            streamgraphAnimation.timeline = timeline;
+            
+            // 清空之前的内容（只清空streamgraph div，不影响按钮）
+            d3.select(streamgraphDiv).selectAll("*").remove();
+            
+            // 显示控制按钮
+            const controls = document.getElementById("streamgraphControls");
+            const streamgraphSlider = document.getElementById("streamgraphSlider");
+            if (controls) controls.style.display = "block";
+            if (streamgraphSlider) {
+                streamgraphSlider.style.display = "block";
+                streamgraphSlider.max = timeline.length - 1;
+            }
+            
+            const svg = d3.select(streamgraphDiv)
+                .append("svg")
+                .attr("viewBox", [0, 0, width, height])
+                .attr("width", width)
+                .attr("height", height)
+                .attr("style", "max-width: 100%; height: auto; background: rgba(2,6,23,0.85);");
+            
+            // 创建defs用于渐变定义
+            const defs = svg.append("defs");
+            
+            // 创建两个g元素：一个用于图表内容（会被裁剪），一个用于坐标轴（不被裁剪）
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`)
+                .attr("class", "chart-content"); // 图表内容，会被clipPath裁剪
+            
+            const gAxes = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`)
+                .attr("class", "chart-axes"); // 坐标轴，不被裁剪
+            
+            const flowIds = Array.from(seriesMap.keys()).sort();
+            const n = flowIds.length; // 流的数量
+            const m = timeline.length; // 时间点数量
+            
+            // ============================================================
+            // 时间点对齐算法详解
+            // ============================================================
+            // 问题：不同流的数据点时间戳不完全一致
+            // 例如：Flow1在0.000014720秒有数据，Flow2在0.000015055秒有数据
+            // 
+            // 解决方案：对于每个统一时间点，如果某个流没有精确数据，
+            //           使用"前一个值"或0来填充
+            //
+            // 对齐策略（优先级从高到低）：
+            // 1. 精确匹配：查找时间差 < 1e-9 的数据点
+            // 2. 向前查找：使用该时间点之前最近的一个值
+            // 3. 缓存查找：使用之前处理过的值（flowLastValues）
+            // 4. 默认值：返回0（流还没有开始）
+            // ============================================================
+            
+            const dataMatrix = [];
+            const flowLastValues = new Map(); // 记录每条流的上一个值，用于填充缺失数据
+            
+            // 计算每条流的最后数据点时间（用于判断流是否完成）
+            const flowLastTime = new Map();
+            flowIds.forEach(flow => {
+                const flowData = seriesMap.get(flow);
+                if (flowData.length > 0) {
+                    const lastPoint = flowData[flowData.length - 1];
+                    flowLastTime.set(flow, lastPoint.t);
+                }
+            });
+            
+            // 遍历统一的时间轴
+            for (const time of timeline) {
+                // 对于当前时间点，获取所有流的带宽值
+                const row = flowIds.map(flow => {
+                    const flowData = seriesMap.get(flow);
+                    const lastTime = flowLastTime.get(flow);
+                    
+                    // 【关键修复】如果当前时间 > 流的最后数据点时间，说明流已完成，返回0
+                    if (lastTime !== undefined && time > lastTime + 1e-9) {
+                        return 0; // 流已完成，带宽为0
+                    }
+                    
+                    // 【步骤1】精确匹配：查找时间差 < 1纳秒的数据点
+                    let point = flowData.find(p => Math.abs(p.t - time) < 1e-9);
+                    
+                    if (!point) {
+                        // 【步骤2】向前查找：如果没有精确匹配，找该时间点之前最近的一个值
+                        // 例如：当前时间0.000015055，Flow1在0.000014720有数据
+                        //      → 使用0.000014720的值
+                        const beforePoints = flowData.filter(p => p.t <= time);
+                        if (beforePoints.length > 0) {
+                            point = beforePoints[beforePoints.length - 1]; // 取最后一个（最接近的）
+                            flowLastValues.set(flow, point.rate); // 更新缓存
+                        } else if (flowLastValues.has(flow)) {
+                            // 【步骤3】缓存查找：如果该流在当前时间点之前完全没有数据，
+                            //         使用之前处理过的值（适用于数据稀疏的情况）
+                            return flowLastValues.get(flow);
+                        } else {
+                            // 【步骤4】默认值：如果该流从未有过数据，返回0
+                            //          （流还没有开始传输）
+                            return 0;
+                        }
+                    } else {
+                        // 【步骤5】找到精确匹配，更新缓存
+                        flowLastValues.set(flow, point.rate);
+                    }
+                    return point ? point.rate : 0;
+                });
+                dataMatrix.push(row); // 将当前时间点的所有流数据加入矩阵
+            }
+            
+            // 转置：每一行是一条流，每一列是一个时间点
+            const layers = flowIds.map((flow, flowIdx) => {
+                return timeline.map((time, timeIdx) => dataMatrix[timeIdx][flowIdx]);
+            });
+            
+            // 创建比例尺（参考代码风格）- 使用索引，从0开始
+            const x = d3.scaleLinear()
+                .domain([0, m - 1])
+                .range([0, chartWidth]);
+            
+            // 先创建y轴，domain稍后根据数据动态设置（参考代码风格）
+            const y = d3.scaleLinear()
+                .range([chartHeight, 0]);
+            
+            // 创建堆叠数据（参考代码：stack + transpose）
+            // 关键修复：自定义offset函数，对于每个时间点，只堆叠非0的流
+            // 这样0值层（已完成的流）不会影响其他层的堆叠基线
+            const stack = d3.stack()
+                .keys(d3.range(n))
+                .offset((series, order) => {
+                    // 自定义offset：对于每个时间点，计算非0值的堆叠
+                    const n = series.length;
+                    const m = series[0].length;
+                    for (let j = 0; j < m; ++j) {
+                        let y0 = 0;
+                        for (let i = 0; i < n; ++i) {
+                            const o = order[i];
+                            const s = series[o];
+                            const v = s[j][1]; // 原始值
+                            // 只堆叠非0值，0值层不参与堆叠（保持为[0,0]）
+                            if (v > 0.001) {
+                                s[j][0] = y0;
+                                s[j][1] = y0 += v;
+                            } else {
+                                s[j][0] = 0;
+                                s[j][1] = 0;
+                            }
+                        }
+                    }
+                })
+                .order(d3.stackOrderNone); // 参考代码中的order
+            
+            const stackedData = stack(d3.transpose(layers));
+            
+            // 计算Y轴范围并设置domain（参考代码风格：先stack再设置domain）
+            // 注意：Y轴从0开始，最大值是堆叠后的顶部
+            const yMin = 0; // 堆叠图从0开始
+            const yMax = d3.max(stackedData, l => d3.max(l, d => d[1])); // 只取最大值（堆叠后的顶部）
+            y.domain([yMin, yMax]);
+            
+            // 颜色插值器（参考代码使用interpolateCool，这里使用固定调色板更符合需求）
+            const z = d3.scaleOrdinal()
+                .domain(d3.range(n))
+                .range(colorPalette.slice(0, n));
+            
+            // 创建渐变定义（为每条流创建渐变效果）
+            flowIds.forEach((flow, idx) => {
+                const gradient = defs.append("linearGradient")
+                    .attr("id", `gradient-${idx}`)
+                    .attr("x1", "0%")
+                    .attr("y1", "0%")
+                    .attr("x2", "0%")
+                    .attr("y2", "100%");
+                
+                const baseColor = colorPalette[idx % colorPalette.length];
+                gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", baseColor)
+                    .attr("stop-opacity", 0.8);
+                gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", baseColor)
+                    .attr("stop-opacity", 0.4);
+            });
+            
+            // 创建面积生成器（完全按照参考代码）
+            const area = d3.area()
+                .x((d, i) => x(i))
+                .y0(d => y(d[0]))
+                .y1(d => y(d[1]))
+                .curve(d3.curveMonotoneX); // 使用单调曲线，更平滑
+            
+            // 为动画准备：为每个时间点创建一帧数据
+            streamgraphAnimation.frames = [];
+            for (let frameIdx = 0; frameIdx < timeline.length; frameIdx++) {
+                const currentTime = timeline[frameIdx];
+                // 计算到当前时间点的数据（只包含到当前时间点的数据点）
+                const frameLayers = flowIds.map((flow, flowIdx) => {
+                    // 只取到当前时间点的数据
+                    return dataMatrix.slice(0, frameIdx + 1).map(row => row[flowIdx]);
+                });
+                
+                // 为当前帧创建堆叠数据
+                const frameStacked = stack(d3.transpose(frameLayers));
+                streamgraphAnimation.frames.push({
+                    time: currentTime,
+                    stackedData: frameStacked,
+                    timeIndex: frameIdx
+                });
+            }
+            
+            // 初始绘制：绘制完整的堆叠数据
+            console.log("河流图：准备绘制，stackedData长度:", stackedData.length);
+            console.log("河流图：Y轴范围:", yMin, "到", yMax);
+            
+            if (stackedData.length === 0 || yMax <= yMin) {
+                console.error("河流图：数据无效，stackedData长度:", stackedData.length, "Y轴范围:", yMin, "-", yMax);
+                g.append("text")
+                    .attr("x", chartWidth / 2)
+                    .attr("y", chartHeight / 2)
+                    .attr("text-anchor", "middle")
+                    .style("fill", "#e2e8f0")
+                    .style("font-size", "16px")
+                    .text("数据无效，无法绘制河流图");
+                return;
+            }
+            
+            // 绘制堆叠面积 - 使用渐变和更好的视觉效果
+            const paths = g.selectAll("path")
+                .data(stackedData)
+                .join("path")
+                .attr("fill", (d, i) => `url(#gradient-${i})`) // 使用渐变填充
+                .attr("fill-opacity", (d) => {
+                    const maxVal = d3.max(d, point => point[1] - point[0]);
+                    return maxVal > 0.001 ? 1 : 0; // 渐变本身有透明度，这里设为1
+                })
+                .attr("stroke", (d, i) => {
+                    // 使用更亮的边框颜色
+                    const baseColor = colorPalette[i % colorPalette.length];
+                    return d3.color(baseColor).brighter(0.5);
+                })
+                .attr("stroke-width", 2)
+                .attr("stroke-opacity", 0.8)
+                .attr("d", area)
+                .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))"); // 添加阴影效果
+            
+            console.log("河流图：已绘制", paths.size(), "条路径");
+            
+            // 验证路径是否正确绘制
+            paths.each(function(d, i) {
+                const pathElement = d3.select(this);
+                const pathData = pathElement.attr("d");
+                if (!pathData || pathData === "M0,0") {
+                    console.warn(`河流图：路径${i}数据为空`);
+                }
+            });
+            
+            // 添加一个clipPath用于动画时裁剪显示范围
+            const clipPath = svg.append("defs")
+                .append("clipPath")
+                .attr("id", "streamgraph-clip");
+            
+            const clipRect = clipPath.append("rect")
+                .attr("x", 0) // clipPath相对于g元素，所以x从0开始
+                .attr("y", 0) // clipPath相对于g元素，所以y从0开始
+                .attr("width", chartWidth) // 初始显示完整宽度，避免黑屏
+                .attr("height", chartHeight);
+            
+            // 初始不应用clipPath，显示完整图表
+            // g.attr("clip-path", "url(#streamgraph-clip)");
+            
+            // 保存paths和area供动画使用
+            streamgraphAnimation.paths = paths;
+            streamgraphAnimation.area = area;
+            streamgraphAnimation.x = x;
+            streamgraphAnimation.y = y;
+            streamgraphAnimation.z = z;
+            streamgraphAnimation.g = g;
+            streamgraphAnimation.currentFrame = timeline.length - 1; // 初始显示完整数据
+            streamgraphAnimation.steadyStateEnters = steadyStateEnters; // 保存稳态时间点
+            streamgraphAnimation.timeline = timeline; // 保存时间线
+            
+            // 初始状态：隐藏所有稳态线（只有在动画播放到对应时间时才显示）
+            if (streamgraphAnimation.steadyStateLines) {
+                streamgraphAnimation.steadyStateLines.forEach((steadyLine) => {
+                    steadyLine.line.attr("opacity", 0);
+                    if (steadyLine.annotationGroup) {
+                        steadyLine.annotationGroup.attr("opacity", 0);
+                    }
+                });
+            }
+            
+            // 初始状态：重置到第一帧（用于动画播放）
+            streamgraphAnimation.currentFrame = 0;
+            // 初始显示第一帧，应用clipPath
+            const initialClipRect = d3.select("#streamgraph-clip rect");
+            if (!initialClipRect.empty()) {
+                const initialX = x(0);
+                g.attr("clip-path", "url(#streamgraph-clip)");
+                initialClipRect.attr("width", Math.max(0, initialX));
+            }
+            updateStreamgraphFrame(0);
+            
+            // 添加X轴（在gAxes中，不被裁剪）
+            const xAxis = d3.axisBottom(x)
+                .tickFormat((d) => {
+                    const timeIndex = Math.round(d);
+                    if (timeIndex >= 0 && timeIndex < timeline.length) {
+                        return (timeline[timeIndex] * 1e6).toFixed(0) + "μs";
+                    }
+                    return "";
+                })
+                .ticks(Math.min(10, m));
+            
+            gAxes.append("g")
+                .attr("transform", `translate(0,${chartHeight})`)
+                .attr("class", "x-axis")
+                .call(xAxis)
+                .selectAll("text")
+                .style("fill", "#e2e8f0")
+                .style("font-size", "11px");
+            
+            // 添加Y轴（在gAxes中，不被裁剪）
+            const yAxis = d3.axisLeft(y)
+                .tickFormat(d => d.toFixed(1) + " Gbps");
+            
+            gAxes.append("g")
+                .attr("class", "y-axis")
+                .call(yAxis)
+                .selectAll("text")
+                .style("fill", "#e2e8f0")
+                .style("font-size", "11px");
+            
+            // 添加Y轴标签（在gAxes中，不被裁剪）
+            gAxes.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -margin.left + 15)
+                .attr("x", -chartHeight / 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "#e2e8f0")
+                .style("font-size", "14px")
+                .style("font-weight", "bold")
+                .text("带宽 (Gbps)");
+            
+            // 添加X轴标签（在gAxes中，不被裁剪）
+            gAxes.append("text")
+                .attr("x", chartWidth / 2)
+                .attr("y", chartHeight + margin.bottom - 5)
+                .attr("text-anchor", "middle")
+                .style("fill", "#e2e8f0")
+                .style("font-size", "14px")
+                .style("font-weight", "bold")
+                .text("时间 (μs)");
+            
+            // 确保坐标轴线条和刻度可见
+            gAxes.selectAll(".domain, .tick line")
+                .style("stroke", "#e2e8f0")
+                .style("stroke-width", 1);
+            
+            // 添加稳态标记线（初始隐藏，动画播放到对应时间时才显示）
+            // 格式与折线图一致：显示"进入稳态X"和时间戳
+            // 注意：线条在g中（会被裁剪），标注在gAxes中（不被裁剪）
+            const steadyStateLines = [];
+            steadyStateEnters.forEach((steadyTime, idx) => {
+                const timeIndex = timeline.findIndex(t => Math.abs(t - steadyTime) < 1e-9);
+                if (timeIndex >= 0) {
+                    const xPos = x(timeIndex);
+                    // 线条添加到g中（会被clipPath裁剪）
+                    const line = g.append("line")
+                        .attr("x1", xPos)
+                        .attr("x2", xPos)
+                        .attr("y1", 0)
+                        .attr("y2", chartHeight)
+                        .attr("stroke", "#10b981")
+                        .attr("stroke-width", 2)
+                        .attr("stroke-dasharray", "5,5")
+                        .attr("opacity", 0) // 初始隐藏
+                        .attr("class", `steady-state-line-${idx}`);
+                    
+                    // 标注添加到gAxes中（不被裁剪，可以显示在图表上方）
+                    const annotationGroup = gAxes.append("g")
+                        .attr("class", `steady-state-annotation-${idx}`)
+                        .attr("opacity", 0); // 初始隐藏
+                    
+                    // 创建标注背景（类似折线图的bgcolor效果）
+                    const textBg = annotationGroup.append("rect")
+                        .attr("x", xPos - 40)
+                        .attr("y", -20)
+                        .attr("width", 80)
+                        .attr("height", 18)
+                        .attr("fill", "rgba(16,185,129,0.2)")
+                        .attr("stroke", "#10b981")
+                        .attr("stroke-width", 1)
+                        .attr("rx", 3);
+                    
+                    // 创建文字标签，格式与折线图一致：进入稳态X + 时间戳
+                    const textLine1 = annotationGroup.append("text")
+                        .attr("x", xPos)
+                        .attr("y", -8)
+                        .attr("text-anchor", "middle")
+                        .style("fill", "#10b981")
+                        .style("font-size", "10px")
+                        .style("font-weight", "bold")
+                        .text(`进入稳态${idx + 1}`);
+                    
+                    const textLine2 = annotationGroup.append("text")
+                        .attr("x", xPos)
+                        .attr("y", 3)
+                        .attr("text-anchor", "middle")
+                        .style("fill", "#10b981")
+                        .style("font-size", "10px")
+                        .style("font-weight", "bold")
+                        .text(`${(steadyTime * 1e6).toFixed(0)}µs`);
+                    
+                    steadyStateLines.push({
+                        timeIndex: timeIndex,
+                        line: line,
+                        annotationGroup: annotationGroup
+                    });
+                }
+            });
+            
+            // 保存稳态线引用供动画使用
+            streamgraphAnimation.steadyStateLines = steadyStateLines;
+            
+            // 添加图例
+            renderStreamgraphLegend(flowIds);
+            
+            // 设置动画控制按钮事件
+            setupStreamgraphAnimationControls();
+            
+            // 更新时间显示为第一帧（初始从第一帧开始）
+            const timeDisplay = document.getElementById("streamgraphTimeDisplay");
+            if (timeDisplay && timeline.length > 0) {
+                timeDisplay.textContent = `时间: ${(timeline[0] * 1e6).toFixed(2)} μs`;
+            }
+            
+            // 更新滑块为第一帧
+            if (streamgraphSlider && timeline.length > 0) {
+                streamgraphSlider.value = 0;
+            }
+            
+            console.log("河流图：渲染完成");
+            
+            // 添加悬停效果和工具提示
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("position", "absolute")
+                .style("background", "rgba(15,23,42,0.95)")
+                .style("color", "#e2e8f0")
+                .style("padding", "8px 12px")
+                .style("border-radius", "6px")
+                .style("font-size", "12px")
+                .style("pointer-events", "none")
+                .style("opacity", 0)
+                .style("border", "1px solid rgba(255,255,255,0.2)");
+            
+            paths.on("mouseover", function(event, d) {
+                d3.select(this)
+                    .attr("fill-opacity", 0.9)
+                    .attr("stroke-width", 2.5);
+                
+                const flowIndex = d.key;
+                const flowId = flowIds[flowIndex];
+                const [mouseX, mouseY] = d3.pointer(event, g.node());
+                const timeIndex = Math.round(x.invert(mouseX));
+                const time = timeIndex >= 0 && timeIndex < timeline.length ? timeline[timeIndex] : 0;
+                const bandwidth = timeIndex >= 0 && timeIndex < d.length ? d[timeIndex][1] - d[timeIndex][0] : 0;
+                
+                tooltip
+                    .style("opacity", 1)
+                    .html(`<strong>Flow ${flowId}</strong><br>时间: ${(time * 1e6).toFixed(2)} μs<br>带宽: ${bandwidth.toFixed(3)} Gbps`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mousemove", function(event) {
+                tooltip
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mouseout", function(event, d) {
+                d3.select(this)
+                    .attr("fill-opacity", 0.7)
+                    .attr("stroke-width", 1.5);
+                tooltip.style("opacity", 0);
+            });
+        }
+        
+        // 渲染河流图图例
+        function renderStreamgraphLegend(flowIds) {
+            streamgraphLegend.innerHTML = "";
+            flowIds.forEach((flow, idx) => {
+                const item = document.createElement("div");
+                item.className = "streamgraph-legend-item";
+                item.innerHTML = `
+                    <div class="streamgraph-legend-color" style="background: ${colorPalette[idx % colorPalette.length]};"></div>
+                    <span>Flow ${flow}</span>
+                `;
+                streamgraphLegend.appendChild(item);
+            });
+        }
+        
+        // 更新河流图到指定帧
+        function updateStreamgraphFrame(frameIndex) {
+            if (!streamgraphAnimation.frames || frameIndex < 0 || frameIndex >= streamgraphAnimation.frames.length) {
+                return;
+            }
+            
+            const frame = streamgraphAnimation.frames[frameIndex];
+            const { paths, x, y, timeline } = streamgraphAnimation;
+            
+            if (!timeline || timeline.length === 0) {
+                return;
+            }
+            
+            // 为当前帧创建area生成器（只显示到当前时间点）
+            const frameArea = d3.area()
+                .x((d, i) => x(i))
+                .y0(d => y(d[0]))
+                .y1(d => y(d[1]))
+                .curve(d3.curveMonotoneX); // 使用单调曲线，更平滑
+            
+            // 更新路径数据：直接更新，不使用transition，避免抖动
+            paths.data(frame.stackedData)
+                .attr("d", frameArea)
+                .attr("fill-opacity", (d) => {
+                    const maxVal = d3.max(d, point => point[1] - point[0]);
+                    return maxVal > 0.001 ? 1 : 0; // 渐变本身有透明度
+                });
+            
+            // 更新clipPath的宽度，只显示到当前时间点（直接更新，不使用transition）
+            const clipRect = d3.select("#streamgraph-clip rect");
+            if (!clipRect.empty()) {
+                const currentX = x(frameIndex);
+                const g = streamgraphAnimation.g;
+                // 应用clipPath并更新宽度
+                g.attr("clip-path", "url(#streamgraph-clip)");
+                clipRect.attr("width", Math.max(0, currentX));
+            }
+            
+            // 更新稳态标记线的显示：只显示已到达的稳态
+            if (streamgraphAnimation.steadyStateLines) {
+                streamgraphAnimation.steadyStateLines.forEach((steadyLine) => {
+                    if (frameIndex >= steadyLine.timeIndex) {
+                        // 已到达稳态时间，显示线条和标注
+                        steadyLine.line.attr("opacity", 0.6);
+                        if (steadyLine.annotationGroup) {
+                            steadyLine.annotationGroup.attr("opacity", 1);
+                        }
+                    } else {
+                        // 未到达稳态时间，隐藏
+                        steadyLine.line.attr("opacity", 0);
+                        if (steadyLine.annotationGroup) {
+                            steadyLine.annotationGroup.attr("opacity", 0);
+                        }
+                    }
+                });
+            }
+            
+            // 更新时间显示
+            const timeDisplay = document.getElementById("streamgraphTimeDisplay");
+            if (timeDisplay) {
+                timeDisplay.textContent = `时间: ${(frame.time * 1e6).toFixed(2)} μs`;
+            }
+            
+            // 更新滑块
+            const slider = document.getElementById("streamgraphSlider");
+            if (slider) {
+                slider.value = frameIndex;
+            }
+            
+            streamgraphAnimation.currentFrame = frameIndex;
+        }
+        
+        // 播放函数 - 全局函数，直接在HTML中调用
+        function streamgraphPlay() {
+            const playBtn = document.getElementById("streamgraphPlayBtn");
+            const pauseBtn = document.getElementById("streamgraphPauseBtn");
+            
+            if (streamgraphAnimation.frames.length === 0) return;
+            
+            if (streamgraphAnimation.currentFrame >= streamgraphAnimation.frames.length - 1) {
+                streamgraphAnimation.currentFrame = 0;
+                updateStreamgraphFrame(0);
+            }
+            
+            streamgraphAnimation.isPlaying = true;
+            if (playBtn) playBtn.style.display = "none";
+            if (pauseBtn) pauseBtn.style.display = "inline-block";
+            
+            function animate() {
+                if (!streamgraphAnimation.isPlaying) return;
+                
+                const nextFrame = streamgraphAnimation.currentFrame + 1;
+                if (nextFrame >= streamgraphAnimation.frames.length) {
+                    streamgraphAnimation.currentFrame = streamgraphAnimation.frames.length - 1;
+                    streamgraphAnimation.isPlaying = false;
+                    if (playBtn) playBtn.style.display = "inline-block";
+                    if (pauseBtn) pauseBtn.style.display = "none";
+                    return;
+                }
+                
+                updateStreamgraphFrame(nextFrame);
+                // 使用setTimeout，间隔400ms（与折线图一致）
+                streamgraphAnimation.animationTimer = setTimeout(animate, 400);
+            }
+            
+            animate();
+        }
+        
+        // 暂停函数 - 全局函数，直接在HTML中调用
+        function streamgraphPause() {
+            const playBtn = document.getElementById("streamgraphPlayBtn");
+            const pauseBtn = document.getElementById("streamgraphPauseBtn");
+            
+            streamgraphAnimation.isPlaying = false;
+            if (streamgraphAnimation.animationTimer) {
+                cancelAnimationFrame(streamgraphAnimation.animationTimer);
+            }
+            if (playBtn) playBtn.style.display = "inline-block";
+            if (pauseBtn) pauseBtn.style.display = "none";
+        }
+        
+        // 设置河流图动画控制
+        function setupStreamgraphAnimationControls() {
+            const pauseBtn = document.getElementById("streamgraphPauseBtn");
+            if (pauseBtn) {
+                pauseBtn.style.display = "none";
+            }
+            
+            // 滑块控制
+            const slider = document.getElementById("streamgraphSlider");
+            if (slider) {
+                slider.addEventListener("input", (e) => {
+                    const frameIndex = parseInt(e.target.value);
+                    if (!streamgraphAnimation.isPlaying) {
+                        updateStreamgraphFrame(frameIndex);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

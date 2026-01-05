@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集合通信模式可视化动画</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --card: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-2: #f472b6;
+            --accent-3: #facc15;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(circle at top, #1e1b4b, #020617 60%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 16px 64px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.08em;
+        }
+        header p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .panel {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 60px rgba(15,23,42,0.45);
+            backdrop-filter: blur(18px);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.35rem;
+            margin-bottom: 18px;
+        }
+        .file-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .file-picker label {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+        input[type="file"] {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text);
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(15,23,42,0.6);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: rgba(56,189,248,0.2);
+            border-color: var(--accent);
+        }
+        button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(15,23,42,0.4);
+            border-radius: 8px;
+        }
+        .time-display {
+            margin: 0 10px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .visualization-container {
+            background: rgba(2,6,23,0.85);
+            border-radius: 8px;
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+        #canvas {
+            background: rgba(15,23,42,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: block;
+            margin: 0 auto;
+        }
+        .legend {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.85rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .pattern-info {
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(15,23,42,0.4);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .pattern-info strong {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>集合通信模式可视化动画</h1>
+            <p>可视化 TP、EP、PP、DP 等通信模式，展示消息流动和集合通信特征</p>
+        </header>
+
+        <section class="panel">
+            <h2>1. 载入通信模式文件</h2>
+            <div class="file-picker">
+                <label for="fileInput">选择 rdma_operate.txt 文件：</label>
+                <input type="file" id="fileInput" accept=".txt">
+            </div>
+            <div class="pattern-info" id="patternInfo" style="display: none;">
+                <strong>检测到的模式：</strong><span id="patternType">-</span><br>
+                <strong>节点范围：</strong><span id="nodeRange">-</span><br>
+                <strong>Phase 数量：</strong><span id="phaseCount">-</span><br>
+                <strong>消息大小：</strong><span id="msgSize">-</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>2. 通信模式动画</h2>
+            <div class="controls">
+                <button id="playBtn" class="active">▶ 播放</button>
+                <button id="pauseBtn">⏸ 暂停</button>
+                <span class="time-display" id="timeDisplay">时间: 0</span>
+                <input type="range" id="timeSlider" min="0" max="100" value="0" style="flex: 1; margin: 0 10px; cursor: pointer;">
+                <span style="font-size: 0.85rem; color: var(--text-dim);">速度:</span>
+                <input type="range" id="speedSlider" min="50" max="500" value="200" style="width: 100px;">
+            </div>
+            <div class="visualization-container">
+                <canvas id="canvas" width="1200" height="600"></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--accent);"></div>
+                    <span>正在传输的消息</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--accent-3);"></div>
+                    <span>已完成的传输</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--accent-2);"></div>
+                    <span>节点</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 全局变量
+        let globalData = {
+            pattern: null, // 'TP', 'EP', 'PP', 'DP'
+            phases: [],
+            nodes: new Set(),
+            currentPhase: 0,
+            currentStep: 0,
+            timeline: []
+        };
+
+        let animation = {
+            isPlaying: false,
+            timer: null,
+            speed: 200,
+            currentTime: 0
+        };
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const timeSlider = document.getElementById('timeSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const timeDisplay = document.getElementById('timeDisplay');
+
+        // 文件读取
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                parseFile(ev.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        // 解析文件
+        function parseFile(text) {
+            const lines = text.split(/\r?\n/);
+            const phases = [];
+            let currentPhase = null;
+            const nodes = new Set();
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('stat') || trimmed.startsWith('#')) continue;
+
+                if (trimmed.startsWith('phase:')) {
+                    if (currentPhase) {
+                        phases.push(currentPhase);
+                    }
+                    currentPhase = {
+                        flows: [],
+                        time: parseInt(trimmed.split(':')[1]) || 3000
+                    };
+                    continue;
+                }
+
+                // 解析 rdma_send 行
+                // 格式1: Type:rdma_send, src_node:0, src_port:1000, dst_node:1, dst_port:1000, priority:0, msg_len:33554432
+                // 格式2: Type rdma_send src_node 0 src_port 1008 dst_node 1 dst_port 1008 priority 0 msg_len 33554432
+                let match = trimmed.match(/src_node[:\s]+(\d+).*?dst_node[:\s]+(\d+).*?msg_len[:\s]+(\d+)/);
+                if (match) {
+                    const src = parseInt(match[1]);
+                    const dst = parseInt(match[2]);
+                    const msgLen = parseInt(match[3]);
+                    nodes.add(src);
+                    nodes.add(dst);
+                    if (currentPhase) {
+                        currentPhase.flows.push({ src, dst, msgLen });
+                    }
+                }
+            }
+            if (currentPhase) {
+                phases.push(currentPhase);
+            }
+
+            // 检测通信模式
+            const pattern = detectPattern(phases, nodes);
+            globalData = {
+                pattern,
+                phases,
+                nodes: Array.from(nodes).sort((a, b) => a - b),
+                currentPhase: 0,
+                currentStep: 0,
+                timeline: buildTimeline(phases, pattern)
+            };
+
+            updatePatternInfo(pattern, phases, nodes);
+            setupCanvas();
+            render();
+        }
+
+        // 检测通信模式
+        function detectPattern(phases, nodes) {
+            if (phases.length === 0) return 'UNKNOWN';
+            
+            const firstPhase = phases[0];
+            const nodeArray = Array.from(nodes).sort((a, b) => a - b);
+            
+            // PP模式：只有1个phase，一对一配对
+            if (phases.length === 1 && firstPhase.flows.length === nodeArray.length) {
+                return 'PP';
+            }
+
+            // DP模式：多个phase，消息大小变化
+            if (phases.length > 1) {
+                const msgSizes = phases.map(p => p.flows[0]?.msgLen || 0);
+                const hasSizeVariation = msgSizes.some((size, i) => i > 0 && size !== msgSizes[0]);
+                if (hasSizeVariation) {
+                    return 'DP';
+                }
+            }
+
+            // TP/EP模式：多个phase，链式回环
+            if (phases.length > 1) {
+                // 检查是否是链式回环
+                const firstFlow = firstPhase.flows[0];
+                if (firstFlow) {
+                    // 检查是否形成回环
+                    const flowMap = new Map();
+                    firstPhase.flows.forEach(f => flowMap.set(f.src, f.dst));
+                    let current = firstFlow.src;
+                    let visited = new Set();
+                    let isLoop = false;
+                    while (flowMap.has(current) && !visited.has(current)) {
+                        visited.add(current);
+                        current = flowMap.get(current);
+                        if (current === firstFlow.src && visited.size > 1) {
+                            isLoop = true;
+                            break;
+                        }
+                    }
+                    if (isLoop) {
+                        // 根据文件名或其他特征区分TP和EP，这里简单返回TP
+                        return 'TP';
+                    }
+                }
+            }
+
+            return 'EP';
+        }
+
+        // 构建时间轴
+        function buildTimeline(phases, pattern) {
+            const timeline = [];
+            let currentTime = 0;
+            const timeStep = 100; // 每个步骤的时间单位
+
+            phases.forEach((phase, phaseIdx) => {
+                if (pattern === 'PP') {
+                    // PP模式：所有流同时发送
+                    timeline.push({
+                        time: currentTime,
+                        phase: phaseIdx,
+                        flows: phase.flows,
+                        type: 'simultaneous'
+                    });
+                    currentTime += timeStep * 2; // 传输时间
+                } else if (pattern === 'TP' || pattern === 'EP') {
+                    // TP/EP模式：链式传递
+                    phase.flows.forEach((flow, flowIdx) => {
+                        timeline.push({
+                            time: currentTime,
+                            phase: phaseIdx,
+                            flow: flow,
+                            flowIdx: flowIdx,
+                            type: 'sequential'
+                        });
+                        currentTime += timeStep;
+                    });
+                } else if (pattern === 'DP') {
+                    // DP模式：每phase内同时发送
+                    timeline.push({
+                        time: currentTime,
+                        phase: phaseIdx,
+                        flows: phase.flows,
+                        type: 'simultaneous'
+                    });
+                    currentTime += timeStep * 2;
+                }
+            });
+
+            return timeline;
+        }
+
+        // 更新模式信息
+        function updatePatternInfo(pattern, phases, nodes) {
+            const nodeArray = Array.from(nodes).sort((a, b) => a - b);
+            const nodeRange = nodeArray.length > 0 
+                ? `${nodeArray[0]} - ${nodeArray[nodeArray.length - 1]}` 
+                : '-';
+            const msgSize = phases.length > 0 && phases[0].flows.length > 0
+                ? `${(phases[0].flows[0].msgLen / 1024 / 1024).toFixed(0)} MB`
+                : '-';
+
+            document.getElementById('patternType').textContent = pattern;
+            document.getElementById('nodeRange').textContent = nodeRange;
+            document.getElementById('phaseCount').textContent = phases.length;
+            document.getElementById('msgSize').textContent = msgSize;
+            document.getElementById('patternInfo').style.display = 'block';
+        }
+
+        // 设置画布
+        function setupCanvas() {
+            const nodeCount = globalData.nodes.length;
+            const padding = { top: 40, right: 40, bottom: 60, left: 80 };
+            const width = canvas.width - padding.left - padding.right;
+            const height = canvas.height - padding.top - padding.bottom;
+
+            // 调整画布大小以适应节点数量
+            if (nodeCount > 0) {
+                const minHeight = nodeCount * 50 + padding.top + padding.bottom;
+                if (minHeight > canvas.height) {
+                    canvas.height = minHeight;
+                }
+            }
+        }
+
+        // 渲染
+        function render() {
+            const padding = { top: 40, right: 40, bottom: 60, left: 80 };
+            const width = canvas.width - padding.left - padding.right;
+            const height = canvas.height - padding.top - padding.bottom;
+
+            // 清空画布
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制坐标轴
+            drawAxes(padding, width, height);
+
+            // 绘制节点
+            drawNodes(padding, width, height);
+
+            // 绘制时间线
+            const maxTime = globalData.timeline.length > 0 
+                ? Math.max(...globalData.timeline.map(t => t.time)) 
+                : 1000;
+            const currentTime = animation.currentTime;
+
+            // 绘制已完成和正在进行的传输
+            globalData.timeline.forEach(event => {
+                if (event.time <= currentTime) {
+                    if (event.type === 'simultaneous') {
+                        // 同时发送
+                        event.flows.forEach(flow => {
+                            drawFlow(flow, padding, width, height, maxTime, event.time, currentTime, true);
+                        });
+                    } else if (event.type === 'sequential') {
+                        // 顺序发送
+                        drawFlow(event.flow, padding, width, height, maxTime, event.time, currentTime, false);
+                    }
+                }
+            });
+        }
+
+        // 绘制坐标轴
+        function drawAxes(padding, width, height) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+
+            // X轴（时间）
+            ctx.beginPath();
+            ctx.moveTo(padding.left, canvas.height - padding.bottom);
+            ctx.lineTo(canvas.width - padding.right, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // Y轴（节点）
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, canvas.height - padding.bottom);
+            ctx.stroke();
+
+            // 时间标签
+            const maxTime = globalData.timeline.length > 0 
+                ? Math.max(...globalData.timeline.map(t => t.time)) 
+                : 1000;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.font = '12px "Microsoft YaHei"';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 10; i++) {
+                const time = (maxTime / 10) * i;
+                const x = padding.left + (width / 10) * i;
+                ctx.fillText(time.toString(), x, canvas.height - padding.bottom + 20);
+            }
+
+            // 节点标签
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            globalData.nodes.forEach((node, idx) => {
+                const y = padding.top + (height / (globalData.nodes.length - 1 || 1)) * idx;
+                ctx.fillText(`节点${node}`, padding.left - 10, y);
+            });
+        }
+
+        // 绘制节点
+        function drawNodes(padding, width, height) {
+            globalData.nodes.forEach((node, idx) => {
+                const y = padding.top + (height / (globalData.nodes.length - 1 || 1)) * idx;
+                const x = padding.left;
+
+                // 绘制节点圆圈
+                ctx.fillStyle = '#f472b6'; // accent-2
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 绘制节点时间线
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(canvas.width - padding.right, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+        }
+
+        // 绘制消息流
+        function drawFlow(flow, padding, width, height, maxTime, eventTime, currentTime, isSimultaneous) {
+            const srcIdx = globalData.nodes.indexOf(flow.src);
+            const dstIdx = globalData.nodes.indexOf(flow.dst);
+            
+            if (srcIdx === -1 || dstIdx === -1) return;
+
+            const srcY = padding.top + (height / (globalData.nodes.length - 1 || 1)) * srcIdx;
+            const dstY = padding.top + (height / (globalData.nodes.length - 1 || 1)) * dstIdx;
+            const startX = padding.left + (width / maxTime) * eventTime;
+            const endX = padding.left + (width / maxTime) * Math.min(eventTime + 100, currentTime);
+
+            // 判断是否已完成
+            const isCompleted = currentTime >= eventTime + 100;
+            const alpha = isCompleted ? 0.3 : 1.0;
+            const color = isCompleted ? '#facc15' : '#38bdf8'; // accent-3 : accent
+
+            // 绘制箭头
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = isSimultaneous ? 3 : 2;
+            ctx.globalAlpha = alpha;
+
+            // 绘制曲线（TP/EP模式用曲线，PP/DP用直线）
+            if (globalData.pattern === 'TP' || globalData.pattern === 'EP') {
+                // 链式传递：绘制曲线
+                const midX = (startX + endX) / 2;
+                const controlY = (srcY + dstY) / 2;
+                const curveOffset = Math.abs(dstIdx - srcIdx) * 10;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, srcY);
+                ctx.quadraticCurveTo(midX, controlY - curveOffset, endX, dstY);
+                ctx.stroke();
+            } else {
+                // PP/DP模式：绘制直线
+                ctx.beginPath();
+                ctx.moveTo(startX, srcY);
+                ctx.lineTo(endX, dstY);
+                ctx.stroke();
+            }
+
+            // 绘制箭头头部
+            if (endX > startX + 5) {
+                const angle = Math.atan2(dstY - srcY, endX - startX);
+                const arrowLength = 10;
+                const arrowWidth = 6;
+
+                ctx.beginPath();
+                ctx.moveTo(endX, dstY);
+                ctx.lineTo(
+                    endX - arrowLength * Math.cos(angle - arrowWidth / 2),
+                    dstY - arrowLength * Math.sin(angle - arrowWidth / 2)
+                );
+                ctx.lineTo(
+                    endX - arrowLength * Math.cos(angle + arrowWidth / 2),
+                    dstY - arrowLength * Math.sin(angle + arrowWidth / 2)
+                );
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // 绘制消息大小标签（仅对DP模式）
+            if (globalData.pattern === 'DP' && isSimultaneous) {
+                const msgSizeMB = (flow.msgLen / 1024 / 1024).toFixed(0);
+                const labelX = (startX + endX) / 2;
+                const labelY = (srcY + dstY) / 2 - 15;
+
+                // 根据消息大小设置颜色（树状结构：大→小→大）
+                const maxSize = Math.max(...globalData.phases.map(p => p.flows[0]?.msgLen || 0));
+                const sizeRatio = flow.msgLen / maxSize;
+                const labelColor = sizeRatio > 0.7 ? '#facc15' : sizeRatio > 0.3 ? '#38bdf8' : '#f472b6';
+                
+                // 绘制背景框
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+                ctx.fillRect(labelX - 25, labelY - 10, 50, 16);
+                
+                ctx.fillStyle = labelColor;
+                ctx.font = 'bold 10px "Microsoft YaHei"';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${msgSizeMB}MB`, labelX, labelY + 2);
+            }
+
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 播放控制
+        playBtn.addEventListener('click', () => {
+            if (globalData.timeline.length === 0) return;
+            
+            animation.isPlaying = true;
+            playBtn.classList.remove('active');
+            pauseBtn.classList.add('active');
+            
+            function animate() {
+                if (!animation.isPlaying) return;
+                
+                const maxTime = globalData.timeline.length > 0 
+                    ? Math.max(...globalData.timeline.map(t => t.time)) + 200
+                    : 1000;
+                
+                if (animation.currentTime >= maxTime) {
+                    animation.currentTime = 0;
+                    timeSlider.value = 0;
+                }
+                
+                animation.currentTime += 10;
+                const progress = maxTime > 0 ? animation.currentTime / maxTime : 0;
+                timeSlider.value = progress * 100;
+                
+                updateTimeDisplay();
+                render();
+                
+                animation.timer = setTimeout(animate, animation.speed);
+            }
+            
+            animate();
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            animation.isPlaying = false;
+            if (animation.timer) {
+                clearTimeout(animation.timer);
+            }
+            playBtn.classList.add('active');
+            pauseBtn.classList.remove('active');
+        });
+
+        // 时间滑块控制
+        timeSlider.addEventListener('input', (e) => {
+            const progress = parseFloat(e.target.value) / 100;
+            const maxTime = globalData.timeline.length > 0 
+                ? Math.max(...globalData.timeline.map(t => t.time)) + 200
+                : 1000;
+            animation.currentTime = progress * maxTime;
+            
+            if (animation.isPlaying) {
+                animation.isPlaying = false;
+                if (animation.timer) {
+                    clearTimeout(animation.timer);
+                }
+                playBtn.classList.add('active');
+                pauseBtn.classList.remove('active');
+            }
+            
+            updateTimeDisplay();
+            render();
+        });
+
+        // 速度滑块控制
+        speedSlider.addEventListener('input', (e) => {
+            animation.speed = parseInt(e.target.value);
+        });
+
+        // 更新时间显示
+        function updateTimeDisplay() {
+            const maxTime = globalData.timeline.length > 0 
+                ? Math.max(...globalData.timeline.map(t => t.time)) + 200
+                : 1000;
+            timeDisplay.textContent = `时间: ${Math.floor(animation.currentTime)} / ${Math.floor(maxTime)}`;
+        }
+
+        // 初始化
+        setupCanvas();
+        render();
+    </script>
+</body>
+</html>

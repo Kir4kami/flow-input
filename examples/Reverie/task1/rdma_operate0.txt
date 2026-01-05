@@ -1,5 +1,29 @@
+#stat rdma operate:
+#phase:3000
+# 主机对: H8 -> H9
+# 流数量: 7
+# 注意：每条流使用不同的端口号以避免队列对冲突
+
+#Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1041 dst_node 9 dst_port 1041 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1042 dst_node 9 dst_port 1042 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1043 dst_node 9 dst_port 1043 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1045 dst_node 9 dst_port 1045 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1046 dst_node 9 dst_port 1046 priority 0 msg_len 33554432
+
+
 stat rdma operate:
 phase:3000
-Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 8388608
-Type rdma_send src_node 0 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 16777216
-Type rdma_send src_node 0 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 33554432
+# 主机对: H12 -> H4
+# 流数量: 3
+# 注意：每条流使用不同的端口号以避免队列对冲突
+
+Type rdma_send src_node 12 src_port 1041 dst_node 4 dst_port 1041 priority 0 msg_len 33554432
+Type rdma_send src_node 12 src_port 1042 dst_node 4 dst_port 1042 priority 0 msg_len 33554432
+Type rdma_send src_node 12 src_port 1044 dst_node 4 dst_port 1044 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1043 dst_node 9 dst_port 1043 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1045 dst_node 9 dst_port 1045 priority 0 msg_len 33554432
+#Type rdma_send src_node 8 src_port 1046 dst_node 9 dst_port 1046 priority 0 msg_len 33554432
+

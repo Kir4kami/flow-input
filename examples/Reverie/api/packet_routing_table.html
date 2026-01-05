@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据包路由表实时监控</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --card: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-2: #f472b6;
+            --accent-3: #facc15;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(circle at top, #1e1b4b, #020617 60%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 16px 64px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.08em;
+        }
+        header p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .panel {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 60px rgba(15,23,42,0.45);
+            backdrop-filter: blur(18px);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.35rem;
+            margin-bottom: 18px;
+        }
+        .file-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .file-picker label {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+        input[type="file"] {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text);
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(15,23,42,0.6);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: rgba(56,189,248,0.2);
+            border-color: var(--accent);
+        }
+        button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .hint {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(15,23,42,0.4);
+            border-radius: 8px;
+        }
+        .time-display {
+            margin: 0 10px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .routing-table-container {
+            background: rgba(2,6,23,0.85);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            table-layout: fixed;
+        }
+        thead {
+            background: rgba(15,23,42,0.6);
+        }
+        th {
+            padding: 12px;
+            text-align: center;
+            color: var(--accent);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(56,189,248,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            word-break: break-all;
+        }
+        tbody tr:hover {
+            background: rgba(56,189,248,0.1);
+        }
+        .transition-row td {
+            font-weight: 700;
+            color: var(--accent-2);
+        }
+        .notice {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        @media (max-width: 768px) {
+            body { padding: 20px 10px 40px; }
+            .panel { padding: 18px; }
+            header h1 { font-size: 1.8rem; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="pageTitle">从结点A到结点B的流的速率</h1>
+            <p>读取 flow_stats.txt，按时刻分组展示每条流的速率，支持实时播放。</p>
+        </header>
+
+        <section class="panel">
+            <h2>1. 载入 flow_stats.txt</h2>
+            <div class="file-picker">
+                <label for="fileInput">选择文件：</label>
+                <input type="file" id="fileInput" accept=".txt">
+                <button id="demoBtn" title="使用内置示例数据">使用示例数据</button>
+            </div>
+            <div class="hint">
+                格式示例：<code>Flow ID: 12-4-1041-1041 - Rate: 8.9232 Gbps currentTime: 19390</code><br>
+                跃迁行：<code>System entered steady state at time: 110510 ns</code>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>2. 路由速率表</h2>
+            <div class="controls">
+                <button id="playBtn" class="active">▶ 播放</button>
+                <button id="pauseBtn">⏸ 暂停</button>
+                <span class="time-display" id="timeDisplay">时间: 0 ns</span>
+                <input type="range" id="timeSlider" min="0" max="100" value="0" style="flex: 1; margin: 0 10px; cursor: pointer;">
+            </div>
+            <div class="routing-table-container">
+                <table id="routingTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px;">时间 (ns)</th>
+                            <th>流 ID</th>
+                            <th style="width: 140px;">速率 (Gbps)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="3" style="text-align:center;color:var(--text-dim);">请先载入 flow_stats.txt</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="notice">
+                同一时刻的多条流共用时间单元格；跃迁用"时间~t / 跃迁"表示。使用播放按钮可以按时间顺序实时显示表格内容。
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 全局数据存储
+        let globalData = {
+            allRows: [], // 所有解析后的行数据
+            timeline: [], // 时间轴（每个时间点对应的行索引）
+            fileName: ""
+        };
+        
+        // 动画控制
+        let animation = {
+            currentFrame: 0,
+            isPlaying: false,
+            timer: null,
+            speed: 500 // 每帧间隔（毫秒）
+        };
+
+        const tableBody = document.getElementById("tableBody");
+        const pageTitle = document.getElementById("pageTitle");
+
+        document.getElementById("fileInput").addEventListener("change", (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => handleRawData(ev.target.result, file.name);
+            reader.readAsText(file);
+        });
+
+        document.getElementById("demoBtn").addEventListener("click", () => {
+            const demo = `Flow ID: 12-4-1041-1041 - Rate: 8.9232 Gbps currentTime: 19390
+Flow ID: 12-4-1042-1042 - Rate: 8.9232 Gbps currentTime: 19725
+Flow ID: 12-4-1044-1044 - Rate: 8.9232 Gbps currentTime: 20060
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 29440
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 29775
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 30110
+System entered steady state at time: 110510 ns`;
+            handleRawData(demo, "示例数据");
+        });
+
+        function handleRawData(text, fileName) {
+            const parsed = parseFlowStats(text);
+            
+            // 保存所有行数据
+            globalData.allRows = parsed.rows;
+            globalData.fileName = fileName;
+            
+            // 构建时间轴：为每个唯一的时间点创建索引
+            const timeMap = new Map();
+            parsed.rows.forEach((row, index) => {
+                const timeKey = row.time;
+                if (!timeMap.has(timeKey)) {
+                    timeMap.set(timeKey, []);
+                }
+                timeMap.get(timeKey).push(index);
+            });
+            
+            // 按时间排序创建时间轴
+            globalData.timeline = Array.from(timeMap.keys()).sort((a, b) => {
+                // 处理 "时间~t" 格式的跃迁行
+                const timeA = parseTime(a);
+                const timeB = parseTime(b);
+                return timeA - timeB;
+            });
+            
+            updateTitle(parsed.titleText);
+            
+            // 设置滑块
+            const slider = document.getElementById("timeSlider");
+            if (slider) {
+                slider.max = Math.max(0, globalData.timeline.length - 1);
+                slider.value = globalData.timeline.length - 1; // 初始显示最后状态
+            }
+            
+            // 更新到最后一帧
+            animation.currentFrame = Math.max(0, globalData.timeline.length - 1);
+            updateTimeDisplay();
+        }
+
+        function parseTime(timeStr) {
+            // 解析时间字符串，支持 "时间~t" 和 "时间1~时间2" 格式
+            if (typeof timeStr === 'string' && timeStr.includes('~')) {
+                // 提取第一个时间（跃迁时间）
+                const parts = timeStr.split('~');
+                if (parts.length >= 1) {
+                    return Number(parts[0]);
+                }
+            }
+            return Number(timeStr);
+        }
+
+        function parseFlowStats(text) {
+            const lines = text.split(/\r?\n/);
+            const flowRegex = /Flow ID:\s*([^\s]+)\s*-\s*Rate:\s*([0-9.]+)\s*Gbps\s*currentTime:\s*([0-9]+)/i;
+            const steadyRegex = /System entered steady state at time:\s*([0-9]+)\s*ns/i;
+
+            // 收集所有流数据和跃迁时间点
+            const allFlows = [];
+            const transitionTimes = [];
+
+            for (const raw of lines) {
+                const line = raw.trim();
+                if (!line) continue;
+                const steadyMatch = line.match(steadyRegex);
+                if (steadyMatch) {
+                    transitionTimes.push(Number(steadyMatch[1]));
+                    continue;
+                }
+                const m = line.match(flowRegex);
+                if (m) {
+                    allFlows.push({
+                        id: m[1],
+                        rate: Number(m[2]),
+                        time: Number(m[3]),
+                    });
+                }
+            }
+
+            // 按时间排序跃迁点
+            transitionTimes.sort((a, b) => a - b);
+
+            const rows = [];
+            let flowIndex = 0;
+
+            // 按时间段分段处理
+            for (let phaseIndex = 0; phaseIndex <= transitionTimes.length; phaseIndex++) {
+                const phaseStartTime = phaseIndex === 0 ? 0 : transitionTimes[phaseIndex - 1];
+                const phaseEndTime = phaseIndex < transitionTimes.length ? transitionTimes[phaseIndex] : Infinity;
+
+                // 收集当前阶段的所有流
+                const phaseFlows = [];
+                while (flowIndex < allFlows.length && allFlows[flowIndex].time <= phaseEndTime) {
+                    phaseFlows.push(allFlows[flowIndex]);
+                    flowIndex++;
+                }
+
+                if (phaseFlows.length === 0) continue;
+
+                // 找出当前阶段的唯一流ID
+                const uniqueIds = [];
+                phaseFlows.forEach(f => {
+                    if (!uniqueIds.includes(f.id)) uniqueIds.push(f.id);
+                });
+                const groupSize = uniqueIds.length || 1;
+
+                // 按组处理当前阶段的流
+                for (let i = 0; i < phaseFlows.length; i += groupSize) {
+                    const group = phaseFlows.slice(i, i + groupSize);
+                    if (group.length === 0) break;
+                    const timeLabel = group[0].time.toString();
+                    rows.push({
+                        time: timeLabel,
+                        entries: group.map(g => ({ id: g.id, rate: g.rate.toFixed(4) })),
+                    });
+                }
+
+                // 如果这个阶段有跃迁，添加跃迁行
+                if (phaseIndex < transitionTimes.length) {
+                    const transitionTime = transitionTimes[phaseIndex];
+                    const isLastTransition = phaseIndex === transitionTimes.length - 1;
+                    
+                    // 查找跃迁后第一个流的时间
+                    let firstFlowAfterTransition = null;
+                    if (!isLastTransition && flowIndex < allFlows.length) {
+                        // 找到下一个阶段（跃迁后）的第一个流
+                        firstFlowAfterTransition = allFlows[flowIndex].time;
+                    }
+                    
+                    // 根据是否是最后一次跃迁决定显示格式
+                    let transitionTimeLabel;
+                    if (isLastTransition) {
+                        // 最后一次跃迁：显示为 "时间~t"
+                        transitionTimeLabel = `${transitionTime}~t`;
+                    } else if (firstFlowAfterTransition !== null) {
+                        // 非最后一次跃迁：显示为 "跃迁时间~第一个流时间"
+                        transitionTimeLabel = `${transitionTime}~${firstFlowAfterTransition}`;
+                    } else {
+                        // 如果没有找到后续流，使用默认格式
+                        transitionTimeLabel = `${transitionTime}~t`;
+                    }
+                    
+                    rows.push({
+                        time: transitionTimeLabel,
+                        entries: [{ id: "跃迁", rate: "跃迁" }],
+                        transition: true,
+                    });
+                }
+            }
+
+            const titleText = buildTitle(allFlows[0]?.id);
+            return { rows, titleText };
+        }
+
+        function buildTitle(sampleId) {
+            if (!sampleId) return "从结点A到结点B的流的速率";
+            const parts = sampleId.split("-");
+            if (parts.length >= 2) {
+                return `从结点${parts[0]}到结点${parts[1]}的流的速率`;
+            }
+            return "从结点A到结点B的流的速率";
+        }
+
+        function renderTable(rowsToShow) {
+            tableBody.innerHTML = "";
+            if (!rowsToShow || rowsToShow.length === 0) {
+                const r = document.createElement("tr");
+                const c = document.createElement("td");
+                c.colSpan = 3;
+                c.style.textAlign = "center";
+                c.style.color = "var(--text-dim)";
+                c.textContent = "未解析到任何流记录";
+                r.appendChild(c);
+                tableBody.appendChild(r);
+                return;
+            }
+
+            rowsToShow.forEach(row => {
+                if (row.transition) {
+                    // 跃迁行：时间 + 合并的"跃迁"单元格
+                    const tr = document.createElement("tr");
+                    tr.classList.add("transition-row");
+
+                    const timeCell = document.createElement("td");
+                    timeCell.textContent = row.time;
+                    tr.appendChild(timeCell);
+
+                    const transitionCell = document.createElement("td");
+                    transitionCell.colSpan = 2; // 合并流ID和速率两列
+                    transitionCell.textContent = "跃迁";
+                    transitionCell.style.textAlign = "center";
+                    tr.appendChild(transitionCell);
+
+                    tableBody.appendChild(tr);
+                } else {
+                    // 普通行：按流分组显示
+                    row.entries.forEach((entry, idx) => {
+                        const tr = document.createElement("tr");
+
+                        if (idx === 0) {
+                            const timeCell = document.createElement("td");
+                            timeCell.rowSpan = row.entries.length;
+                            timeCell.textContent = row.time;
+                            tr.appendChild(timeCell);
+                        }
+
+                        const idCell = document.createElement("td");
+                        idCell.textContent = entry.id;
+                        tr.appendChild(idCell);
+
+                        const rateCell = document.createElement("td");
+                        rateCell.textContent = `${entry.rate} Gbps`;
+                        tr.appendChild(rateCell);
+
+                        tableBody.appendChild(tr);
+                    });
+                }
+            });
+        }
+
+        function updateTitle(text) {
+            if (pageTitle) pageTitle.textContent = text;
+        }
+
+        function updateTimeDisplay() {
+            if (globalData.timeline.length === 0) {
+                document.getElementById("timeDisplay").textContent = "时间: 0 ns";
+                renderTable([]);
+                return;
+            }
+
+            const currentTimeKey = globalData.timeline[animation.currentFrame];
+            const timeDisplay = document.getElementById("timeDisplay");
+            if (timeDisplay) {
+                const timeValue = parseTime(currentTimeKey);
+                timeDisplay.textContent = `时间: ${timeValue} ns`;
+            }
+
+            // 获取当前时间点及之前的所有行
+            const rowsToShow = [];
+            for (let i = 0; i <= animation.currentFrame; i++) {
+                const timeKey = globalData.timeline[i];
+                // 找到所有对应这个时间点的行
+                globalData.allRows.forEach(row => {
+                    if (row.time === timeKey) {
+                        // 避免重复添加
+                        if (!rowsToShow.some(r => r === row)) {
+                            rowsToShow.push(row);
+                        }
+                    }
+                });
+            }
+
+            // 按时间排序显示的行
+            rowsToShow.sort((a, b) => {
+                const timeA = parseTime(a.time);
+                const timeB = parseTime(b.time);
+                return timeA - timeB;
+            });
+
+            renderTable(rowsToShow);
+        }
+
+        // 播放控制
+        document.getElementById("playBtn").addEventListener("click", () => {
+            if (globalData.timeline.length === 0) return;
+            
+            // 如果已经在最后一帧，重置到第一帧
+            if (animation.currentFrame >= globalData.timeline.length - 1) {
+                animation.currentFrame = 0;
+                const slider = document.getElementById("timeSlider");
+                if (slider) {
+                    slider.value = 0;
+                }
+                updateTimeDisplay();
+            }
+            
+            animation.isPlaying = true;
+            document.getElementById("playBtn").classList.remove("active");
+            document.getElementById("pauseBtn").classList.add("active");
+            
+            function animate() {
+                if (!animation.isPlaying) return;
+                
+                if (animation.currentFrame >= globalData.timeline.length - 1) {
+                    animation.isPlaying = false;
+                    document.getElementById("playBtn").classList.add("active");
+                    document.getElementById("pauseBtn").classList.remove("active");
+                    return;
+                }
+                
+                animation.currentFrame++;
+                const slider = document.getElementById("timeSlider");
+                if (slider) {
+                    slider.value = animation.currentFrame;
+                }
+                
+                updateTimeDisplay();
+                animation.timer = setTimeout(animate, animation.speed);
+            }
+            
+            animate();
+        });
+        
+        document.getElementById("pauseBtn").addEventListener("click", () => {
+            animation.isPlaying = false;
+            if (animation.timer) {
+                clearTimeout(animation.timer);
+            }
+            document.getElementById("playBtn").classList.add("active");
+            document.getElementById("pauseBtn").classList.remove("active");
+        });
+        
+        // 滑块控制
+        document.getElementById("timeSlider").addEventListener("input", (e) => {
+            if (!animation.isPlaying) {
+                animation.currentFrame = parseInt(e.target.value);
+                updateTimeDisplay();
+            } else {
+                // 如果正在播放，拖动滑块时暂停播放
+                animation.isPlaying = false;
+                if (animation.timer) {
+                    clearTimeout(animation.timer);
+                }
+                document.getElementById("playBtn").classList.add("active");
+                document.getElementById("pauseBtn").classList.remove("active");
+                animation.currentFrame = parseInt(e.target.value);
+                updateTimeDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
