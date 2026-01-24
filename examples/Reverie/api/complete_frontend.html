@@ -806,11 +806,8 @@
           <button class="btn btn-secondary" @click="viewLoadFiles">
             查看负载文件
           </button>
-          <button class="btn btn-success" @click="visualizeLoadFlow">
-            可视化负载流量
-          </button>
-          <button class="btn btn-info" @click="showHeatmapAnimation" :disabled="!loadResult">
-            显示热力图生成过程
+          <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!loadResult">
+            热力图与负载流量可视化
           </button>
           <div v-if="loadResult" class="result-box">
             <p><strong>负载已生成</strong></p>
@@ -1102,24 +1099,48 @@
             </div>
             <div v-else-if="modal.type === 'tree-visualization'" v-html="modal.content">
             </div>
-            <div v-else-if="modal.type === 'heatmap'">
-              <div class="heatmap-container">
-                <div style="margin-bottom: 15px;">
-                  <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning">
-                    {{ heatmapAnimationRunning ? '动画进行中...' : '开始动画' }}
-                  </button>
-                  <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning" style="margin-left: 10px;">
-                    重置
-                  </button>
-                  <button class="btn btn-info" @click="openFullscreenHeatmap" style="margin-left: 10px;">
-                    全屏显示
-                  </button>
-                  <div style="margin-top: 10px; font-size: 14px; color: #666;">
-                    <span>进度: {{ heatmapAnimationIndex }} / {{ heatmapData ? heatmapData.totalFlows : 0 }}</span>
-                    <span style="margin-left: 20px;">最大值: {{ heatmapMaxValue }}</span>
+            <div v-else-if="modal.type === 'heatmap-and-flow'">
+              <div style="display: flex; gap: 20px; height: 80vh;">
+                <!-- 左侧：热力图 -->
+                <div style="flex: 1; display: flex; flex-direction: column; border-right: 2px solid #e8e8e8; padding-right: 20px;">
+                  <div style="margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">热力图</h3>
+                    <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px;">
+                      {{ heatmapAnimationRunning ? '动画进行中...' : '开始动画' }}
+                    </button>
+                    <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin-left: 8px;">
+                      重置
+                    </button>
+                    <div style="margin-top: 8px; font-size: 12px; color: #666;">
+                      <span>进度: {{ heatmapAnimationIndex }} / {{ heatmapData ? heatmapData.totalFlows : 0 }}</span>
+                      <span style="margin-left: 15px;">最大值: {{ heatmapMaxValue }}</span>
+                    </div>
                   </div>
+                  <div id="heatmap-svg-container" style="flex: 1; overflow: auto; border: 1px solid #e8e8e8; border-radius: 8px; padding: 10px; background: white;"></div>
                 </div>
-                <div id="heatmap-svg-container" style="overflow: auto; max-height: 600px;"></div>
+                <!-- 右侧：负载流量 -->
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                  <div style="margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">负载流量可视化</h3>
+                    <div class="flow-controls" style="flex-wrap: wrap;">
+                      <button class="btn btn-primary" @click="startFlowAnimation" :disabled="flowAnimationRunning" style="padding: 6px 12px; font-size: 12px;">
+                        {{ flowAnimationRunning ? '流动中...' : '开始流动' }}
+                      </button>
+                      <button class="btn btn-secondary" @click="stopFlowAnimation" :disabled="!flowAnimationRunning" style="padding: 6px 12px; font-size: 12px;">
+                        停止流动
+                      </button>
+                      <button class="btn btn-secondary" @click="toggleEcmpMode" :disabled="!ecmpHasActual" style="padding: 6px 12px; font-size: 12px;">
+                        {{ ecmpToggleLabel }}
+                      </button>
+                    </div>
+                  </div>
+                  <div id="flow-visualization-split" style="flex: 1; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; position: relative;"></div>
+                </div>
+              </div>
+              <div style="margin-top: 15px; text-align: center;">
+                <button class="btn btn-info" @click="openFullscreenHeatmapAndFlow">
+                  全屏显示
+                </button>
               </div>
             </div>
             <div v-else-if="modal.type === 'flow-visualization'">
@@ -1200,28 +1221,82 @@
         </div>
       </div>
 
-      <!-- 全屏热力图查看器 -->
+      <!-- 全屏热力图和负载流量查看器 -->
       <div v-if="fullscreenHeatmap.show" class="fullscreen-image-overlay" style="background: rgba(0, 0, 0, 0.95); display: flex; flex-direction: column; padding: 0;">
-        <!-- 顶部控制栏 -->
-        <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 3002; background: rgba(255, 255, 255, 0.98); padding: 15px 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); display: flex; justify-content: space-between; align-items: center;" @click.stop>
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 8px 16px; font-size: 14px; margin: 0;">
-              {{ heatmapAnimationRunning ? '动画进行中...' : '开始动画' }}
-            </button>
-            <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 8px 16px; font-size: 14px; margin: 0;">
-              重置
-            </button>
-            <div style="font-size: 14px; color: #333; margin-left: 15px;">
-              <span style="font-weight: 600;">进度:</span> <span>{{ heatmapAnimationIndex }} / {{ heatmapData ? heatmapData.totalFlows : 0 }}</span>
-              <span style="margin-left: 20px; font-weight: 600;">最大值:</span> <span>{{ heatmapMaxValue }}</span>
-            </div>
-          </div>
-          <button class="fullscreen-close" @click="closeFullscreenHeatmap" style="background: #ff4d4f; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); position: relative; top: 0; right: 0; width: 40px; height: 40px; font-size: 24px; margin: 0;">×</button>
-        </div>
+        <!-- 关闭按钮 -->
+        <button class="fullscreen-close" @click="closeFullscreenHeatmap" style="position: fixed; top: 20px; right: 20px; z-index: 3002; background: #ff4d4f; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); width: 40px; height: 40px; font-size: 24px; margin: 0;">×</button>
         
-        <!-- 热力图容器 -->
-        <div class="fullscreen-image-container" style="width: 95vw; height: calc(95vh - 70px); overflow: auto; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); margin: 70px auto 20px; max-width: 95vw;">
-          <div id="fullscreen-heatmap-svg-container" style="width: 100%; height: 100%;"></div>
+        <!-- 左右布局容器 -->
+        <div style="display: flex; gap: 20px; width: 95vw; height: 95vh; margin: 20px auto; max-width: 95vw;">
+          <!-- 左侧：热力图 -->
+          <div style="flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 热力图控制栏 -->
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
+              <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">热力图</h3>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                  {{ heatmapAnimationRunning ? '动画中...' : '开始动画' }}
+                </button>
+                <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                  重置
+                </button>
+                <span style="font-size: 12px; color: #666; margin-left: 8px;">
+                  进度: {{ heatmapAnimationIndex }} / {{ heatmapData ? heatmapData.totalFlows : 0 }}
+                </span>
+                <span style="font-size: 12px; color: #666; margin-left: 15px;">
+                  最大值: {{ heatmapMaxValue }}
+                </span>
+              </div>
+            </div>
+            <div id="fullscreen-heatmap-svg-container" style="flex: 1; overflow: auto; min-height: 0;"></div>
+          </div>
+          <!-- 右侧：负载流量（包含搜索和可视化） -->
+          <div style="flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 负载流量控制栏 -->
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
+              <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">负载流量可视化</h3>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn btn-primary" @click="startFlowAnimation" :disabled="flowAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                  {{ flowAnimationRunning ? '流动中...' : '开始流动' }}
+                </button>
+                <button class="btn btn-secondary" @click="stopFlowAnimation" :disabled="!flowAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                  停止流动
+                </button>
+                <button class="btn btn-secondary" @click="toggleEcmpMode" :disabled="!ecmpHasActual" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                  {{ ecmpToggleLabel }}
+                </button>
+              </div>
+            </div>
+            <!-- 搜索和流量列表 -->
+            <div style="border: 1px solid #e8e8e8; border-radius: 8px; margin-bottom: 10px; background: #fafafa; max-height: 250px; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="padding: 10px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;">
+                <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">流量列表</div>
+                <input v-model="flowListFilter" type="text" placeholder="搜索 H0 / H1 / 文件名" style="width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; box-sizing: border-box;">
+                <div style="font-size: 11px; color: #64748b; margin-top: 5px;">
+                  共 {{ flowRecordList.length }} 条，显示 {{ filteredFlowRecords.length }} 条
+                </div>
+              </div>
+              <div style="overflow-y: auto; flex: 1; padding: 5px; min-height: 0;">
+                <div v-if="!hasFlowRecords" style="padding: 20px; text-align: center; color: #999; font-size: 12px;">暂无流量，请先生成负载</div>
+                <div v-else-if="filteredFlowRecords.length === 0" style="padding: 20px; text-align: center; color: #999; font-size: 12px;">没有找到匹配的流</div>
+                <div
+                  v-else
+                  v-for="record in filteredFlowRecords"
+                  :key="`${record.src}-${record.dst}-${record.file || ''}`"
+                  @click="selectFlowRecord(record)"
+                  style="padding: 8px 10px; margin: 2px 0; border-radius: 4px; cursor: pointer; background: white; border: 1px solid #e8e8e8; transition: all 0.2s;"
+                  :style="selectedFlowInfo && selectedFlowInfo.src === record.src && selectedFlowInfo.dst === record.dst ? 'background: #e6f7ff; border-color: #1890ff; box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);' : ''"
+                  @mouseenter="$event.target.style.background = '#f0f0f0'"
+                  @mouseleave="$event.target.style.background = (selectedFlowInfo && selectedFlowInfo.src === record.src && selectedFlowInfo.dst === record.dst) ? '#e6f7ff' : 'white'"
+                >
+                  <div style="font-weight: 600; font-size: 12px; color: #333;">{{ formatFlowRecordLabel(record) }}</div>
+                  <div style="font-size: 11px; color: #666; margin-top: 3px;">{{ formatFlowRecordMeta(record) }}</div>
+                </div>
+              </div>
+            </div>
+            <!-- 可视化区域 -->
+            <div id="fullscreen-flow-visualization-container" style="flex: 1; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; position: relative; min-height: 400px;"></div>
+          </div>
         </div>
       </div>
 
@@ -2021,11 +2096,11 @@
           }
         },
 
-        // 显示热力图生成过程
-        async showHeatmapAnimation() {
+        // 显示热力图和负载流量（直接全屏）
+        async showHeatmapAndFlow() {
           try {
+            // 先获取负载流量数据
             if (!this.flowData) {
-              // 如果没有流量数据，先获取
               this.showToast('正在获取负载数据...', 'info')
               await this.visualizeLoadFlow()
             }
@@ -2036,7 +2111,6 @@
             }
             
             // 准备热力图数据
-            // flowData 中可能包含 flow_records 或 edges（type为flow的边）
             let flows = []
             if (this.flowData.flow_records && Array.isArray(this.flowData.flow_records)) {
               flows = this.flowData.flow_records.map(f => ({ src: f.src, dst: f.dst }))
@@ -2047,12 +2121,9 @@
             }
             
             const numHosts = this.load.host_num || 64
-            
-            // 初始化矩阵
             const matrix = Array(numHosts).fill(0).map(() => Array(numHosts).fill(0))
-            
-            // 统计每个主机对的流量数量
             const flowList = []
+            
             flows.forEach(flow => {
               const src = parseInt(flow.src)
               const dst = parseInt(flow.dst)
@@ -2062,7 +2133,6 @@
               }
             })
             
-            // 找到最大值
             let maxValue = 0
             for (let i = 0; i < numHosts; i++) {
               for (let j = 0; j < numHosts; j++) {
@@ -2083,26 +2153,17 @@
             this.heatmapAnimationIndex = 0
             this.heatmapAnimationRunning = false
             
-            // 显示模态框
-            this.modal = {
-              show: true,
-              title: '热力图生成过程',
-              type: 'heatmap'
-            }
-            
-            // 等待DOM更新后绘制初始热力图
-            this.$nextTick(() => {
-              this.drawHeatmap()
-            })
+            // 直接打开全屏
+            this.openFullscreenHeatmapAndFlow()
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
-            console.error('显示热力图失败:', error)
+            console.error('显示热力图和负载流量失败:', error)
           }
         },
 
         // 绘制热力图
-        drawHeatmap(isFullscreen = false) {
-          const containerId = isFullscreen ? 'fullscreen-heatmap-svg-container' : 'heatmap-svg-container'
+        drawHeatmap(isFullscreen = false, customContainerId = null) {
+          const containerId = customContainerId || (isFullscreen ? 'fullscreen-heatmap-svg-container' : 'heatmap-svg-container')
           const container = document.getElementById(containerId)
           if (!container || !this.heatmapData) return
           
@@ -2122,10 +2183,10 @@
             .attr('height', height)
           
           // 创建颜色比例尺（绿色到红色）
-          // 没有流量的是白色透明，有流量的从绿色开始渐变
+          // 没有流量的是白色，有流量的从绿色开始渐变
           const colorScale = (value) => {
             if (value === 0) {
-              return 'rgba(255, 255, 255, 0)' // 白色透明
+              return '#ffffff' // 白色（空白格子）
             }
             // 有流量的从绿色渐变到红色
             const normalizedValue = value / (this.heatmapMaxValue || 1)
@@ -2170,14 +2231,14 @@
               const row = Math.floor(d / numHosts)
               const col = d % numHosts
               const value = this.heatmapMatrix[row][col]
-              return value > 0 ? '#ccc' : '#eee'
+              return value > 0 ? '#999' : '#ddd' // 有流量的用深灰色边框，空白用浅灰色边框
             })
             .attr('stroke-width', 0.5)
             .attr('opacity', d => {
               const row = Math.floor(d / numHosts)
               const col = d % numHosts
               const value = this.heatmapMatrix[row][col]
-              return value > 0 ? 1 : 0 // 没有流量的完全透明
+              return value > 0 ? 1 : 1 // 所有格子都可见
             })
             .append('title')
             .text(d => {
@@ -2300,10 +2361,16 @@
           this.heatmapAnimationIndex = 0
           this.heatmapAnimationRunning = true
           
-          // 绘制初始热力图（同时更新普通和全屏视图）
-          this.drawHeatmap(false)
+          // 确定当前使用的容器ID
+          let containerId = 'heatmap-svg-container'
+          if (this.modal && this.modal.type === 'heatmap-and-flow') {
+            containerId = 'heatmap-svg-container'
+          }
+          
+          // 绘制初始热力图
+          this.drawHeatmap(false, containerId)
           if (this.fullscreenHeatmap.show) {
-            this.drawHeatmap(true)
+            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
           }
           
           // 逐步添加流量
@@ -2322,10 +2389,14 @@
               this.heatmapAnimationIndex++
             }
             
-            // 更新热力图（同时更新普通和全屏视图）
-            this.drawHeatmap(false)
+            // 更新热力图（根据当前视图更新）
+            if (this.modal && this.modal.type === 'heatmap-and-flow') {
+              this.drawHeatmap(false, 'heatmap-svg-container')
+            } else {
+              this.drawHeatmap(false)
+            }
             if (this.fullscreenHeatmap.show) {
-              this.drawHeatmap(true)
+              this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
             }
             
             // 继续动画
@@ -2341,23 +2412,32 @@
           this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
             .map(() => Array(this.heatmapData.numHosts).fill(0))
           this.heatmapAnimationIndex = 0
-          this.drawHeatmap()
+          // 根据当前视图更新
+          if (this.modal && this.modal.type === 'heatmap-and-flow') {
+            this.drawHeatmap(false, 'heatmap-svg-container')
+          } else {
+            this.drawHeatmap(false)
+          }
+          if (this.fullscreenHeatmap.show) {
+            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+          }
         },
 
-        // 打开全屏热力图
-        openFullscreenHeatmap() {
-          if (!this.heatmapData) {
-            this.showToast('请先生成热力图', 'error')
+        // 打开全屏热力图和负载流量（合并视图）
+        openFullscreenHeatmapAndFlow() {
+          if (!this.heatmapData || !this.flowData) {
+            this.showToast('请先生成热力图和负载流量', 'error')
             return
           }
           this.fullscreenHeatmap.show = true
           this.$nextTick(() => {
-            this.drawHeatmap(true)
+            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+            this.drawFlowVisualization('fullscreen-flow-visualization-container')
             // 如果动画正在运行，需要持续更新全屏视图
             if (this.heatmapAnimationRunning) {
               const updateFullscreen = () => {
                 if (this.fullscreenHeatmap.show && this.heatmapAnimationRunning) {
-                  this.drawHeatmap(true)
+                  this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
                   setTimeout(updateFullscreen, 50)
                 }
               }
@@ -3204,21 +3284,33 @@
           return exp !== act
         },
 
+        // 绘制负载流量可视化（支持指定容器）
+        drawFlowVisualization(containerId = 'flow-visualization') {
+          // 直接调用 renderFlowVisualization，传入容器ID
+          this.renderFlowVisualization(containerId)
+        },
+
         // 渲染流量可视化图（基于物理拓扑结构）
-        renderFlowVisualization() {
+        renderFlowVisualization(containerId = 'flow-visualization') {
           if (!this.flowData || typeof d3 === 'undefined') {
             this.showToast('D3.js未加载或数据为空', 'error')
             return
           }
           
+          const container = document.getElementById(containerId)
+          if (!container) {
+            console.warn(`容器 ${containerId} 不存在`)
+            return
+          }
+          
           // 清除旧图
-          d3.select('#flow-visualization').selectAll('*').remove()
+          d3.select(`#${containerId}`).selectAll('*').remove()
           this.flowGlowFilterId = null
           
-          const width = document.getElementById('flow-visualization').clientWidth
-          const height = 640
+          const width = container.clientWidth || 800
+          const height = container.clientHeight || 640
           
-          const flowContainer = d3.select('#flow-visualization')
+          const flowContainer = d3.select(`#${containerId}`)
           flowContainer.on('click.reset', null)
           
           const svg = flowContainer
@@ -3254,7 +3346,7 @@
           }
           
           this.flowSvg = svg
-        this.flowGlowFilterId = this.ensureGlowDefs(svg)
+          this.flowGlowFilterId = this.ensureGlowDefs(svg)
           this.flowSvgSize = { width, height }
           this.ecmpOverlayGroup = svg.append('g').attr('class', 'ecmp-overlay')
           

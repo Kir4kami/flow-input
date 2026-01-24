@@ -2962,12 +2962,39 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
                   enable_mixed_granularity: bool, simulation_time: float,
                   use_custom_config: bool):
     """运行仿真（后台任务）"""
+    # 创建日志目录
+    api_dir = Path(__file__).absolute().parent
+    logs_dir = api_dir / "logs"
+    logs_dir.mkdir(exist_ok=True)
+    
+    # 生成带时间戳的日志文件名
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    log_filename = f"simulation_{simulation_id}_{timestamp}.log"
+    log_file_path = logs_dir / log_filename
+    
     try:
         # 修改配置文件
         modify_qbb_device(enable_mixed_granularity)
         
         # 切换到Reverie目录
-        reverie_dir = Path(__file__).parent.parent
+        reverie_dir = Path(__file__).absolute().parent.parent
+        
+        # 写入日志文件头部
+        with open(log_file_path, 'w', encoding='utf-8') as log_file:
+            log_file.write("=" * 80 + "\n")
+            log_file.write(f"仿真日志 - {simulation_id}\n")
+            log_file.write(f"时间戳: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            log_file.write("=" * 80 + "\n")
+            log_file.write(f"仿真ID: {simulation_id}\n")
+            log_file.write(f"工作目录: {reverie_dir}\n")
+            log_file.write(f"任务数: {task_num}\n")
+            log_file.write(f"模型: {llm_model}\n")
+            log_file.write(f"混合粒度: {enable_mixed_granularity}\n")
+            log_file.write(f"仿真时间: {simulation_time}秒\n")
+            log_file.write(f"使用自定义配置: {use_custom_config}\n")
+            log_file.write("=" * 80 + "\n\n")
+        
+        print(f"[仿真启动] {simulation_id}, 日志文件: {log_file_path}")
         if use_custom_config:
             for task_index in range(1, task_num + 1):
                 task_dir = reverie_dir / f"task{task_index}"
@@ -2985,6 +3012,19 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         
         # 使用Popen启动仿真进程（非阻塞）
         sim_script_path = reverie_dir / "sim.sh"
+        
+        # 记录路径信息到日志
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write(f"脚本路径: {sim_script_path}\n")
+            log_file.write(f"脚本存在: {sim_script_path.exists()}\n")
+            log_file.write(f"dump目录: {reverie_dir / 'dump'}\n")
+            log_file.write(f"dump目录存在: {(reverie_dir / 'dump').exists()}\n\n")
+        
+        if not sim_script_path.exists():
+            error_msg = f"sim.sh文件不存在: {sim_script_path}"
+            with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                log_file.write(f"错误: {error_msg}\n")
+            raise FileNotFoundError(error_msg)
         
         # 启动仿真进程
         env = os.environ.copy()
@@ -3005,6 +3045,15 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         env["SIM_END_TIME_NS_OVERRIDE"] = str(end_time_ns)
         env["SIM_FLOW_LAUNCH_END_NS_OVERRIDE"] = str(flow_launch_end_ns)
         
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write(f"环境变量:\n")
+            log_file.write(f"  LLM_OVERRIDE={env.get('LLM_OVERRIDE')}\n")
+            log_file.write(f"  TASKNUM_OVERRIDE={env.get('TASKNUM_OVERRIDE')}\n")
+            log_file.write(f"  USE_CUSTOM_LOAD={env.get('USE_CUSTOM_LOAD', '0')}\n")
+            log_file.write(f"  SIM_END_TIME_NS_OVERRIDE={env.get('SIM_END_TIME_NS_OVERRIDE')}\n")
+            log_file.write(f"  SIM_FLOW_LAUNCH_END_NS_OVERRIDE={env.get('SIM_FLOW_LAUNCH_END_NS_OVERRIDE')}\n\n")
+            log_file.write(f"开始执行仿真脚本...\n")
+        
         process = subprocess.Popen(
             ['bash', str(sim_script_path)],
             cwd=str(reverie_dir),
@@ -3018,7 +3067,33 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         simulation_status.current_process = process
         
         # 等待进程完成（在后台任务中）
-        stdout, stderr = process.communicate(timeout=simulation_time * 2)
+        timeout_duration = max(simulation_time * 2, 600.0)  # 至少10分钟超时
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write(f"等待进程完成，超时时间: {timeout_duration}秒\n")
+        
+        stdout, stderr = process.communicate(timeout=timeout_duration)
+        
+        # 写入详细日志到文件
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write("\n" + "=" * 80 + "\n")
+            log_file.write("仿真执行结果\n")
+            log_file.write("=" * 80 + "\n")
+            log_file.write(f"返回码: {process.returncode}\n")
+            log_file.write(f"执行时间: {time.time() - simulation_status.simulation_start_time:.2f}秒\n")
+            log_file.write("\n" + "=" * 80 + "\n")
+            log_file.write("STDOUT 输出:\n")
+            log_file.write("=" * 80 + "\n")
+            if stdout:
+                log_file.write(stdout)
+            else:
+                log_file.write("(无输出)\n")
+            log_file.write("\n" + "=" * 80 + "\n")
+            log_file.write("STDERR 输出:\n")
+            log_file.write("=" * 80 + "\n")
+            if stderr:
+                log_file.write(stderr)
+            else:
+                log_file.write("(无错误输出)\n")
         
         # 仿真完成
         simulation_status.simulation_end_time = time.time()
@@ -3105,7 +3180,21 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
 
         simulation_status.results[simulation_id] = results
         
-        print(f"仿真完成: {simulation_id}, 耗时: {simulation_status.simulation_end_time - simulation_status.simulation_start_time:.2f}秒")
+        # 检查输出文件
+        dump_dir = reverie_dir / "dump"
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write("\n" + "=" * 80 + "\n")
+            log_file.write("输出文件检查\n")
+            log_file.write("=" * 80 + "\n")
+            if dump_dir.exists():
+                log_file.write(f"dump目录存在: {dump_dir}\n")
+                for f in dump_dir.glob("*"):
+                    size = f.stat().st_size if f.is_file() else 0
+                    log_file.write(f"  {f.name}: {size} 字节\n")
+            else:
+                log_file.write(f"警告: dump目录不存在: {dump_dir}\n")
+        
+        print(f"仿真完成: {simulation_id}, 耗时: {simulation_status.simulation_end_time - simulation_status.simulation_start_time:.2f}秒, 日志: {log_file_path}")
         
         return {
             "success": True,
@@ -3113,25 +3202,44 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             "execution_time": simulation_status.simulation_end_time - simulation_status.simulation_start_time,
             "results": results,
             "stdout": stdout,
-            "stderr": stderr
+            "stderr": stderr,
+            "log_file": str(log_file_path)
         }
         
     except subprocess.TimeoutExpired:
         simulation_status.is_running = False
         simulation_status.current_process = None
+        error_msg = "仿真超时"
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write(f"\n错误: {error_msg}\n")
+        print(f"[仿真超时] {simulation_id}, 日志: {log_file_path}")
         return {
             "success": False,
-            "error": "仿真超时",
-            "simulation_id": simulation_id
+            "error": error_msg,
+            "simulation_id": simulation_id,
+            "log_file": str(log_file_path)
         }
     except Exception as e:
         simulation_status.is_running = False
         simulation_status.current_process = None
-        print(f"仿真出错: {e}")
+        error_msg = str(e)
+        import traceback
+        error_trace = traceback.format_exc()
+        
+        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+            log_file.write("\n" + "=" * 80 + "\n")
+            log_file.write("仿真执行异常\n")
+            log_file.write("=" * 80 + "\n")
+            log_file.write(f"错误信息: {error_msg}\n")
+            log_file.write(f"\n堆栈跟踪:\n")
+            log_file.write(error_trace)
+        
+        print(f"[仿真异常] {simulation_id}: {error_msg}, 日志: {log_file_path}")
         return {
             "success": False,
-            "error": str(e),
-            "simulation_id": simulation_id
+            "error": error_msg,
+            "simulation_id": simulation_id,
+            "log_file": str(log_file_path)
         }
 
 def analyze_simulation_results():
