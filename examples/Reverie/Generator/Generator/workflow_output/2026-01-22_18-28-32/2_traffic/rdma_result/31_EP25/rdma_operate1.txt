@@ -1,0 +1,64 @@
+stat rdma operate:
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+phase:3000
+Type:rdma_send, src_node:5, src_port:2049, dst_node:61, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:13, src_port:2049, dst_node:5, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:21, src_port:2049, dst_node:13, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:2049, dst_node:21, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:37, src_port:2049, dst_node:29, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:45, src_port:2049, dst_node:37, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:53, src_port:2049, dst_node:45, dst_port:2049, priority:0, msg_len:33554432
+Type:rdma_send, src_node:61, src_port:2049, dst_node:53, dst_port:2049, priority:0, msg_len:33554432

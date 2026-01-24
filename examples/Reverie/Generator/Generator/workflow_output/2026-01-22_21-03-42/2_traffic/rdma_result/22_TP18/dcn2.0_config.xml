@@ -1,0 +1,224 @@
+<dcn>
+    <log_config main_log_file_name="solar_main.log" log_module_mode="1" log_real_time="1" once_write_length="8192" print_on_screen="0" write_file="1" max_file_num_opened="-1" display_file_name_and_line_no="0" display_full_moudel_name="0" display_severity_type="0" display_severity_level="4" gen_backup_file="0" spec_file_name_with_pid="0" file_full_module_name="1" log_to_dir="1" dir_prefix="run_log" dir_no_postfix="1"/>
+    <sim>
+        <sample test_bench_clk="1200" print_interval="12000" debug_level="2" expect_en="0" expect_hit="40" expect_ratio="0.005" exview_en="1"/>
+        <run_time time="2000" unit="us"/>
+        <generator base_type="1"/>
+        <rand_seed value="0"/>
+        <ereg_mode sim_never_stop="true"/>
+        <cli use_tcl="true" rdma_log_en="true" rdma_log_num="76"/>
+    </sim>
+    <dcn_network usr_topo="1">
+        <top_mod venus_en="0" pfc_en="1" is_flow_chip_stat="1" latency_thld="8000" is_flow_stat="1" gen_drop_byte_thld="1000000000" is_byte_stat="0" fifo_depth="16" use_rdma_tp_module="false"/>
+        <multi_node_gen_cfg enable="true" num_per_part="1" multi_process_bypass="false"/>
+        <mpi_multi_processing enable="true" syn_clk_ratio="1.0" partition_method="hybrid_uniform">
+            <process_partition>
+                <overlap_partition partition_num="4">
+                    <chip dev_id="0..0"/>
+                </overlap_partition>
+            </process_partition>
+        </mpi_multi_processing>
+        <xml_template>
+            <template id="0">
+                <index config_file=""/>
+                <index config_file=""/>
+            </template>
+            <template id="1">
+                <index config_file=""/>
+                <index config_file=""/>
+            </template>
+            <template id="2">
+                <index config_file=""/>
+                <index config_file=""/>
+            </template>
+        </xml_template>
+        <node>
+            <grp type="ft2_host" node_id="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63" port_num="2" config_template="0" comp_delay="1300"/>
+            <grp type="ft2_node" node_id="64 65 66 67 68 69 70 71" port_num="12" config_template="0" comp_delay="1600"/>
+            <grp type="ft2_node" node_id="72 73 74 75" port_num="8" config_template="1" comp_delay="1600"/>
+        </node>
+        <topology>
+            <grp link_type="bi_direct" src_node="0..63" src_port="0" dst_node="-1" dst_port="0..63" bandwidth="200" delay="10"/>
+            <grp link_type="bi_direct" src_node="0" src_port="1" dst_node="64" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="1" src_port="1" dst_node="64" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="2" src_port="1" dst_node="64" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="3" src_port="1" dst_node="64" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="4" src_port="1" dst_node="64" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="5" src_port="1" dst_node="64" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="6" src_port="1" dst_node="64" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="7" src_port="1" dst_node="64" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="8" src_port="1" dst_node="65" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="9" src_port="1" dst_node="65" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="10" src_port="1" dst_node="65" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="11" src_port="1" dst_node="65" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="12" src_port="1" dst_node="65" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="13" src_port="1" dst_node="65" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="14" src_port="1" dst_node="65" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="15" src_port="1" dst_node="65" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="16" src_port="1" dst_node="66" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="17" src_port="1" dst_node="66" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="18" src_port="1" dst_node="66" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="19" src_port="1" dst_node="66" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="20" src_port="1" dst_node="66" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="21" src_port="1" dst_node="66" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="22" src_port="1" dst_node="66" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="23" src_port="1" dst_node="66" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="24" src_port="1" dst_node="67" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="25" src_port="1" dst_node="67" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="26" src_port="1" dst_node="67" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="27" src_port="1" dst_node="67" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="28" src_port="1" dst_node="67" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="29" src_port="1" dst_node="67" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="30" src_port="1" dst_node="67" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="31" src_port="1" dst_node="67" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="32" src_port="1" dst_node="68" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="33" src_port="1" dst_node="68" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="34" src_port="1" dst_node="68" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="35" src_port="1" dst_node="68" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="36" src_port="1" dst_node="68" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="37" src_port="1" dst_node="68" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="38" src_port="1" dst_node="68" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="39" src_port="1" dst_node="68" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="40" src_port="1" dst_node="69" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="41" src_port="1" dst_node="69" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="42" src_port="1" dst_node="69" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="43" src_port="1" dst_node="69" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="44" src_port="1" dst_node="69" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="45" src_port="1" dst_node="69" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="46" src_port="1" dst_node="69" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="47" src_port="1" dst_node="69" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="48" src_port="1" dst_node="70" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="49" src_port="1" dst_node="70" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="50" src_port="1" dst_node="70" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="51" src_port="1" dst_node="70" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="52" src_port="1" dst_node="70" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="53" src_port="1" dst_node="70" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="54" src_port="1" dst_node="70" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="55" src_port="1" dst_node="70" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="56" src_port="1" dst_node="71" dst_port="0" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="57" src_port="1" dst_node="71" dst_port="1" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="58" src_port="1" dst_node="71" dst_port="2" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="59" src_port="1" dst_node="71" dst_port="3" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="60" src_port="1" dst_node="71" dst_port="4" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="61" src_port="1" dst_node="71" dst_port="5" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="62" src_port="1" dst_node="71" dst_port="6" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="63" src_port="1" dst_node="71" dst_port="7" bandwidth="200" delay="5"/>
+            <grp link_type="bi_direct" src_node="64" src_port="8" dst_node="72" dst_port="0" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="64" src_port="9" dst_node="73" dst_port="0" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="64" src_port="10" dst_node="74" dst_port="0" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="64" src_port="11" dst_node="75" dst_port="0" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="65" src_port="8" dst_node="72" dst_port="1" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="65" src_port="9" dst_node="73" dst_port="1" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="65" src_port="10" dst_node="74" dst_port="1" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="65" src_port="11" dst_node="75" dst_port="1" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="66" src_port="8" dst_node="72" dst_port="2" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="66" src_port="9" dst_node="73" dst_port="2" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="66" src_port="10" dst_node="74" dst_port="2" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="66" src_port="11" dst_node="75" dst_port="2" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="67" src_port="8" dst_node="72" dst_port="3" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="67" src_port="9" dst_node="73" dst_port="3" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="67" src_port="10" dst_node="74" dst_port="3" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="67" src_port="11" dst_node="75" dst_port="3" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="68" src_port="8" dst_node="72" dst_port="4" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="68" src_port="9" dst_node="73" dst_port="4" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="68" src_port="10" dst_node="74" dst_port="4" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="68" src_port="11" dst_node="75" dst_port="4" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="69" src_port="8" dst_node="72" dst_port="5" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="69" src_port="9" dst_node="73" dst_port="5" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="69" src_port="10" dst_node="74" dst_port="5" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="69" src_port="11" dst_node="75" dst_port="5" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="70" src_port="8" dst_node="72" dst_port="6" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="70" src_port="9" dst_node="73" dst_port="6" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="70" src_port="10" dst_node="74" dst_port="6" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="70" src_port="11" dst_node="75" dst_port="6" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="71" src_port="8" dst_node="72" dst_port="7" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="71" src_port="9" dst_node="73" dst_port="7" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="71" src_port="10" dst_node="74" dst_port="7" bandwidth="400" delay="10"/>
+            <grp link_type="bi_direct" src_node="71" src_port="11" dst_node="75" dst_port="7" bandwidth="400" delay="10"/>
+        </topology>
+        <ft2_router file="router_mine.xml"/>
+    </dcn_network>
+    <dcn_common_node_config>
+        <common_node>
+            <template index="0">
+                <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..11" tot_thld="2880" up_thld="88" low_thld="80"/>
+                </pfc>
+                <buf tot_max="1200000000">
+                    <sp_buf>
+                        <sp_grp port="0..11" num="1200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..11" num="1200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>
+            </template>
+            <template index="1">
+                <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..7" tot_thld="2880" up_thld="88" low_thld="80"/>
+                </pfc>
+                <buf tot_max="1200000000">
+                    <sp_buf>
+                        <sp_grp port="0..7" num="1200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..7" num="1200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>
+            </template>
+        </common_node>
+        <common_host>
+            <template index="0">
+                <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..0" tot_thld="200" up_thld="100" low_thld="80"/>
+                    <sp_grp port="1..1" tot_thld="200" up_thld="100" low_thld="80"/>
+                </pfc>
+                <buf tot_max="200000000">
+                    <sp_buf>
+                        <sp_grp port="0..0" num="200000000"/>
+                        <sp_grp port="1..1" num="200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..0" num="200000000"/>
+                        <tp_grp port="1..1" num="200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_cfg_th="100000" fast_ecn_cfg_th="100000"/>
+                <dcqcn enable="0"/>
+                <dcqcn_np>
+                    <np_cfg dcqcn_mode="0" cnp_min_interval="4"/>
+                </dcqcn_np>
+                <dcqcn_rp>
+                    <mode dcqcn_mode="0"/>
+                    <first_cnp_cfg first_cnp_ratio="0.85"/>
+                    <alpha_cfg alpha="1.0" g="0.0625" alpha_update_period="1"/>
+                    <decr_cfg decr_interval="4" rate_clamp="true" min_send_bw="100"/>
+                    <incr_cfg incr_stage_thld="1" incr_time_interval="300" incr_byte_interval="2097088" rate_ai="5" rate_hai="50"/>
+                </dcqcn_rp>
+            </template>
+        </common_host>
+        <ft_node read_mode="1">
+            <template index="0">
+                <node_config K="8" direct_topo="false" tier="3" host_num="64" leaf_num="8" spine_num="4" core_num="0" top_num="0" diff_pod_num="1" host_per_pod="16" host_per_leaf="1" mode="1" hash_sel="92" spine_hash="92" core_hash="92" top_hash="92" hash_tuple="4"/>
+                <credit_fc enable="false" tot_vl_num="1" flit_len="20" n_flit_per_cell="4" ret_cell_max="65535" ret_cell_grty="2"/>
+                <ncc enable="false"/>
+            </template>
+            <template index="1">
+                <node_config K="8" direct_topo="false" tier="3" host_num="64" leaf_num="8" spine_num="4" core_num="0" top_num="0" diff_pod_num="1" host_per_pod="16" host_per_leaf="1" mode="1" hash_sel="92" spine_hash="92" core_hash="92" top_hash="92" hash_tuple="4"/>
+                <credit_fc enable="false" tot_vl_num="1" flit_len="20" n_flit_per_cell="4" ret_cell_max="65535" ret_cell_grty="2"/>
+                <ncc enable="false"/>
+            </template>
+        </ft_node>
+        <ft_host>
+            <node_config K="8" direct_topo="false" tier="3" host_num="64" leaf_num="8" spine_num="4" core_num="0" top_num="0" diff_pod_num="1" host_per_pod="16" host_per_leaf="1" mode="1" hash_sel="92" spine_hash="92" core_hash="92" top_hash="92" hash_tuple="4"/>
+            <host_config host_num="64"/>
+            <credit_fc enable="false" tot_vl_num="1" flit_len="20" n_flit_per_cell="4" ret_cell_max="65535" ret_cell_grty="2"/>
+        </ft_host>
+    </dcn_common_node_config>
+    <packet_generator_config>
+        <galop>
+        </galop>
+    </packet_generator_config>
+</dcn>

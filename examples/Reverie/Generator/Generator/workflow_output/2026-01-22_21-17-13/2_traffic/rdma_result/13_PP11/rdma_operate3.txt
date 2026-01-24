@@ -1,0 +1,6 @@
+stat rdma operate:
+phase:3000
+Type:rdma_send, src_node:28, src_port:1059, dst_node:20, dst_port:1059, priority:0, msg_len:33554432
+Type:rdma_send, src_node:29, src_port:1059, dst_node:21, dst_port:1059, priority:0, msg_len:33554432
+Type:rdma_send, src_node:30, src_port:1059, dst_node:22, dst_port:1059, priority:0, msg_len:33554432
+Type:rdma_send, src_node:31, src_port:1059, dst_node:23, dst_port:1059, priority:0, msg_len:33554432

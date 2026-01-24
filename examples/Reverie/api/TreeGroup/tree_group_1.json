@@ -5,6 +5,8 @@
       "type": "PP",
       "layer": 3,
       "nodes_passed": [
+        "E",
+        "B",
         "A"
       ],
       "children": [],
@@ -15,8 +17,9 @@
       "type": "TP",
       "layer": 4,
       "nodes_passed": [
-        "E",
-        "B"
+        "A",
+        "C",
+        "D"
       ],
       "children": [],
       "isBurr": false
@@ -26,9 +29,7 @@
       "type": "TP",
       "layer": 4,
       "nodes_passed": [
-        "B",
-        "A",
-        "D"
+        "C"
       ],
       "children": [],
       "isBurr": false
@@ -38,8 +39,8 @@
       "type": "EP",
       "layer": 5,
       "nodes_passed": [
-        "A",
         "E",
+        "D",
         "C"
       ],
       "children": [],
@@ -51,8 +52,7 @@
       "layer": 5,
       "nodes_passed": [
         "C",
-        "C",
-        "A"
+        "E"
       ],
       "children": [],
       "isBurr": false
@@ -62,7 +62,9 @@
       "type": "PP",
       "layer": 6,
       "nodes_passed": [
-        "E"
+        "E",
+        "E",
+        "C"
       ],
       "children": [],
       "isBurr": false
@@ -72,8 +74,7 @@
       "type": "TP",
       "layer": 7,
       "nodes_passed": [
-        "C",
-        "D"
+        "C"
       ],
       "children": [],
       "isBurr": false
@@ -83,7 +84,7 @@
       "type": "EP",
       "layer": 8,
       "nodes_passed": [
-        "B"
+        "E"
       ],
       "children": [],
       "isBurr": false
@@ -93,8 +94,9 @@
       "type": "TP",
       "layer": 9,
       "nodes_passed": [
-        "B",
-        "C"
+        "C",
+        "A",
+        "D"
       ],
       "children": [],
       "isBurr": false
@@ -104,8 +106,8 @@
       "type": "EP",
       "layer": 10,
       "nodes_passed": [
-        "A",
-        "C"
+        "D",
+        "A"
       ],
       "children": [],
       "isBurr": false
@@ -115,9 +117,7 @@
       "type": "PP",
       "layer": 11,
       "nodes_passed": [
-        "E",
-        "A",
-        "E"
+        "B"
       ],
       "children": [],
       "isBurr": false
@@ -128,7 +128,8 @@
       "layer": 12,
       "nodes_passed": [
         "B",
-        "C"
+        "E",
+        "B"
       ],
       "children": [],
       "isBurr": false
@@ -138,9 +139,7 @@
       "type": "TP",
       "layer": 12,
       "nodes_passed": [
-        "A",
-        "E",
-        "D"
+        "B"
       ],
       "children": [],
       "isBurr": false
@@ -150,7 +149,7 @@
       "type": "EP",
       "layer": 13,
       "nodes_passed": [
-        "B"
+        "D"
       ],
       "children": [],
       "isBurr": false
@@ -160,7 +159,7 @@
       "type": "EP",
       "layer": 13,
       "nodes_passed": [
-        "A"
+        "B"
       ],
       "children": [],
       "isBurr": false
@@ -170,8 +169,8 @@
       "type": "PP",
       "layer": 14,
       "nodes_passed": [
-        "B",
-        "C"
+        "E",
+        "A"
       ],
       "children": [],
       "isBurr": false
@@ -181,7 +180,8 @@
       "type": "TP",
       "layer": 15,
       "nodes_passed": [
-        "D"
+        "E",
+        "E"
       ],
       "children": [],
       "isBurr": false
@@ -191,9 +191,7 @@
       "type": "EP",
       "layer": 16,
       "nodes_passed": [
-        "C",
-        "E",
-        "B"
+        "E"
       ],
       "children": [],
       "isBurr": false
@@ -203,9 +201,9 @@
       "type": "DP",
       "layer": 17,
       "nodes_passed": [
-        "A",
-        "C",
-        "B"
+        "B",
+        "D",
+        "E"
       ],
       "children": [],
       "isBurr": false

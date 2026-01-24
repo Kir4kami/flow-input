@@ -1,0 +1,6 @@
+stat rdma operate:
+phase:3000
+Type:rdma_send, src_node:8, src_port:2084, dst_node:0, dst_port:2084, priority:0, msg_len:8388608
+Type:rdma_send, src_node:9, src_port:2084, dst_node:1, dst_port:2084, priority:0, msg_len:8388608
+Type:rdma_send, src_node:10, src_port:2084, dst_node:2, dst_port:2084, priority:0, msg_len:8388608
+Type:rdma_send, src_node:11, src_port:2084, dst_node:3, dst_port:2084, priority:0, msg_len:8388608
