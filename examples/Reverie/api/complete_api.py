@@ -20,8 +20,10 @@ import asyncio
 from datetime import datetime
 
 # 添加父目录到路径，以便导入TreeCut
-sys.path.append(str(Path(__file__).parent.parent))
-from TreeCut.TreeCut import performTreeCut
+parent_parent = Path(__file__).absolute().parent.parent
+if str(parent_parent) not in sys.path:
+    sys.path.insert(0, str(parent_parent))
+from TreeCut import performTreeCut
 import networkx as nx
 import matplotlib.pyplot as plt
 import copy
@@ -878,7 +880,7 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         if request.input_file:
             input_file = request.input_file
         else:
-            base_dir = Path(__file__).parent.parent / "TrafficGenerator"
+            base_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
             if request.model.lower() == "qwen":
                 input_file = str(base_dir / "qwen.txt")
             elif request.model.lower() == "deepseek":
@@ -889,11 +891,13 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         if not os.path.exists(input_file):
             raise HTTPException(status_code=404, detail=f"输入文件不存在: {input_file}")
         
-        traffic_gen_script = Path(__file__).parent.parent / "TrafficGenerator" / "trafficGen.py"
+        traffic_gen_script = Path(__file__).absolute().parent.parent / "TrafficGenerator" / "trafficGen.py"
         if not os.path.exists(traffic_gen_script):
-            raise HTTPException(status_code=500, detail="TrafficGenerator脚本不存在")
+            raise HTTPException(status_code=500, detail=f"TrafficGenerator脚本不存在: {traffic_gen_script}")
         
-        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
+        traffic_gen_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
+        print(f"[DEBUG] 运行命令: python3 trafficGen.py --input_file {input_file}")
+        print(f"[DEBUG] 工作目录: {traffic_gen_dir}")
         result = subprocess.run(
             ["python3", "trafficGen.py", "--input_file", input_file],
             cwd=str(traffic_gen_dir),
@@ -902,12 +906,20 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             timeout=300
         )
         
+        print(f"[DEBUG] 返回码: {result.returncode}")
+        print(f"[DEBUG] stdout: {result.stdout[:500]}")
+        print(f"[DEBUG] stderr: {result.stderr[:500]}")
+        
         if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"生成失败: {result.stderr}")
+            error_msg = result.stderr if result.stderr else result.stdout
+            raise HTTPException(status_code=500, detail=f"生成失败 (返回码: {result.returncode}): {error_msg}")
         
         json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
         if not os.path.exists(json_file):
-            raise HTTPException(status_code=500, detail="未找到生成的通信树JSON文件")
+            # 列出目录内容以便调试
+            rdma_result_dir = traffic_gen_dir / "rdma_result"
+            existing_files = list(rdma_result_dir.glob("*.json")) if rdma_result_dir.exists() else []
+            raise HTTPException(status_code=500, detail=f"未找到生成的通信树JSON文件: {json_file}. 目录中的文件: {[str(f) for f in existing_files]}")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -920,9 +932,14 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             nodes_count=len(tree_data.get("nodes", [])),
             edges_count=len(tree_data.get("edges", []))
         )
+    except HTTPException:
+        raise
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="生成超时")
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 生成通信树时发生异常: {error_trace}")
         raise HTTPException(status_code=500, detail=f"生成失败: {str(e)}")
 
 @app.post("/visualize-full-tree")
@@ -934,11 +951,13 @@ async def visualize_full_tree():
         import matplotlib.pyplot as plt
         import networkx as nx
         
-        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
+        traffic_gen_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
         json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
         
+        print(f"[DEBUG] visualize-full-tree: traffic_gen_dir={traffic_gen_dir}, json_file={json_file}, exists={json_file.exists()}")
+        
         if not json_file.exists():
-            raise HTTPException(status_code=404, detail="通信树文件不存在，请先生成")
+            raise HTTPException(status_code=404, detail=f"通信树文件不存在，请先生成: {json_file}")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -987,12 +1006,18 @@ async def visualize_full_tree():
         plt.axis('off')
         plt.tight_layout(pad=0.5)
         
-        output_file = Path(__file__).parent / 'full_communication_tree.png'
+        output_file = Path(__file__).absolute().parent / 'full_communication_tree.png'
+        print(f"[DEBUG] 保存图片到: {output_file}")
         plt.savefig(output_file, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close()
         
         return {"success": True, "message": "可视化成功", "nodes_count": len(G.nodes()), "edges_count": len(G.edges())}
+    except HTTPException:
+        raise
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 可视化完整通信树时发生异常: {error_trace}")
         raise HTTPException(status_code=500, detail=f"可视化失败: {str(e)}")
 
 @app.get("/get-full-tree-image")
@@ -1229,12 +1254,13 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
         import re
         from collections import defaultdict
         
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).absolute().parent.parent.resolve()
         
         if use_latest_workflow:
             # 从最新的 workflow 输出目录读取
             generator_dir = base_dir / "Generator" / "Generator"
             output_base = generator_dir / "workflow_output"
+            print(f"[DEBUG] parse-load-files: base_dir={base_dir}, generator_dir={generator_dir}, output_base={output_base}, exists={output_base.exists()}")
             if not output_base.exists():
                 raise HTTPException(status_code=404, detail=f"Workflow输出目录不存在: {output_base}")
             
@@ -2731,8 +2757,10 @@ async def run_workflow(request: WorkflowRequest, background_tasks: BackgroundTas
         workflow_id = f"workflow_{int(time.time())}"
         
         # 构建 run_all.py 的命令
-        generator_dir = Path(__file__).parent.parent / "Generator" / "Generator"
+        generator_dir = Path(__file__).absolute().parent.parent / "Generator" / "Generator"
         run_all_script = generator_dir / "run_all.py"
+        
+        print(f"[DEBUG] run-workflow: generator_dir={generator_dir}, run_all_script={run_all_script}, exists={run_all_script.exists()}")
         
         if not run_all_script.exists():
             raise HTTPException(
@@ -2899,7 +2927,11 @@ def modify_sim_script(task_num: int, llm_model: str):
 
 def modify_qbb_device(enable_mixed_granularity: bool):
     """修改qbb-net-device.cc中的混合粒度设置"""
-    qbb_file_path = Path(__file__).parent.parent.parent.parent / "src" / "point-to-point" / "model" / "qbb-net-device.cc"
+    # 从 complete_api.py 向上4层到 flow-input 根目录
+    # complete_api.py -> api -> Reverie -> examples -> flow-input(根目录)
+    qbb_file_path = Path(__file__).absolute().parent.parent.parent.parent / "src" / "point-to-point" / "model" / "qbb-net-device.cc"
+    
+    print(f"[DEBUG] modify_qbb_device: qbb_file_path={qbb_file_path}, exists={qbb_file_path.exists()}")
     
     if not qbb_file_path.exists():
         raise FileNotFoundError(f"qbb-net-device.cc文件不存在: {qbb_file_path}")
@@ -3563,8 +3595,9 @@ async def analyze_results(request: AnalysisRequest):
                     fct_result["file_found"] = True
                     results["fct_analysis"] = fct_result
                     # 调试：如果解析失败，记录详细信息
-                    if fct_result.get("total_flows", 0) == 0 and len(fct_content.strip().split('\n')) > 1:
-                        print(f"[WARNING] FCT文件有内容但解析失败，文件行数: {len(fct_content.strip().split('\n'))}")
+                    fct_lines = fct_content.strip().split('\n')
+                    if fct_result.get("total_flows", 0) == 0 and len(fct_lines) > 1:
+                        print(f"[WARNING] FCT文件有内容但解析失败，文件行数: {len(fct_lines)}")
                         print(f"[WARNING] 文件前100字符: {fct_content[:100]}")
                 except Exception as e:
                     results["fct_analysis"] = {
@@ -4014,33 +4047,57 @@ async def read_file(file_path: str):
 async def list_files(directory: str = "."):
     """列出目录中的文件"""
     try:
-        base_dir = Path(__file__).parent.parent
-        api_dir = Path(__file__).parent
+        base_dir = Path(__file__).absolute().parent.parent.resolve()
+        api_dir = Path(__file__).absolute().parent.resolve()
+        
+        # 处理路径，统一使用正斜杠，去除前导斜杠
+        directory = directory.replace('\\', '/').strip('/')
+        
+        print(f"[DEBUG] list-files: directory={directory}, base_dir={base_dir}, api_dir={api_dir}")
         
         # 尝试多个可能的路径（TreeGroup可能在api/或Reverie/下）
         possible_paths = [
             (base_dir / directory).resolve(),  # 示例：examples/Reverie/rdma_result
             (api_dir / directory).resolve(),   # 示例：examples/Reverie/api/rdma_result
-            (Path(directory).resolve() if directory != "." else None),  # 绝对路径或当前工作目录
         ]
         
         full_path = None
         for path in possible_paths:
-            if path and path.exists() and path.is_dir():
+            print(f"[DEBUG] 尝试路径: {path}, exists={path.exists()}, is_dir={path.is_dir() if path.exists() else False}")
+            if path.exists() and path.is_dir():
                 # 安全检查：确保路径在项目目录内
-                if str(path).startswith(str(base_dir)) or str(path).startswith(str(api_dir)):
+                try:
+                    # 使用 relative_to 进行更可靠的路径检查
+                    path.relative_to(base_dir)
                     full_path = path
+                    print(f"[DEBUG] 找到路径（相对于base_dir）: {full_path}")
                     break
+                except ValueError:
+                    try:
+                        path.relative_to(api_dir)
+                        full_path = path
+                        print(f"[DEBUG] 找到路径（相对于api_dir）: {full_path}")
+                        break
+                    except ValueError:
+                        print(f"[DEBUG] 路径安全检查失败: {path}")
+                        continue
         
         if full_path is None:
             # 如果都找不到，尝试最后一个：直接使用base_dir/directory
             full_path = (base_dir / directory).resolve()
+            print(f"[DEBUG] 尝试最后路径: {full_path}, exists={full_path.exists()}")
             if not full_path.exists():
                 raise HTTPException(status_code=404, detail=f"目录不存在: {directory}（已尝试多个路径）")
         
-        # 再次安全检查
-        if not (str(full_path).startswith(str(base_dir)) or str(full_path).startswith(str(api_dir))):
-            raise HTTPException(status_code=403, detail="禁止访问此路径")
+        # 再次安全检查：使用 relative_to 方法更可靠
+        try:
+            full_path.relative_to(base_dir)
+        except ValueError:
+            try:
+                full_path.relative_to(api_dir)
+            except ValueError:
+                print(f"[ERROR] 路径安全检查失败: {full_path} 不在 {base_dir} 或 {api_dir} 下")
+                raise HTTPException(status_code=403, detail=f"禁止访问此路径: {directory}")
         
         files = []
         for item in full_path.iterdir():
