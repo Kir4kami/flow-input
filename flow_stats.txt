@@ -1,0 +1,35 @@
+Flow ID: 12-4-1041-1041 - Rate: 8.9232 Gbps currentTime: 19390
+Flow ID: 12-4-1042-1042 - Rate: 8.9232 Gbps currentTime: 19725
+Flow ID: 12-4-1044-1044 - Rate: 8.9232 Gbps currentTime: 20060
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 29440
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 29775
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 30110
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 39490
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 39825
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 40160
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 49540
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 49875
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 50210
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 59590
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 59925
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 60260
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 69640
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 69975
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 70310
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 79690
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 80025
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 80360
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 89740
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 90075
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 90410
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 99790
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 100125
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 100460
+Flow ID: 12-4-1041-1041 - Rate: 8.112 Gbps currentTime: 109840
+Flow ID: 12-4-1042-1042 - Rate: 8.112 Gbps currentTime: 110175
+Flow ID: 12-4-1044-1044 - Rate: 8.112 Gbps currentTime: 110510
+System entered steady state at time: 110510 ns
+Steady state count: 1
+Current transition count: 0
+最小流完成时间: 32982674.556213
+System exit

@@ -5,7 +5,9 @@
       "type": "EP",
       "layer": 2,
       "nodes_passed": [
-        "C"
+        "C",
+        "D",
+        "E"
       ],
       "children": [],
       "isBurr": false

@@ -1,34 +1,34 @@
 workFolder:examples/Reverie/task1
 Found 1 rdma_operate files
 config finished
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
-total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
-total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
-total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
-total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
-calculate routing
-calculate routing end
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 442920 ingressPool 4557080 egressLosslessPool 5000000 egressLossyPool 3645664 sharedPool 4557080
+total headroom: 295280 ingressPool 4704720 egressLosslessPool 5000000 egressLossyPool 3763776 sharedPool 4704720
+total headroom: 295280 ingressPool 4704720 egressLosslessPool 5000000 egressLossyPool 3763776 sharedPool 4704720
+total headroom: 295280 ingressPool 4704720 egressLosslessPool 5000000 egressLossyPool 3763776 sharedPool 4704720
+total headroom: 295280 ingressPool 4704720 egressLosslessPool 5000000 egressLossyPool 3763776 sharedPool 4704720
 SERVER_COUNT 8 LEAF_COUNT 8 SPINE_COUNT 4 LINK_COUNT 1 oversubRatio 2
 Reading dependence
+1 operate
+dependence file :examples/Reverie/task1/dependence.txt
 Reading flow info
-system 0 from 0 to 1 fromportNumber 1016 destportNumder 1016 time 0 flowsize 8388608 Flow actual path: 0:1 -> 64:2 -> 1:0
-system 0 from 0 to 2 fromportNumber 1016 destportNumder 1016 time 0 flowsize 16777216 Flow actual path: 0:1 -> 64:3 -> 2:0
-system 0 from 0 to 3 fromportNumber 1016 destportNumder 1016 time 0 flowsize 33554432 Flow actual path: 0:1 -> 64:4 -> 3:0
+system 0 from 12 to 4 fromportNumber 1041 destportNumder 1041 time 0 flowsize 33554432 Flow actual path: 12:1 -> 65:10 -> 73:1 -> 64:5 -> 4:0
+system 0 from 12 to 4 fromportNumber 1042 destportNumder 1042 time 0 flowsize 33554432 Flow actual path: 12:1 -> 65:9 -> 72:1 -> 64:5 -> 4:0
+system 0 from 12 to 4 fromportNumber 1044 destportNumder 1044 time 0 flowsize 33554432 Flow actual path: 12:1 -> 65:10 -> 73:1 -> 64:5 -> 4:0
 apps finished
 Run Simulation.
- operate 0 phase 0 flow 1 0.00276572
- operate 0 phase 0 flow 2 0.00550259
- operate 0 phase 0 flow 3 0.0108761
+ operate 0 phase 0 flow 1 0.0108302
+ operate 0 phase 0 flow 2 0.0108306
+ operate 0 phase 0 flow 3 0.0108306
 operate 0 complete a phase
 operate 0 complete a operate
 
-total time: 2292 ms
-simulation time: 1963 ms
+total time: 765 ms
+simulation time: 294 ms
 Done
