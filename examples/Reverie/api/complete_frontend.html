@@ -806,9 +806,30 @@
           <button class="btn btn-secondary" @click="viewLoadFiles">
             查看负载文件
           </button>
-          <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!loadResult">
+          <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!(loadResult || customTrafficResult)">
             热力图与负载流量可视化
           </button>
+          <div class="input-group" style="margin-top: 10px;">
+            <label>自定义流量文件：</label>
+            <input type="file" @change="handleCustomTrafficFileChange" accept=".txt,.log,.csv">
+            <p class="info-text">
+              支持 rdma_operate 格式，或每行 "src dst [msg_len]" 的文本格式
+            </p>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-success" @click="uploadCustomTraffic" :disabled="!customTrafficFile || isUploadingCustomTraffic">
+              {{ isUploadingCustomTraffic ? '解析中...' : '解析并生成自定义流量' }}
+            </button>
+            <button class="btn btn-secondary" @click="clearCustomTraffic" :disabled="!customTrafficFile && !customTrafficResult">
+              清除自定义流量
+            </button>
+          </div>
+          <div v-if="customTrafficResult" class="result-box" style="margin-top: 10px;">
+            <p><strong>自定义流量已生成</strong></p>
+            <p class="info-text">文件: {{ customTrafficResult.filename }}</p>
+            <p class="info-text">节点数量: {{ load.host_num }}</p>
+            <p class="info-text">{{ customTrafficResult.message }}</p>
+          </div>
           <div v-if="loadResult" class="result-box">
             <p><strong>负载已生成</strong></p>
             <p class="info-text">节点数量: {{ load.host_num }}</p>
@@ -1475,6 +1496,10 @@
           isGeneratingLoad: false,
           loadResult: null,
           loadGenerated: false,
+          loadSource: 'generated',
+          customTrafficFile: null,
+          customTrafficResult: null,
+          isUploadingCustomTraffic: false,
 
           // 通信树生成与切分
           treeCut: {
@@ -2011,6 +2036,9 @@
             
             if (status.status === 'completed') {
               this.showToast('Workflow执行完成！', 'success')
+              if (this.loadSource !== 'custom') {
+                this.loadSource = 'workflow'
+              }
               // 可以在这里自动调用 /compute-ecmp 接口
               this.suggestComputeEcmp()
             } else if (status.status === 'in_progress') {
@@ -2112,6 +2140,9 @@
             if (result.success) {
               this.loadResult = result
               this.loadGenerated = true
+              this.loadSource = 'generated'
+              this.customTrafficResult = null
+              this.customTrafficFile = null
               
               // 清除旧的流量数据，强制重新加载
               this.flowData = null
@@ -2136,6 +2167,63 @@
             }
           } finally {
             this.isGeneratingLoad = false
+          }
+        },
+
+        handleCustomTrafficFileChange(event) {
+          const files = event && event.target ? event.target.files : null
+          this.customTrafficFile = files && files.length ? files[0] : null
+          this.customTrafficResult = null
+        },
+
+        clearCustomTraffic() {
+          this.customTrafficFile = null
+          this.customTrafficResult = null
+        },
+
+        async uploadCustomTraffic() {
+          if (!this.customTrafficFile) {
+            this.showToast('请先选择自定义流量文件', 'error')
+            return
+          }
+
+          this.isUploadingCustomTraffic = true
+          try {
+            const formData = new FormData()
+            formData.append('traffic_file', this.customTrafficFile)
+            formData.append('task_num', this.simulation.enableCut ? 4 : 1)
+            formData.append('msg_len_expr', this.load.msg_len || '32*(1024)')
+
+            const response = await fetch(`${this.apiUrl}/generate-load-from-file`, {
+              method: 'POST',
+              body: formData
+            })
+
+            const result = await response.json()
+            if (!response.ok || !result.success) {
+              throw new Error(result.detail || '自定义流量解析失败')
+            }
+
+            this.customTrafficResult = result
+            this.loadResult = null
+            if (result.host_num) {
+              this.load.host_num = result.host_num
+            }
+            this.loadGenerated = true
+            this.loadSource = 'custom'
+
+            // 清除旧的流量数据，强制重新加载
+            this.flowData = null
+            this.selectedNodeInfo = null
+            this.selectedFlowInfo = null
+            this.ecmpPaths = { expected: null, actual: null }
+            this.flowPathLookup = {}
+
+            this.showToast('自定义流量解析成功', 'success')
+          } catch (error) {
+            this.showToast(`自定义流量解析失败: ${error.message}`, 'error')
+          } finally {
+            this.isUploadingCustomTraffic = false
           }
         },
 
@@ -2709,9 +2797,11 @@
             
             this.showToast('正在解析负载文件...', 'info')
             
-            // 优先使用最新的 workflow 输出目录（如果存在）
-            // 这样可以确保使用最新生成的数据
-            const url = `${this.apiUrl}/parse-load-files?use_latest_workflow=true`
+            // 根据数据来源选择解析目录
+            const useLatestWorkflow = this.loadSource === 'workflow'
+            const url = useLatestWorkflow
+              ? `${this.apiUrl}/parse-load-files?use_latest_workflow=true`
+              : `${this.apiUrl}/parse-load-files`
             
             const response = await fetch(url)
             const result = await response.json()
@@ -2739,10 +2829,10 @@
               this.showToast('正在计算ECMP路径...', 'info')
               
               try {
-                const ecmpResponse = await fetch(
-                  `${this.apiUrl}/compute-ecmp?mode=expected&use_latest_workflow=true`,
-                  { method: 'POST' }
-                )
+                const ecmpUrl = useLatestWorkflow
+                  ? `${this.apiUrl}/compute-ecmp?mode=expected&use_latest_workflow=true`
+                  : `${this.apiUrl}/compute-ecmp?mode=expected`
+                const ecmpResponse = await fetch(ecmpUrl, { method: 'POST' })
                 
                 if (ecmpResponse.ok) {
                   const ecmpResult = await ecmpResponse.json()

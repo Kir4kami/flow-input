@@ -2,7 +2,7 @@
 # 完整的六功能汇总API接口文件
 # 包含：拓扑切分、负载设置、拓扑设置、仿真控制、混合粒度控制、结果分析
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -2078,6 +2078,118 @@ class LoadResponse(BaseModel):
     message: str
     task_summary: List[Dict[str, Any]] = []
     ecmp_preview: Optional[Dict[str, Any]] = None
+    host_num: Optional[int] = None
+
+
+def _parse_msg_len_expr(msg_len_expr: str) -> int:
+    sanitized_msg_len = (msg_len_expr or "").replace('^', '**')
+    if not re.fullmatch(r'[\d\+\-\*/\(\)\s\.]+', sanitized_msg_len):
+        raise HTTPException(status_code=400, detail="msg_len 格式不合法，请使用仅包含数字和运算符的表达式")
+    try:
+        msg_len_bytes = int(eval(sanitized_msg_len, {"__builtins__": None}, {}))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"无法解析消息大小: {exc}")
+    if msg_len_bytes <= 0:
+        raise HTTPException(status_code=400, detail="消息大小必须大于0")
+    return msg_len_bytes
+
+
+def _parse_custom_traffic_content(content: str, default_msg_len_bytes: int) -> Tuple[List[Tuple[int, int, int]], int]:
+    flows: List[Tuple[int, int, int]] = []
+    max_node_id = -1
+    for line in content.splitlines():
+        raw = line.strip()
+        if not raw or raw.startswith("#"):
+            continue
+        if raw.lower().startswith("stat rdma") or raw.lower().startswith("phase:"):
+            continue
+        if "rdma_send" in raw:
+            src_match = re.search(r"src_node\s+(\d+)", raw)
+            dst_match = re.search(r"dst_node\s+(\d+)", raw)
+            msg_match = re.search(r"msg_len\s+(\d+)", raw)
+            if not src_match or not dst_match:
+                continue
+            src = int(src_match.group(1))
+            dst = int(dst_match.group(1))
+            msg_len = int(msg_match.group(1)) if msg_match else default_msg_len_bytes
+        else:
+            tokens = [t for t in re.split(r"[,\s]+", raw) if t]
+            if len(tokens) < 2:
+                continue
+            try:
+                src = int(tokens[0])
+                dst = int(tokens[1])
+            except ValueError:
+                continue
+            msg_len = default_msg_len_bytes
+            if len(tokens) >= 3:
+                try:
+                    msg_len = int(float(tokens[2]))
+                except ValueError:
+                    msg_len = default_msg_len_bytes
+        flows.append((src, dst, msg_len))
+        max_node_id = max(max_node_id, src, dst)
+    if not flows:
+        raise HTTPException(status_code=400, detail="未识别到任何流量记录，请检查文件格式")
+    host_num = max_node_id + 1 if max_node_id >= 0 else 1
+    return flows, host_num
+
+
+def _write_custom_task_inputs(base_dir: Path,
+                              flows: List[Tuple[int, int, int]],
+                              task_num: int) -> List[Dict[str, Any]]:
+    task_num = max(1, task_num)
+    rdma_dir = base_dir / "rdma_result"
+    if rdma_dir.exists():
+        shutil.rmtree(rdma_dir)
+    rdma_dir.mkdir(parents=True, exist_ok=True)
+    all_files_dir = rdma_dir / "all_rdma_files"
+    all_files_dir.mkdir(parents=True, exist_ok=True)
+
+    task_summaries: List[Dict[str, Any]] = []
+    flows_by_task: List[List[Tuple[int, int, int]]] = [[] for _ in range(task_num)]
+    for idx, flow in enumerate(flows):
+        flows_by_task[idx % task_num].append(flow)
+    if flows:
+        for task_flows in flows_by_task:
+            if not task_flows:
+                task_flows.append(flows[0])
+
+    for task_index, task_flows in enumerate(flows_by_task, start=1):
+        task_dir = base_dir / f"task{task_index}"
+        if task_dir.exists():
+            shutil.rmtree(task_dir)
+        task_dir.mkdir(parents=True, exist_ok=True)
+        (task_dir / "logs").mkdir(parents=True, exist_ok=True)
+
+        operate_path = task_dir / "rdma_operate0.txt"
+        with open(operate_path, 'w', encoding='utf-8') as f:
+            f.write("stat rdma operate:\n")
+            f.write("phase:3000\n")
+            for src, dst, msg_len in task_flows:
+                f.write(
+                    f"Type rdma_send src_node {src} src_port 1000 dst_node {dst} dst_port 1000 priority 0 msg_len {msg_len}\n"
+                )
+
+        dependence_path = task_dir / "dependence.txt"
+        write_dependence_file(dependence_path)
+
+        rdma_task_dir = rdma_dir / f"task{task_index}"
+        rdma_task_dir.mkdir(parents=True, exist_ok=True)
+        rdma_operate_copy = rdma_task_dir / "rdma_operate0.txt"
+        shutil.copyfile(operate_path, rdma_operate_copy)
+
+        all_file_path = all_files_dir / f"rdma_operate{task_index - 1}.txt"
+        shutil.copyfile(operate_path, all_file_path)
+
+        task_summaries.append({
+            "task": task_index,
+            "host_range": "custom",
+            "flow_files": [str(operate_path.relative_to(base_dir))],
+            "flow_count": len(task_flows)
+        })
+
+    return task_summaries
 
 def generate_load_config(host_num, msg_len, dp, device, forward, 
                         model_name="custom", stage_type="TP", parent_stage="Root"):
@@ -2519,16 +2631,7 @@ async def generate_load(request: LoadRequest):
         if request.task_num <= 0:
             raise HTTPException(status_code=400, detail="task_num必须大于0")
 
-        sanitized_msg_len = request.msg_len.replace('^', '**')
-        if not re.fullmatch(r'[\d\+\-\*/\(\)\s\.]+', sanitized_msg_len):
-            raise HTTPException(status_code=400, detail="msg_len 格式不合法，请使用仅包含数字和运算符的表达式")
-        try:
-            msg_len_bytes = int(eval(sanitized_msg_len, {"__builtins__": None}, {}))
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=f"无法解析消息大小: {exc}")
-
-        if msg_len_bytes <= 0:
-            raise HTTPException(status_code=400, detail="消息大小必须大于0")
+        msg_len_bytes = _parse_msg_len_expr(request.msg_len)
 
         # 生成负载配置内容（返回给前端展示）
         load_content = generate_load_config(
@@ -2575,13 +2678,62 @@ async def generate_load(request: LoadRequest):
             filename=f"{request.model_name}_load.txt",
             message=f"成功生成负载配置：{request.host_num}个节点，流量大小{request.msg_len}，任务数 {len(task_summaries)}。{task_info_text}",
             task_summary=task_summaries,
-            ecmp_preview=ecmp_preview_payload
+            ecmp_preview=ecmp_preview_payload,
+            host_num=request.host_num
         )
         
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"生成负载配置时出错: {str(e)}")
+
+
+@app.post("/generate-load-from-file", response_model=LoadResponse)
+async def generate_load_from_file(
+    traffic_file: UploadFile = File(...),
+    task_num: int = Form(1),
+    msg_len_expr: str = Form("32*(1024)")
+):
+    """
+    通过上传自定义流量文件生成负载配置。
+    支持 rdma_operate.txt 格式或简单的 "src dst [msg_len]" 文本格式。
+    """
+    try:
+        if task_num <= 0:
+            raise HTTPException(status_code=400, detail="task_num必须大于0")
+
+        raw_bytes = await traffic_file.read()
+        content = raw_bytes.decode("utf-8", errors="replace")
+        default_msg_len_bytes = _parse_msg_len_expr(msg_len_expr)
+        flows, host_num = _parse_custom_traffic_content(content, default_msg_len_bytes)
+
+        base_dir = Path(__file__).parent.parent
+        task_summaries = _write_custom_task_inputs(base_dir, flows, task_num)
+
+        ecmp_preview_payload: Optional[Dict[str, Any]] = None
+        if is_ecmp_module_ready():
+            try:
+                ecmp_preview_payload = compute_and_cache_ecmp(
+                    mode="expected",
+                    rdma_root=base_dir / "rdma_result"
+                )
+            except Exception as exc:
+                print(f"[WARNING] 自定义流量ECMP预览失败: {exc}")
+
+        filename = traffic_file.filename or "custom_traffic.txt"
+        return LoadResponse(
+            success=True,
+            content=content,
+            filename=filename,
+            message=f"自定义流量解析完成，共 {len(flows)} 条流量，任务数 {task_num}",
+            task_summary=task_summaries,
+            ecmp_preview=ecmp_preview_payload,
+            host_num=host_num
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"自定义流量解析失败: {str(e)}")
 
 # ==================== 拓扑设置接口相关 ====================
 
