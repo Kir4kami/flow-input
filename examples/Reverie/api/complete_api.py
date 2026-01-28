@@ -3691,7 +3691,7 @@ async def analyze_results(request: AnalysisRequest):
         
         if request.analysis_type in ["all", "fct"]:
             # 分析FCT结果
-            fct_file = Path(__file__).parent.parent / "dump" / "evaluation.fct1"
+            fct_file = Path(__file__).absolute().parent.parent.resolve() / "dump" / "evaluation.fct1"
             file_status["fct_file"] = str(fct_file)
             file_status["fct_exists"] = fct_file.exists()
             
@@ -3723,7 +3723,7 @@ async def analyze_results(request: AnalysisRequest):
         
         if request.analysis_type in ["all", "steady_state"]:
             # 分析稳态信息（使用evaluation.out而不是flow_stats.txt）
-            evaluation_out = Path(__file__).parent.parent / "dump" / "evaluation.out"
+            evaluation_out = Path(__file__).absolute().parent.parent.resolve() / "dump" / "evaluation.out"
             file_status["steady_file"] = str(evaluation_out)
             file_status["steady_exists"] = evaluation_out.exists()
             
@@ -3747,7 +3747,7 @@ async def analyze_results(request: AnalysisRequest):
         
         if request.analysis_type in ["all", "performance"]:
             # 分析性能指标
-            log_file = Path(__file__).parent.parent / "dump" / "system1.log"
+            log_file = Path(__file__).absolute().parent.parent.resolve() / "dump" / "system1.log"
             file_status["perf_file"] = str(log_file)
             file_status["perf_exists"] = log_file.exists()
             

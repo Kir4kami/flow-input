@@ -1051,7 +1051,60 @@
           </button>
           <div v-if="analysisResult" class="result-box">
             <p><strong>分析摘要:</strong></p>
-            <pre>{{ analysisResult.summary }}</pre>
+            <pre>{{ analysisResult.summary || '暂无数据' }}</pre>
+            
+            <div v-if="analysisResult.results" style="margin-top: 15px;">
+              <div v-if="analysisResult.results.fct_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">FCT分析结果</h4>
+                <div v-if="analysisResult.results.fct_analysis.file_found">
+                  <p v-if="analysisResult.results.fct_analysis.total_flows > 0">
+                    <strong>总流数:</strong> {{ analysisResult.results.fct_analysis.total_flows }}<br>
+                    <strong>平均FCT:</strong> {{ analysisResult.results.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs 
+                    ({{ analysisResult.results.fct_analysis.average_fct_ms?.toFixed(2) || 0 }} ms)<br>
+                    <strong>平均Slowdown:</strong> {{ analysisResult.results.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                    <strong>最小FCT:</strong> {{ analysisResult.results.fct_analysis.min_fct_us?.toFixed(2) || 0 }} μs<br>
+                    <strong>最大FCT:</strong> {{ analysisResult.results.fct_analysis.max_fct_us?.toFixed(2) || 0 }} μs
+                  </p>
+                  <p v-else style="color: #999;">
+                    {{ analysisResult.results.fct_analysis.parse_error || '文件已找到但数据为空' }}
+                  </p>
+          </div>
+                <p v-else style="color: #f56c6c;">
+                  {{ analysisResult.results.fct_analysis.error || '文件未找到' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.steady_state_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">稳态分析结果</h4>
+                <div v-if="analysisResult.results.steady_state_analysis.file_found">
+                  <p v-if="analysisResult.results.steady_state_analysis.is_system_steady">
+                    <strong>系统状态:</strong> 已进入稳态<br>
+                    <strong>稳态次数:</strong> {{ analysisResult.results.steady_state_analysis.steady_state_count || 0 }}<br>
+                    <strong>稳态时间:</strong> {{ analysisResult.results.steady_state_analysis.steady_state_time_ns?.toFixed(0) || 0 }} ns
+                  </p>
+                  <p v-else style="color: #999;">
+                    未检测到稳态
+                  </p>
+                </div>
+                <p v-else style="color: #f56c6c;">
+                  {{ analysisResult.results.steady_state_analysis.error || '文件未找到' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.performance_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">性能分析结果</h4>
+                <div v-if="analysisResult.results.performance_analysis.has_data">
+                  <p>
+                    <strong>服务器数量:</strong> {{ analysisResult.results.performance_analysis.network_config?.server_count || 0 }}<br>
+                    <strong>总流数:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.total_flows || 0 }}<br>
+                    <strong>平均流大小:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.average_flow_size_MB?.toFixed(2) || 0 }} MB
+                  </p>
+                </div>
+                <p v-else style="color: #999;">
+                  {{ analysisResult.results.performance_analysis.error || '无数据' }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1234,18 +1287,24 @@
             <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
               <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">热力图</h3>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
                   {{ heatmapAnimationRunning ? '动画中...' : '开始动画' }}
                 </button>
-                <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                <button class="btn btn-secondary" @click="resetHeatmapAnimation" :disabled="heatmapAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
                   重置
                 </button>
-                <span style="font-size: 12px; color: #666; margin-left: 8px;">
-                  进度: {{ heatmapAnimationIndex }} / {{ heatmapData ? heatmapData.totalFlows : 0 }}
-                </span>
                 <span style="font-size: 12px; color: #666; margin-left: 15px;">
                   最大值: {{ heatmapMaxValue }}
                 </span>
+              </div>
+            </div>
+            <!-- 同时运行按钮与进度条 -->
+            <div style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px; border: 1px solid #1890ff;" @click.stop>
+              <button class="btn btn-success" @click="startSynchronizedAnimation" :disabled="synchronizedRunning || heatmapAnimationRunning || flowAnimationRunning" style="padding: 8px 16px; font-size: 13px; font-weight: 600; width: 100%;">
+                {{ synchronizedRunning ? '同步运行中...' : '🚀 同时运行' }}
+              </button>
+              <div style="margin-top: 8px; height: 8px; background: rgba(24, 144, 255, 0.12); border-radius: 4px; overflow: hidden;">
+                <div :style="{ width: (heatmapData && heatmapData.totalFlows && synchronizedFlowTotal ? Math.min(100, Math.floor(Math.max(heatmapAnimationIndex / heatmapData.totalFlows, synchronizedFlowIndex / synchronizedFlowTotal) * 100)) : 0) + '%', height: '100%', background: '#1890ff', transition: 'width 0.1s linear' }"></div>
               </div>
             </div>
             <div id="fullscreen-heatmap-svg-container" style="flex: 1; overflow: auto; min-height: 0;"></div>
@@ -1256,13 +1315,13 @@
             <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
               <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">负载流量可视化</h3>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-primary" @click="startFlowAnimation" :disabled="flowAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                <button class="btn btn-primary" @click="startFlowAnimation" :disabled="flowAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
                   {{ flowAnimationRunning ? '流动中...' : '开始流动' }}
                 </button>
-                <button class="btn btn-secondary" @click="stopFlowAnimation" :disabled="!flowAnimationRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                <button class="btn btn-secondary" @click="stopFlowAnimation" :disabled="!flowAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
                   停止流动
                 </button>
-                <button class="btn btn-secondary" @click="toggleEcmpMode" :disabled="!ecmpHasActual" style="padding: 6px 12px; font-size: 12px; margin: 0;">
+                <button class="btn btn-secondary" @click="toggleEcmpMode" :disabled="!ecmpHasActual || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
                   {{ ecmpToggleLabel }}
                 </button>
               </div>
@@ -1537,6 +1596,13 @@
           fullscreenHeatmap: {
             show: false
           },
+          
+          // 同步运行
+          synchronizedRunning: false,
+          synchronizedFlowIndex: 0,
+          synchronizedFlowTotal: 0,
+          synchronizedFlowInterval: 2600,
+          synchronizedFlowTimer: null,
           
           // 全屏流量可视化
           fullscreenFlow: {
@@ -2423,6 +2489,107 @@
           }
         },
 
+        // 开始同步运行（热力图和负载流量同时运行）
+        startSynchronizedAnimation() {
+          if (!this.heatmapData || !this.flowRecordList || this.flowRecordList.length === 0) {
+            this.showToast('请先确保热力图和负载流量数据都已准备好', 'error')
+            return
+          }
+          
+          // 计算热力图的完成批次
+          const heatmapTotalFlows = this.heatmapData.totalFlows
+          if (!heatmapTotalFlows) {
+            this.showToast('热力图无流量数据', 'warning')
+            return
+          }
+          const batchSize = Math.max(1, Math.floor(heatmapTotalFlows / 100))
+          const heatmapBatches = Math.ceil(heatmapTotalFlows / batchSize)
+          const heatmapInterval = 50 // 50ms per batch
+          
+          // 抽样负载流量，使其与热力图同步完成
+          const flowTotalRecords = this.flowRecordList.length
+          const flowSampleStep = flowTotalRecords / heatmapBatches
+          
+          // 重置状态
+          this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
+            .map(() => Array(this.heatmapData.numHosts).fill(0))
+          this.heatmapAnimationIndex = 0
+          this.synchronizedFlowIndex = 0
+          this.synchronizedFlowTotal = heatmapBatches
+          this.synchronizedFlowInterval = heatmapInterval
+          this.synchronizedRunning = true
+          this.heatmapAnimationRunning = true
+          this.flowAnimationRunning = true
+          
+          // 绘制初始状态
+          this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+          this.drawFlowVisualization('fullscreen-flow-visualization-container')
+          
+          // 同步驱动热力图与流量抽样播放
+          const animateHeatmap = () => {
+            if (!this.synchronizedRunning) {
+              return
+            }
+            if (this.heatmapAnimationIndex >= heatmapTotalFlows) {
+              this.heatmapAnimationRunning = false
+              this.flowAnimationRunning = false
+              this.stopSynchronizedAnimation()
+              return
+            }
+            
+            // 每次添加一批流量
+            for (let i = 0; i < batchSize && this.heatmapAnimationIndex < heatmapTotalFlows; i++) {
+              const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
+              this.heatmapMatrix[flow.src][flow.dst]++
+              this.heatmapAnimationIndex++
+            }
+            
+            // 抽样更新负载流量（保证与热力图同步完成）
+            const sampleIndex = Math.min(
+              flowTotalRecords - 1,
+              Math.floor(this.synchronizedFlowIndex * flowSampleStep)
+            )
+            const record = this.flowRecordList[sampleIndex]
+            if (record) {
+              this.setSelectedFlow(record.src, record.dst, record, false, true)
+            }
+            this.synchronizedFlowIndex++
+            
+            // 更新热力图
+            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+            
+            // 如果已经完成，立即结束（保证与流量同步完成）
+            if (this.heatmapAnimationIndex >= heatmapTotalFlows || this.synchronizedFlowIndex >= heatmapBatches) {
+              this.heatmapAnimationRunning = false
+              this.flowAnimationRunning = false
+              this.stopSynchronizedAnimation()
+              return
+            }
+            
+            // 继续动画
+            this.synchronizedFlowTimer = setTimeout(animateHeatmap, heatmapInterval)
+          }
+          
+          animateHeatmap()
+          
+          this.showToast('同步运行已开始', 'info')
+        },
+
+        // 停止同步运行
+        stopSynchronizedAnimation() {
+          this.synchronizedRunning = false
+          this.heatmapAnimationRunning = false
+          this.flowAnimationRunning = false
+          
+          if (this.synchronizedFlowTimer) {
+            clearTimeout(this.synchronizedFlowTimer)
+            this.synchronizedFlowTimer = null
+          }
+          
+          this.stopFlowAnimation()
+          this.showToast('同步运行完成！', 'success')
+        },
+
         // 打开全屏热力图和负载流量（合并视图）
         openFullscreenHeatmapAndFlow() {
           if (!this.heatmapData || !this.flowData) {
@@ -2448,6 +2615,68 @@
 
         // 关闭全屏热力图
         closeFullscreenHeatmap() {
+          // 停止同步运行
+          if (this.synchronizedRunning) {
+            this.stopSynchronizedAnimation()
+          }
+          
+          // 停止热力图动画
+          this.heatmapAnimationRunning = false
+          
+          // 停止流量动画
+          this.stopFlowAnimation()
+          
+          // 清理热力图SVG容器
+          const heatmapContainer = document.getElementById('fullscreen-heatmap-svg-container')
+          if (heatmapContainer) {
+            heatmapContainer.innerHTML = ''
+          }
+          
+          // 清理流量可视化SVG容器
+          const flowContainer = document.getElementById('fullscreen-flow-visualization-container')
+          if (flowContainer) {
+            if (typeof d3 !== 'undefined') {
+              d3.select('#fullscreen-flow-visualization-container').selectAll('*').remove()
+            } else {
+              flowContainer.innerHTML = ''
+            }
+          }
+          
+          // 清理modal中的可视化容器（如果存在）
+          const modalHeatmapContainer = document.getElementById('heatmap-svg-container')
+          if (modalHeatmapContainer) {
+            modalHeatmapContainer.innerHTML = ''
+          }
+          const modalFlowContainer = document.getElementById('flow-visualization-split')
+          if (modalFlowContainer) {
+            if (typeof d3 !== 'undefined') {
+              d3.select('#flow-visualization-split').selectAll('*').remove()
+            } else {
+              modalFlowContainer.innerHTML = ''
+            }
+          }
+          const modalFlowContainer2 = document.getElementById('flow-visualization')
+          if (modalFlowContainer2) {
+            if (typeof d3 !== 'undefined') {
+              d3.select('#flow-visualization').selectAll('*').remove()
+            } else {
+              modalFlowContainer2.innerHTML = ''
+            }
+          }
+          
+          // 如果modal是flow-visualization或heatmap-and-flow类型，也关闭它
+          if (this.modal && this.modal.show && 
+              (this.modal.type === 'flow-visualization' || this.modal.type === 'heatmap-and-flow')) {
+            this.stopFlowAnimation()
+            this.modal.show = false
+          }
+          
+          // 重置选中状态
+          this.selectedFlowInfo = null
+          this.selectedNodeId = null
+          this.selectedNodeInfo = null
+          
+          // 关闭全屏
           this.fullscreenHeatmap.show = false
         },
 
@@ -3346,7 +3575,7 @@
           }
           
           this.flowSvg = svg
-          this.flowGlowFilterId = this.ensureGlowDefs(svg)
+        this.flowGlowFilterId = this.ensureGlowDefs(svg)
           this.flowSvgSize = { width, height }
           this.ecmpOverlayGroup = svg.append('g').attr('class', 'ecmp-overlay')
           

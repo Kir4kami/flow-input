@@ -1,0 +1,85 @@
+================================================================================
+仿真日志 - sim_1769430215
+时间戳: 2026-01-26 20:23:35
+================================================================================
+仿真ID: sim_1769430215
+工作目录: /root/flow-input/examples/Reverie
+任务数: 4
+模型: deepseek
+混合粒度: True
+仿真时间: 10.0秒
+使用自定义配置: True
+================================================================================
+
+脚本路径: /root/flow-input/examples/Reverie/sim.sh
+脚本存在: True
+dump目录: /root/flow-input/examples/Reverie/dump
+dump目录存在: True
+
+环境变量:
+  LLM_OVERRIDE=deepseek
+  TASKNUM_OVERRIDE=4
+  USE_CUSTOM_LOAD=1
+  SIM_END_TIME_NS_OVERRIDE=10000000000
+  SIM_FLOW_LAUNCH_END_NS_OVERRIDE=1000000000
+
+开始执行仿真脚本...
+等待进程完成，超时时间: 600.0秒
+
+================================================================================
+仿真执行结果
+================================================================================
+返回码: 0
+执行时间: 7.40秒
+
+================================================================================
+STDOUT 输出:
+================================================================================
+Using custom load from frontend; skipping TrafficGenerator pipeline.
+Running kira-parallel.sh with TASKNUM=4...
+Scanning dependencies of target libpoint-to-point-obj
+[  0%] Building CXX object src/point-to-point/CMakeFiles/libpoint-to-point-obj.dir/model/qbb-net-device.cc.o
+[  0%] Linking CXX shared library ../../../build/lib/libns3.39-point-to-point-debug.so
+Finished executing the following commands:
+cd cmake-cache; /usr/bin/cmake --build . -j 3 ; cd ..
+/root/flow-input/examples/Reverie/dump/evaluation.fct
+/root/flow-input/examples/Reverie/dump/evaluation.fct
+/root/flow-input/examples/Reverie/dump/evaluation.fct
+/root/flow-input/examples/Reverie/dump/evaluation.fct
+Total 4 experiments
+
+================================================================================
+STDERR 输出:
+================================================================================
+
+real	0m1.609s
+user	0m1.451s
+sys	0m0.255s
+
+real	0m1.603s
+user	0m1.438s
+sys	0m0.186s
+
+real	0m1.598s
+user	0m1.337s
+sys	0m0.317s
+
+real	0m1.919s
+user	0m1.758s
+sys	0m0.155s
+
+================================================================================
+输出文件检查
+================================================================================
+dump目录存在: /root/flow-input/examples/Reverie/dump
+  evaluation.fct4: 810 字节
+  evaluation.fct1: 239 字节
+  evaluation.pfc: 34 字节
+  evaluation.fct2: 810 字节
+  evaluation.tor: 126 字节
+  system2.log: 4354 字节
+  evaluation.fct3: 810 字节
+  system3.log: 4354 字节
+  system4.log: 4355 字节
+  evaluation.out: 5704 字节
+  system1.log: 2274 字节

@@ -5,8 +5,7 @@
       "type": "TP",
       "layer": 1,
       "nodes_passed": [
-        "A",
-        "C"
+        "A"
       ],
       "children": [],
       "isBurr": false

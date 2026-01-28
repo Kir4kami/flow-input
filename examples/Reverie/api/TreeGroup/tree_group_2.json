@@ -5,8 +5,8 @@
       "type": "EP",
       "layer": 2,
       "nodes_passed": [
-        "C",
         "D",
+        "B",
         "E"
       ],
       "children": [],
