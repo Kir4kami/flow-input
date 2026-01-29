@@ -21,7 +21,7 @@ from datetime import datetime
 
 # 添加父目录到路径，以便导入TreeCut
 sys.path.append(str(Path(__file__).parent.parent))
-from TreeCut.TreeCut import performTreeCut
+from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
 import matplotlib.pyplot as plt
 import copy
@@ -808,6 +808,9 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         T.add_node(root_node, name='Root', nodes_passed=[], children=[])
         constructTree(T, root_node)
     
+    # 保存原始通信树用于3D可视化
+    original_tree_for_viz = copy.deepcopy(T)
+    
     if show_graphs:
         ShowGraph(T)
     
@@ -838,6 +841,23 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
     # 保存TreeGroup为JSON文件
     json_overview = saveTreeGroupToJson(Tree_list, output_dir)
     
+    # 生成3D分层可视化HTML（使用TreeCut中的可视化函数）
+    viz_path_relative: Optional[str] = None
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        viz_output_file = os.path.join(output_dir, "tree_split_3d.html")
+        visualize3DSplitTreeHTML(original_tree_for_viz, Tree_list, viz_output_file)
+        print(f"[INFO] 3D树组可视化HTML已生成: {viz_output_file}")
+        
+        api_dir_for_viz = Path(__file__).parent
+        try:
+            viz_path_relative = str(Path(viz_output_file).relative_to(api_dir_for_viz))
+        except ValueError:
+            viz_path_relative = viz_output_file
+    except Exception as e:
+        print(f"[WARNING] 3D树组可视化HTML生成失败: {e}")
+        viz_path_relative = None
+    
     # 返回结果（output_directory使用相对路径，相对于api目录）
     api_dir = Path(__file__).parent
     try:
@@ -852,7 +872,8 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         "output_directory": output_dir_relative,
         "json_overview": json_overview,
         "tree_list": Tree_list,
-        "out_dependence_list": out_dependence_list
+        "out_dependence_list": out_dependence_list,
+        "tree_split_3d_html": viz_path_relative,
     }
     
     return result
@@ -1113,9 +1134,39 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             
             visualized_groups.append({"group_id": i, "node_count": len(tree_data.get('nodes', [])), "edge_count": len(tree_data.get('edges', []))})
         
-        return {"success": True, "groups": visualized_groups, "total_groups": total_groups}
+        # 检查是否已经生成了3D树组可视化HTML
+        viz_html_file = tree_dir / "tree_split_3d.html"
+        has_3d_viz = viz_html_file.exists()
+        
+        return {
+            "success": True,
+            "groups": visualized_groups,
+            "total_groups": total_groups,
+            "has_3d_viz": has_3d_viz
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"可视化失败: {str(e)}")
+
+
+@app.get("/get-tree-groups-3d")
+async def get_tree_groups_3d(output_dir: str = "TreeGroup"):
+    """获取树组3D切分可视化HTML"""
+    from fastapi.responses import FileResponse
+    
+    api_dir = Path(__file__).parent
+    base_dir = Path(__file__).parent.parent
+    
+    tree_dir = (api_dir / output_dir).resolve()
+    if not tree_dir.exists():
+        tree_dir = (base_dir / output_dir).resolve()
+    if not tree_dir.exists():
+        raise HTTPException(status_code=404, detail=f"树组目录不存在: {output_dir}")
+    
+    html_file = tree_dir / "tree_split_3d.html"
+    if not html_file.exists():
+        raise HTTPException(status_code=404, detail="3D树组可视化HTML不存在，请先执行通信树切分")
+    
+    return FileResponse(str(html_file), media_type='text/html')
 
 @app.get("/get-tree-image/{group_id}")
 async def get_tree_image(group_id: int):
@@ -1958,6 +2009,7 @@ class TreeCutResponse(BaseModel):
     output_directory: str
     json_overview: Dict[str, Any]
     result_files: List[str]
+    tree_split_3d_html: Optional[str] = None
 
 @app.post("/tree-cut", response_model=TreeCutResponse)
 async def tree_cut(request: TreeCutRequest):
@@ -3563,8 +3615,9 @@ async def analyze_results(request: AnalysisRequest):
                     fct_result["file_found"] = True
                     results["fct_analysis"] = fct_result
                     # 调试：如果解析失败，记录详细信息
-                    if fct_result.get("total_flows", 0) == 0 and len(fct_content.strip().split('\n')) > 1:
-                        print(f"[WARNING] FCT文件有内容但解析失败，文件行数: {len(fct_content.strip().split('\n'))}")
+                    fct_lines = fct_content.strip().split('\n')
+                    if fct_result.get("total_flows", 0) == 0 and len(fct_lines) > 1:
+                        print(f"[WARNING] FCT文件有内容但解析失败，文件行数: {len(fct_lines)}")
                         print(f"[WARNING] 文件前100字符: {fct_content[:100]}")
                 except Exception as e:
                     results["fct_analysis"] = {
