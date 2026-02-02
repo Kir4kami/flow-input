@@ -3,6 +3,7 @@
 # 包含：拓扑切分、负载设置、拓扑设置、仿真控制、混合粒度控制、结果分析
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -18,6 +19,7 @@ from typing import Optional, Dict, List, Any, Tuple, Set
 import threading
 import asyncio
 from datetime import datetime
+import hashlib
 
 # 添加父目录到路径，以便导入TreeCut
 parent_parent = Path(__file__).absolute().parent.parent
@@ -72,6 +74,16 @@ class SimulationStatus:
         self.results = {}
 
 simulation_status = SimulationStatus()
+
+
+class BaselineStatus:
+    def __init__(self):
+        self.is_running = False
+        self.last_started = None
+        self.last_finished = None
+
+
+baseline_status = BaselineStatus()
 
 # ==================== TreeCut 完整功能实现 ====================
 
@@ -1049,7 +1061,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             except Exception as e:
                 print(f"[WARNING] 删除旧图片失败: {old_img}, 错误: {e}")
         
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).absolute().parent.parent
         tree_dir = (Path(__file__).parent / output_dir).resolve()
         if not tree_dir.exists():
             tree_dir = (base_dir / output_dir).resolve()
@@ -1353,12 +1365,25 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
                 host_to_tor[node2] = node1
                 tor_to_hosts[node1].append(node2)
         
+        def _infer_flow_type(path_text: str) -> str:
+            match = re.search(r"(TP|EP|PP|DP)", path_text.upper())
+            return match.group(1) if match else "UNK"
+
+        has_tagged_dirs = False
+        if load_dir.exists():
+            for entry in load_dir.iterdir():
+                if entry.is_dir() and re.match(r"\d+_(TP|EP|PP|DP)\d*", entry.name, re.IGNORECASE):
+                    has_tagged_dirs = True
+                    break
+
         # 2. 解析负载流量数据
         flows = []
         host_flow_set = set()  # 只统计主机之间的流量
         
         # 遍历所有rdma_operate*.txt文件
         for root, dirs, files in os.walk(load_dir):
+            if has_tagged_dirs and "all_rdma_files" in Path(root).parts:
+                continue
             for file in files:
                 if file.startswith("rdma_operate") and file.endswith(".txt"):
                     file_path = Path(root) / file
@@ -1393,7 +1418,8 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
                                             "src": src_node,
                                             "dst": dst_node,
                                             "size": msg_len,
-                                            "file": str(file_path.relative_to(base_dir))
+                                            "file": str(file_path.relative_to(base_dir)),
+                                            "flow_type": _infer_flow_type(str(file_path))
                                         })
                     except Exception as e:
                         print(f"[WARNING] 读取文件失败 {file_path}: {e}")
@@ -1691,7 +1717,7 @@ async def extract_link_competition_flows(use_latest_workflow: bool = True):
         包含提取结果的响应
     """
     try:
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).absolute().parent.parent
         
         # 1. 获取流量数据和路径信息
         parse_result = await parse_load_files(directory="rdma_result", use_latest_workflow=use_latest_workflow)
@@ -2023,7 +2049,7 @@ async def tree_cut(request: TreeCutRequest):
         result_files = []
         # 尝试多个可能的路径查找结果文件
         api_dir = Path(__file__).parent
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).absolute().parent.parent
         possible_output_dirs = [
             api_dir / request.output_dir,  # examples/Reverie/api/TreeGroup
             base_dir / request.output_dir,  # examples/Reverie/TreeGroup
@@ -2092,6 +2118,332 @@ def _parse_msg_len_expr(msg_len_expr: str) -> int:
     if msg_len_bytes <= 0:
         raise HTTPException(status_code=400, detail="消息大小必须大于0")
     return msg_len_bytes
+
+
+def _trafficgen_msg_expr(base_expr: str, mode: str) -> str:
+    expr = base_expr or "32*(1024)"
+    mode = (mode or "").upper()
+    if mode == "PP":
+        return f"(({expr})//4)"
+    if mode == "DP":
+        return f"(({expr})//2)"
+    return expr
+
+
+def _build_trafficgen_config(template_path: Path,
+                             host_num: int,
+                             msg_len_expr: str,
+                             dp: int) -> str:
+    if not template_path.exists():
+        raise FileNotFoundError(f"模板文件不存在: {template_path}")
+    with open(template_path, 'r', encoding='utf-8') as f:
+        lines = f.read().splitlines()
+    if not lines:
+        raise ValueError("模板文件为空")
+
+    output_lines: List[str] = []
+    # 第一行保留模板的 model/devices/iterations
+    first_parts = re.split(r'\s+', lines[0].strip())
+    if len(first_parts) >= 1:
+        model_name = first_parts[0]
+        devices = first_parts[1] if len(first_parts) >= 2 else "2"
+        iterations = first_parts[2] if len(first_parts) >= 3 else "1"
+        output_lines.append(f"{model_name} {devices} {iterations}")
+    else:
+        output_lines.append(lines[0])
+
+    for raw in lines[1:]:
+        line = raw.rstrip()
+        if not line.strip() or line.strip().startswith("#"):
+            output_lines.append(line)
+            continue
+        tokens = re.split(r'\s+', line.strip())
+        mode = tokens[1] if len(tokens) >= 2 else ""
+        msg_expr = _trafficgen_msg_expr(msg_len_expr, mode)
+        updated = re.sub(r"--host_num\s+\S+", f"--host_num {host_num}", line)
+        updated = re.sub(r"--msg_len\s+\S+", f"--msg_len {msg_expr}", updated)
+        updated = re.sub(r"--dp\s+\S+", f"--dp {dp}", updated)
+        output_lines.append(updated)
+    return "\n".join(output_lines).rstrip() + "\n"
+
+
+def _write_task_inputs_from_all_rdma_files(base_dir: Path,
+                                           task_num: int) -> List[Dict[str, Any]]:
+    task_num = max(1, task_num)
+    all_files_dir = base_dir / "rdma_result" / "all_rdma_files"
+    if not all_files_dir.exists():
+        raise FileNotFoundError(f"all_rdma_files 不存在: {all_files_dir}")
+
+    def file_key(path: Path) -> Tuple[int, str]:
+        match = re.search(r"(\d+)", path.name)
+        return (int(match.group(1)) if match else 0, path.name)
+
+    all_files = sorted(all_files_dir.glob("rdma_operate*.txt"), key=file_key)
+    if not all_files:
+        raise FileNotFoundError("all_rdma_files 中未找到 rdma_operate 文件")
+
+    files_by_task: List[List[Path]] = [[] for _ in range(task_num)]
+    for idx, file_path in enumerate(all_files):
+        files_by_task[idx % task_num].append(file_path)
+
+    task_summaries: List[Dict[str, Any]] = []
+    for task_index, task_files in enumerate(files_by_task, start=1):
+        task_dir = base_dir / f"task{task_index}"
+        if task_dir.exists():
+            shutil.rmtree(task_dir)
+        task_dir.mkdir(parents=True, exist_ok=True)
+        (task_dir / "logs").mkdir(parents=True, exist_ok=True)
+
+        operate_path = task_dir / "rdma_operate0.txt"
+        with open(operate_path, 'w', encoding='utf-8') as out:
+            out.write("stat rdma operate:\n")
+            for file_path in task_files:
+                with open(file_path, 'r', encoding='utf-8') as src:
+                    for line in src:
+                        if line.startswith("stat rdma operate"):
+                            continue
+                        out.write(line)
+
+        dependence_path = task_dir / "dependence.txt"
+        write_dependence_file(dependence_path)
+
+        task_summaries.append({
+            "task": task_index,
+            "host_range": "trafficGen",
+            "flow_files": [str(operate_path.relative_to(base_dir))],
+            "flow_count": len(task_files)
+        })
+    return task_summaries
+
+
+def _copy_dump_files(src_dir: Path, dst_dir: Path) -> None:
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    for filename in ["evaluation.fct1", "evaluation.out", "system1.log"]:
+        src_file = src_dir / filename
+        if src_file.exists():
+            shutil.copyfile(src_file, dst_dir / filename)
+
+
+def _backup_task_dirs(base_dir: Path) -> Optional[Path]:
+    task_dirs = sorted([p for p in base_dir.glob("task[0-9]*") if p.is_dir()])
+    if not task_dirs:
+        return None
+    backup_root = base_dir / "task_experiment_backup"
+    if backup_root.exists():
+        shutil.rmtree(backup_root)
+    backup_root.mkdir(parents=True, exist_ok=True)
+    for task_dir in task_dirs:
+        shutil.copytree(task_dir, backup_root / task_dir.name)
+    return backup_root
+
+
+def _restore_task_dirs(base_dir: Path, backup_root: Optional[Path]) -> None:
+    if not backup_root or not backup_root.exists():
+        return
+    for task_dir in base_dir.glob("task[0-9]*"):
+        if task_dir.is_dir():
+            shutil.rmtree(task_dir)
+    for backup_dir in backup_root.iterdir():
+        if backup_dir.is_dir():
+            shutil.copytree(backup_dir, base_dir / backup_dir.name)
+    shutil.rmtree(backup_root)
+
+
+def _has_dump_payload(dump_dir: Path) -> bool:
+    return any((dump_dir / name).exists() for name in ["evaluation.fct1", "evaluation.out", "system1.log"])
+
+
+def _extract_memory_mb(content: str) -> Optional[float]:
+    patterns = [
+        r"(?:Peak|Max|Maximum)\s+(?:RSS|memory|mem)\s*[:=]\s*([\d\.]+)\s*(KB|MB|GB)",
+        r"memory\s+usage\s*[:=]\s*([\d\.]+)\s*(KB|MB|GB)",
+        r"mem\s*[:=]\s*([\d\.]+)\s*(KB|MB|GB)"
+    ]
+    for line in content.splitlines():
+        for pattern in patterns:
+            match = re.search(pattern, line, flags=re.IGNORECASE)
+            if match:
+                value = float(match.group(1))
+                unit = match.group(2).upper()
+                if unit == "KB":
+                    return value / 1024.0
+                if unit == "GB":
+                    return value * 1024.0
+                return value
+    return None
+
+
+def _extract_buffer_pool_memory_mb(content: str) -> Optional[float]:
+    max_bytes = None
+    pattern = (
+        r"total headroom:\s*(\d+)\s+ingressPool\s+(\d+)\s+"
+        r"egressLosslessPool\s+(\d+)\s+egressLossyPool\s+(\d+)\s+sharedPool\s+(\d+)"
+    )
+    for line in content.splitlines():
+        match = re.search(pattern, line, flags=re.IGNORECASE)
+        if match:
+            values = [int(v) for v in match.groups()]
+            total = sum(values)
+            if max_bytes is None or total > max_bytes:
+                max_bytes = total
+    if max_bytes is None:
+        return None
+    return max_bytes / (1024 * 1024)
+
+
+def _compute_load_signature(base_dir: Path) -> str:
+    rdma_dir = base_dir / "rdma_result" / "all_rdma_files"
+    if not rdma_dir.exists():
+        return ""
+    files = sorted(rdma_dir.glob("rdma_operate*.txt"), key=lambda p: p.name)
+    hasher = hashlib.sha256()
+    for file_path in files:
+        stat = file_path.stat()
+        hasher.update(file_path.name.encode("utf-8"))
+        hasher.update(str(stat.st_size).encode("utf-8"))
+        hasher.update(str(int(stat.st_mtime)).encode("utf-8"))
+    return hasher.hexdigest()
+
+
+def _read_baseline_meta(meta_path: Path) -> Dict[str, Any]:
+    if not meta_path.exists():
+        return {}
+    try:
+        with open(meta_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _write_baseline_meta(meta_path: Path, payload: Dict[str, Any]) -> None:
+    meta_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(meta_path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+
+def _collect_analysis_from_dump(dump_dir: Path, analysis_type: str) -> Dict[str, Any]:
+    results: Dict[str, Any] = {}
+    file_status = {}
+
+    if analysis_type in ["all", "fct"]:
+        fct_file = dump_dir / "evaluation.fct1"
+        file_status["fct_file"] = str(fct_file)
+        file_status["fct_exists"] = fct_file.exists()
+        if fct_file.exists():
+            try:
+                with open(fct_file, 'r', encoding='utf-8') as f:
+                    fct_content = f.read()
+                fct_result = analyze_fct_metrics(fct_content)
+                fct_result["file_found"] = True
+                results["fct_analysis"] = fct_result
+            except Exception as e:
+                results["fct_analysis"] = {
+                    "error": f"读取FCT文件失败: {str(e)}",
+                    "file_found": True,
+                    "total_flows": 0
+                }
+        else:
+            results["fct_analysis"] = {
+                "error": "FCT文件不存在，请先运行仿真",
+                "file_path": str(fct_file),
+                "file_found": False,
+                "total_flows": 0
+            }
+
+    if analysis_type in ["all", "steady_state"]:
+        evaluation_out = dump_dir / "evaluation.out"
+        file_status["steady_file"] = str(evaluation_out)
+        file_status["steady_exists"] = evaluation_out.exists()
+        if evaluation_out.exists():
+            try:
+                with open(evaluation_out, 'r', encoding='utf-8', errors='ignore') as f:
+                    log_content = f.read()
+                results["steady_state_analysis"] = analyze_steady_state_from_evaluation(log_content)
+                results["steady_state_analysis"]["file_found"] = True
+            except Exception as e:
+                results["steady_state_analysis"] = {
+                    "error": f"读取稳态文件失败: {str(e)}",
+                    "file_found": True
+                }
+        else:
+            results["steady_state_analysis"] = {
+                "error": "稳态日志文件不存在，请先运行仿真",
+                "file_path": str(evaluation_out),
+                "file_found": False
+            }
+
+    if analysis_type in ["all", "performance"]:
+        log_file = dump_dir / "system1.log"
+        file_status["perf_file"] = str(log_file)
+        file_status["perf_exists"] = log_file.exists()
+        if log_file.exists():
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    log_content = f.read()
+                perf_result = analyze_performance(log_content)
+                perf_result["file_found"] = True
+                perf_result["memory_mb"] = _extract_memory_mb(log_content)
+                perf_result["buffer_pool_mb"] = _extract_buffer_pool_memory_mb(log_content)
+                results["performance_analysis"] = perf_result
+            except Exception as e:
+                results["performance_analysis"] = {
+                    "error": f"读取性能文件失败: {str(e)}",
+                    "file_found": True
+                }
+        else:
+            results["performance_analysis"] = {
+                "error": "性能日志文件不存在，请先运行仿真",
+                "file_path": str(log_file),
+                "file_found": False
+            }
+
+    results["file_status"] = file_status
+    return results
+
+
+def _compute_comparison(exp: Dict[str, Any], baseline: Dict[str, Any]) -> Dict[str, Any]:
+    comparison: Dict[str, Any] = {}
+
+    exp_fct = exp.get("fct_analysis", {})
+    base_fct = baseline.get("fct_analysis", {})
+    exp_avg = exp_fct.get("average_fct_us")
+    base_avg = base_fct.get("average_fct_us")
+    if exp_avg and base_avg:
+        comparison["fct_ratio"] = base_avg / exp_avg if exp_avg else None
+        comparison["fct_fidelity"] = max(0.0, 1.0 - abs(exp_avg - base_avg) / exp_avg) if exp_avg else None
+        comparison["speedup"] = base_avg / exp_avg if exp_avg else None
+        comparison["fct_delta_us"] = base_avg - exp_avg
+        comparison["fct_delta_ratio"] = (base_avg - exp_avg) / exp_avg if exp_avg else None
+
+    exp_perf = exp.get("performance_analysis", {})
+    base_perf = baseline.get("performance_analysis", {})
+    exp_mem = exp_perf.get("memory_mb") or exp_perf.get("buffer_pool_mb")
+    base_mem = base_perf.get("memory_mb") or base_perf.get("buffer_pool_mb")
+    if exp_mem is not None and base_mem:
+        comparison["memory_overhead_ratio"] = base_mem / exp_mem if exp_mem else None
+        comparison["memory_overhead_mb"] = base_mem - exp_mem
+    else:
+        comparison["memory_overhead_ratio"] = None
+        comparison["memory_overhead_mb"] = None
+        comparison["memory_note"] = "未在 system1.log 中解析到内存字段或buffer pool信息，无法计算内存开销"
+
+    exp_total_ms = exp_perf.get("total_time_ms")
+    base_total_ms = base_perf.get("total_time_ms")
+    if exp_total_ms and base_total_ms:
+        comparison["runtime_ratio"] = base_total_ms / exp_total_ms if exp_total_ms else None
+        comparison["runtime_speedup"] = base_total_ms / exp_total_ms if exp_total_ms else None
+        comparison["runtime_delta_ms"] = base_total_ms - exp_total_ms
+        comparison["runtime_exp_total_ms"] = exp_total_ms
+        comparison["runtime_base_total_ms"] = base_total_ms
+    else:
+        comparison["runtime_ratio"] = None
+        comparison["runtime_speedup"] = None
+        comparison["runtime_delta_ms"] = None
+        comparison["runtime_exp_total_ms"] = None
+        comparison["runtime_base_total_ms"] = None
+        comparison["runtime_note"] = "未在 system1.log 中解析到 total time，无法计算运行时间对比"
+
+    return comparison
 
 
 def _parse_custom_traffic_content(content: str, default_msg_len_bytes: int) -> Tuple[List[Tuple[int, int, int]], int]:
@@ -2447,7 +2799,7 @@ def _compute_ecmp_for_directory(rdma_stage_dir: Path, mode: str = "expected") ->
     if mode == "actual":
         # 实际路径：从仿真日志文件中解析
         # 查找 dump 目录（通常在 examples/Reverie/dump/）
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).absolute().parent.parent
         dump_dir = base_dir / "dump"
         
         # 如果当前目录是 workflow 输出目录，尝试从 workflow 输出中查找 dump
@@ -2633,26 +2985,81 @@ async def generate_load(request: LoadRequest):
 
         msg_len_bytes = _parse_msg_len_expr(request.msg_len)
 
-        # 生成负载配置内容（返回给前端展示）
-        load_content = generate_load_config(
-            host_num=request.host_num,
-            msg_len=request.msg_len,
-            dp=request.dp,
-            device=request.device,
-            forward=request.forward,
-            model_name=request.model_name,
-            stage_type=request.stage_type,
-            parent_stage=request.parent_stage
-        )
-        
-        # 生成任务目录与操作文件
-        base_dir = Path(__file__).parent.parent
-        task_summaries = generate_task_inputs(
-            base_dir=base_dir,
-            host_num=request.host_num,
-            msg_len_bytes=msg_len_bytes,
-            task_num=request.task_num
-        )
+        base_dir = Path(__file__).absolute().parent.parent
+        model_key = (request.model_name or "").lower()
+
+        if model_key in {"deepseek", "qwen"}:
+            template_path = base_dir / "TrafficGenerator" / f"{model_key}.txt"
+            trafficgen_config = _build_trafficgen_config(
+                template_path=template_path,
+                host_num=request.host_num,
+                msg_len_expr=request.msg_len,
+                dp=request.dp
+            )
+            input_path = base_dir / "TrafficGenerator" / f"{model_key}_input_autogen.txt"
+            with open(input_path, 'w', encoding='utf-8') as f:
+                f.write(trafficgen_config)
+
+            traffic_gen_script = base_dir / "TrafficGenerator" / "trafficGen.py"
+            if not traffic_gen_script.exists():
+                raise FileNotFoundError(f"trafficGen.py 不存在: {traffic_gen_script}")
+
+            traffic_run = subprocess.run(
+                [sys.executable, str(traffic_gen_script), "--input_file", str(input_path)],
+                cwd=str(base_dir),
+                capture_output=True,
+                text=True
+            )
+            if traffic_run.returncode != 0:
+                raise RuntimeError(
+                    "trafficGen.py 执行失败\n"
+                    f"stdout: {traffic_run.stdout}\n"
+                    f"stderr: {traffic_run.stderr}"
+                )
+
+            merge_script = base_dir / "TrafficGenerator" / "merge_rdma.sh"
+            if merge_script.exists():
+                merge_run = subprocess.run(
+                    ["bash", str(merge_script)],
+                    cwd=str(base_dir),
+                    capture_output=True,
+                    text=True
+                )
+                if merge_run.returncode != 0:
+                    raise RuntimeError(
+                        "merge_rdma.sh 执行失败\n"
+                        f"stdout: {merge_run.stdout}\n"
+                        f"stderr: {merge_run.stderr}"
+                    )
+
+            task_summaries = _write_task_inputs_from_all_rdma_files(
+                base_dir=base_dir,
+                task_num=request.task_num
+            )
+            load_content = trafficgen_config
+            load_filename = f"{model_key}_trafficgen.txt"
+            load_mode_text = "trafficGen"
+        else:
+            # 生成负载配置内容（返回给前端展示）
+            load_content = generate_load_config(
+                host_num=request.host_num,
+                msg_len=request.msg_len,
+                dp=request.dp,
+                device=request.device,
+                forward=request.forward,
+                model_name=request.model_name,
+                stage_type=request.stage_type,
+                parent_stage=request.parent_stage
+            )
+            # 生成任务目录与操作文件
+            task_summaries = generate_task_inputs(
+                base_dir=base_dir,
+                host_num=request.host_num,
+                msg_len_bytes=msg_len_bytes,
+                task_num=request.task_num
+            )
+            load_filename = f"{request.model_name}_load.txt"
+            load_mode_text = "simple"
 
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
         if is_ecmp_module_ready():
@@ -2675,8 +3082,8 @@ async def generate_load(request: LoadRequest):
         return LoadResponse(
             success=True,
             content=load_content,
-            filename=f"{request.model_name}_load.txt",
-            message=f"成功生成负载配置：{request.host_num}个节点，流量大小{request.msg_len}，任务数 {len(task_summaries)}。{task_info_text}",
+            filename=load_filename,
+            message=f"成功生成负载配置（模式: {load_mode_text}）：{request.host_num}个节点，流量大小{request.msg_len}，任务数 {len(task_summaries)}。{task_info_text}",
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
             host_num=request.host_num
@@ -3838,93 +4245,63 @@ class AnalysisResponse(BaseModel):
 async def analyze_results(request: AnalysisRequest):
     """分析仿真结果"""
     try:
-        results = {}
-        file_status = {}
-        
-        if request.analysis_type in ["all", "fct"]:
-            # 分析FCT结果
-            fct_file = Path(__file__).absolute().parent.parent.resolve() / "dump" / "evaluation.fct1"
-            file_status["fct_file"] = str(fct_file)
-            file_status["fct_exists"] = fct_file.exists()
-            
-            if fct_file.exists():
-                try:
-                    with open(fct_file, 'r', encoding='utf-8') as f:
-                        fct_content = f.read()
-                    fct_result = analyze_fct_metrics(fct_content)
-                    fct_result["file_found"] = True
-                    results["fct_analysis"] = fct_result
-                    # 调试：如果解析失败，记录详细信息
-                    fct_lines = fct_content.strip().split('\n')
-                    if fct_result.get("total_flows", 0) == 0 and len(fct_lines) > 1:
-                        print(f"[WARNING] FCT文件有内容但解析失败，文件行数: {len(fct_lines)}")
-                        print(f"[WARNING] 文件前100字符: {fct_content[:100]}")
-                except Exception as e:
-                    results["fct_analysis"] = {
-                        "error": f"读取FCT文件失败: {str(e)}",
-                        "file_found": True,
-                        "total_flows": 0
-                    }
-            else:
-                results["fct_analysis"] = {
-                    "error": f"FCT文件不存在，请先运行仿真",
-                    "file_path": str(fct_file),
-                    "file_found": False,
-                    "total_flows": 0
-                }
-        
-        if request.analysis_type in ["all", "steady_state"]:
-            # 分析稳态信息（使用evaluation.out而不是flow_stats.txt）
-            evaluation_out = Path(__file__).absolute().parent.parent.resolve() / "dump" / "evaluation.out"
-            file_status["steady_file"] = str(evaluation_out)
-            file_status["steady_exists"] = evaluation_out.exists()
-            
-            if evaluation_out.exists():
-                try:
-                    with open(evaluation_out, 'r', encoding='utf-8', errors='ignore') as f:
-                        log_content = f.read()
-                    results["steady_state_analysis"] = analyze_steady_state_from_evaluation(log_content)
-                    results["steady_state_analysis"]["file_found"] = True
-                except Exception as e:
-                    results["steady_state_analysis"] = {
-                        "error": f"读取稳态文件失败: {str(e)}",
-                        "file_found": True
-                    }
-            else:
-                results["steady_state_analysis"] = {
-                    "error": f"稳态日志文件不存在，请先运行仿真",
-                    "file_path": str(evaluation_out),
-                    "file_found": False
-                }
-        
-        if request.analysis_type in ["all", "performance"]:
-            # 分析性能指标
-            log_file = Path(__file__).absolute().parent.parent.resolve() / "dump" / "system1.log"
-            file_status["perf_file"] = str(log_file)
-            file_status["perf_exists"] = log_file.exists()
-            
-            if log_file.exists():
-                try:
-                    with open(log_file, 'r', encoding='utf-8') as f:
-                        log_content = f.read()
-                    results["performance_analysis"] = analyze_performance(log_content)
-                    results["performance_analysis"]["file_found"] = True
-                except Exception as e:
-                    results["performance_analysis"] = {
-                        "error": f"读取性能文件失败: {str(e)}",
-                        "file_found": True
-                    }
-            else:
-                results["performance_analysis"] = {
-                    "error": f"性能日志文件不存在，请先运行仿真",
-                    "file_path": str(log_file),
-                    "file_found": False
-                }
-        
-        # 添加文件状态信息
-        results["file_status"] = file_status
-        
-        # 生成总结
+        base_dir = Path(__file__).absolute().parent.parent
+        exp_dump = base_dir / "dump"
+        baseline_dump = base_dir / "dump_baseline"
+        exp_backup = base_dir / "dump_experiment"
+        baseline_meta_path = baseline_dump / "metadata.json"
+
+        current_signature = _compute_load_signature(base_dir)
+        baseline_meta = _read_baseline_meta(baseline_meta_path)
+        baseline_signature = baseline_meta.get("load_signature")
+        baseline_needs_refresh = not _has_dump_payload(baseline_dump) or (current_signature and current_signature != baseline_signature)
+
+        if not exp_dump.exists():
+            raise HTTPException(status_code=404, detail="实验dump目录不存在，请先运行仿真")
+
+        if baseline_needs_refresh:
+            # 保存当前实验结果
+            if _has_dump_payload(exp_dump):
+                _copy_dump_files(exp_dump, exp_backup)
+            task_backup_root = None
+            # 运行包粒度基线（不开切分 + 不开混合粒度）
+            baseline_status.is_running = True
+            baseline_status.last_started = time.time()
+            try:
+                # 基线应使用“未切分”的完整流量，因此从 all_rdma_files 重新生成 task1
+                task_backup_root = _backup_task_dirs(base_dir)
+                _write_task_inputs_from_all_rdma_files(base_dir=base_dir, task_num=1)
+                run_simulation(
+                    simulation_id="baseline_packet",
+                    task_num=1,
+                    llm_model="deepseek",
+                    enable_mixed_granularity=False,
+                    simulation_time=10.0,
+                    use_custom_config=True
+                )
+                _copy_dump_files(exp_dump, baseline_dump)
+            finally:
+                # 恢复实验任务目录与结果
+                _restore_task_dirs(base_dir, task_backup_root)
+                if _has_dump_payload(exp_backup):
+                    _copy_dump_files(exp_backup, exp_dump)
+                baseline_status.is_running = False
+                baseline_status.last_finished = time.time()
+            _write_baseline_meta(baseline_meta_path, {
+                "load_signature": current_signature,
+                "generated_at": time.time()
+            })
+
+        results = _collect_analysis_from_dump(exp_dump, request.analysis_type)
+        baseline_results = _collect_analysis_from_dump(baseline_dump, request.analysis_type)
+        results["baseline_analysis"] = baseline_results
+        results["baseline_status"] = {
+            "load_signature": baseline_signature,
+            "current_signature": current_signature,
+            "needs_refresh": baseline_needs_refresh
+        }
+        results["comparison"] = _compute_comparison(results, baseline_results)
+
         summary = generate_analysis_summary(results)
         
         return AnalysisResponse(
@@ -4057,6 +4434,9 @@ def analyze_performance(content):
     flow_count = 0
     flow_sizes = []
     
+    total_time_ms = None
+    simulation_time_ms = None
+
     for line in lines:
         # 提取网络拓扑信息
         if 'SERVER_COUNT' in line:
@@ -4080,12 +4460,27 @@ def analyze_performance(content):
             size_match = re.search(r'flowsize\s+(\d+)', line)
             if size_match:
                 flow_sizes.append(int(size_match.group(1)))
+        
+        # 提取总时间/仿真时间（ms）
+        if total_time_ms is None:
+            time_match = re.search(r'total\s+time:\s*([\d\.]+)\s*ms', line, flags=re.IGNORECASE)
+            if time_match:
+                total_time_ms = float(time_match.group(1))
+        if simulation_time_ms is None:
+            sim_match = re.search(r'simulation\s+time:\s*([\d\.]+)\s*ms', line, flags=re.IGNORECASE)
+            if sim_match:
+                simulation_time_ms = float(sim_match.group(1))
     
     # 计算统计信息
     result = {
         "has_data": True,
         "file_size": len(content),
         "total_lines": len(lines),
+        "total_time_ms": total_time_ms,
+        "simulation_time_ms": simulation_time_ms,
+        "total_time_sec": total_time_ms / 1000.0 if total_time_ms is not None else None,
+        "simulation_time_sec": simulation_time_ms / 1000.0 if simulation_time_ms is not None else None,
+        "runtime_ratio": (total_time_ms / simulation_time_ms) if total_time_ms and simulation_time_ms else None,
         "network_config": {
             "server_count": server_count,
             "leaf_count": leaf_count,
@@ -4155,6 +4550,13 @@ def generate_analysis_summary(results):
             )
         else:
             summary_parts.append(f"性能分析: {perf.get('error', '无数据')}")
+
+    comparison = results.get("comparison")
+    if isinstance(comparison, dict) and comparison.get("fct_fidelity") is not None:
+        summary_parts.append(
+            f"对比分析: FCT保真度={comparison.get('fct_fidelity'):.3f}, "
+            f"加速比={comparison.get('speedup', 0):.3f}"
+        )
     
     return "; ".join(summary_parts) if summary_parts else "暂无仿真结果，请先运行仿真"
 
@@ -4224,6 +4626,24 @@ async def health_check():
         "message": "API服务正常运行",
         "simulation_running": simulation_status.is_running,
         "steady_state": simulation_status.steady_state
+    }
+
+
+@app.get("/baseline-status")
+async def baseline_status_check():
+    """检查包粒度基线结果是否存在"""
+    base_dir = Path(__file__).absolute().parent.parent
+    baseline_dump = base_dir / "dump_baseline"
+    current_signature = _compute_load_signature(base_dir)
+    baseline_meta = _read_baseline_meta(baseline_dump / "metadata.json")
+    baseline_signature = baseline_meta.get("load_signature")
+    return {
+        "success": True,
+        "has_baseline": _has_dump_payload(baseline_dump),
+        "is_running": baseline_status.is_running,
+        "last_started": baseline_status.last_started,
+        "last_finished": baseline_status.last_finished,
+        "needs_refresh": bool(current_signature and current_signature != baseline_signature)
     }
 
 # ==================== 文件访问接口 ====================
@@ -4377,6 +4797,15 @@ async def list_files(directory: str = "."):
                 "is_dir": item.is_dir(),
                 "size": item.stat().st_size if item.is_file() else 0
             })
+
+        def _numeric_key(entry: Dict[str, Any]) -> Tuple[int, List[int], str]:
+            name = entry.get("name", "")
+            nums = re.findall(r"\d+", name)
+            if nums:
+                return (0, [int(n) for n in nums], name)
+            return (1, [], name)
+
+        files.sort(key=_numeric_key)
         
         return {
             "success": True,

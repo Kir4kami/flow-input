@@ -793,6 +793,14 @@
             </p>
           </div>
           <div class="input-group">
+            <label>流量类型：</label>
+            <select v-model="load.model_name">
+              <option value="deepseek">deepseek</option>
+              <option value="qwen">qwen</option>
+            </select>
+            <p class="info-text">模板参考 TrafficGenerator/deepseek.txt 与 qwen.txt</p>
+          </div>
+          <div class="input-group">
             <label>消息大小：</label>
             <input v-model="load.msg_len" type="text" placeholder="例如: 32*(1024)">
           </div>
@@ -809,9 +817,12 @@
           <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!(loadResult || customTrafficResult)">
             热力图与负载流量可视化
           </button>
+          <button class="btn btn-info" @click="showHeatmapAndFlowSimple" :disabled="!(loadResult || customTrafficResult)">
+            全屏查看
+          </button>
           <div class="input-group" style="margin-top: 10px;">
             <label>自定义流量文件：</label>
-            <input type="file" @change="handleCustomTrafficFileChange" accept=".txt,.log,.csv">
+            <input type="file" ref="customTrafficFileInput" @change="handleCustomTrafficFileChange" accept=".txt,.log,.csv">
             <p class="info-text">
               支持 rdma_operate 格式，或每行 "src dst [msg_len]" 的文本格式
             </p>
@@ -824,7 +835,7 @@
               清除自定义流量
             </button>
           </div>
-          <div v-if="customTrafficResult" class="result-box" style="margin-top: 10px;">
+          <div v-if="customTrafficResult && !loadResult" class="result-box" style="margin-top: 10px;">
             <p><strong>自定义流量已生成</strong></p>
             <p class="info-text">文件: {{ customTrafficResult.filename }}</p>
             <p class="info-text">节点数量: {{ load.host_num }}</p>
@@ -1120,9 +1131,41 @@
                     <strong>总流数:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.total_flows || 0 }}<br>
                     <strong>平均流大小:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.average_flow_size_MB?.toFixed(2) || 0 }} MB
                   </p>
+                  <p v-if="analysisResult.results.performance_analysis.memory_mb !== null && analysisResult.results.performance_analysis.memory_mb !== undefined">
+                    <strong>内存使用:</strong> {{ analysisResult.results.performance_analysis.memory_mb?.toFixed(2) || 0 }} MB
+                  </p>
                 </div>
                 <p v-else style="color: #999;">
                   {{ analysisResult.results.performance_analysis.error || '无数据' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.baseline_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">包粒度基线结果</h4>
+                <div v-if="analysisResult.results.baseline_analysis.fct_analysis?.file_found">
+                  <p>
+                    <strong>基线平均FCT:</strong> {{ analysisResult.results.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs
+                  </p>
+                </div>
+                <p v-else style="color: #999;">
+                  {{ analysisResult.results.baseline_analysis.fct_analysis?.error || '未获取基线结果' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.comparison" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">对比指标（实验 vs 包粒度）</h4>
+                <p>
+                  <strong>FCT保真度:</strong> {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间加速比（基线/实验）:</strong> {{ analysisResult.results.comparison.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间差值（基线-实验）:</strong> {{ analysisResult.results.comparison.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>实验总时间:</strong> {{ analysisResult.results.comparison.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>基线总时间:</strong> {{ analysisResult.results.comparison.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
+                </p>
+                <p v-if="analysisResult.results.comparison.runtime_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.runtime_note }}
+                </p>
+                <p v-if="analysisResult.results.comparison.memory_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.memory_note }}
                 </p>
               </div>
             </div>
@@ -1304,8 +1347,12 @@
         <div style="display: flex; gap: 20px; width: 95vw; height: 95vh; margin: 20px auto; max-width: 95vw;">
           <!-- 左侧：热力图 -->
           <div style="flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); overflow: hidden; display: flex; flex-direction: column;">
-            <!-- 热力图控制栏 -->
-            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
+            <div v-if="fullscreenSimpleMode" style="margin-bottom: 12px; display: flex; justify-content: center;" @click.stop>
+              <button class="btn btn-success" @click="startSynchronizedAnimation" :disabled="synchronizedRunning || heatmapAnimationRunning || flowAnimationRunning" style="padding: 8px 18px; font-size: 13px; font-weight: 600;">
+                {{ synchronizedRunning ? '运行中...' : '开始' }}
+              </button>
+            </div>
+            <div v-else style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
               <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">热力图</h3>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" @click="startHeatmapAnimation" :disabled="heatmapAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
@@ -1317,10 +1364,12 @@
                 <span style="font-size: 12px; color: #666; margin-left: 15px;">
                   最大值: {{ heatmapMaxValue }}
                 </span>
+                <div style="display: flex; gap: 8px; align-items: center; font-size: 11px; color: #555; margin-left: 10px;">
+                  <span>标注: TP / EP / PP / DP</span>
+                </div>
               </div>
             </div>
-            <!-- 同时运行按钮与进度条 -->
-            <div style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px; border: 1px solid #1890ff;" @click.stop>
+            <div v-else style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px; border: 1px solid #1890ff;" @click.stop>
               <button class="btn btn-success" @click="startSynchronizedAnimation" :disabled="synchronizedRunning || heatmapAnimationRunning || flowAnimationRunning" style="padding: 8px 16px; font-size: 13px; font-weight: 600; width: 100%;">
                 {{ synchronizedRunning ? '同步运行中...' : '🚀 同时运行' }}
               </button>
@@ -1332,8 +1381,7 @@
           </div>
           <!-- 右侧：负载流量（包含搜索和可视化） -->
           <div style="flex: 1; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); overflow: hidden; display: flex; flex-direction: column;">
-            <!-- 负载流量控制栏 -->
-            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
+            <div v-if="!fullscreenSimpleMode" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;" @click.stop>
               <h3 style="margin-bottom: 10px; font-size: 16px; font-weight: 600;">负载流量可视化</h3>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-primary" @click="startFlowAnimation" :disabled="flowAnimationRunning || synchronizedRunning" style="padding: 6px 12px; font-size: 12px; margin: 0;">
@@ -1347,8 +1395,7 @@
                 </button>
               </div>
             </div>
-            <!-- 搜索和流量列表 -->
-            <div style="border: 1px solid #e8e8e8; border-radius: 8px; margin-bottom: 10px; background: #fafafa; max-height: 250px; display: flex; flex-direction: column; overflow: hidden;">
+            <div v-if="!fullscreenSimpleMode" style="border: 1px solid #e8e8e8; border-radius: 8px; margin-bottom: 10px; background: #fafafa; max-height: 250px; display: flex; flex-direction: column; overflow: hidden;">
               <div style="padding: 10px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;">
                 <div style="font-weight: 600; margin-bottom: 8px; font-size: 14px;">流量列表</div>
                 <input v-model="flowListFilter" type="text" placeholder="搜索 H0 / H1 / 文件名" style="width: 100%; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; box-sizing: border-box;">
@@ -1374,7 +1421,6 @@
                 </div>
               </div>
             </div>
-            <!-- 可视化区域 -->
             <div id="fullscreen-flow-visualization-container" style="flex: 1; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; position: relative; min-height: 400px;"></div>
           </div>
         </div>
@@ -1491,7 +1537,8 @@
             msg_len: '32*(1024)',
             dp: 8,
             device: 0,
-            forward: 1
+            forward: 1,
+            model_name: 'deepseek'
           },
           isGeneratingLoad: false,
           loadResult: null,
@@ -1617,10 +1664,12 @@
           heatmapAnimationRunning: false,
           heatmapAnimationIndex: 0,
           heatmapMatrix: null,
+          heatmapTypeMatrix: null,
           heatmapMaxValue: 0,
           fullscreenHeatmap: {
             show: false
           },
+          fullscreenSimpleMode: false,
           
           // 同步运行
           synchronizedRunning: false,
@@ -1628,7 +1677,6 @@
           synchronizedFlowTotal: 0,
           synchronizedFlowInterval: 2600,
           synchronizedFlowTimer: null,
-          
           // 全屏流量可视化
           fullscreenFlow: {
             show: false,
@@ -2141,8 +2189,14 @@
               this.loadResult = result
               this.loadGenerated = true
               this.loadSource = 'generated'
+              
+              // 清除自定义流量相关状态
               this.customTrafficResult = null
               this.customTrafficFile = null
+              // 清除文件输入框的值（需要通过DOM操作）
+              if (this.$refs.customTrafficFileInput) {
+                this.$refs.customTrafficFileInput.value = ''
+              }
               
               // 清除旧的流量数据，强制重新加载
               this.flowData = null
@@ -2179,6 +2233,10 @@
         clearCustomTraffic() {
           this.customTrafficFile = null
           this.customTrafficResult = null
+          // 清除文件输入框的值
+          if (this.$refs.customTrafficFileInput) {
+            this.$refs.customTrafficFileInput.value = ''
+          }
         },
 
         async uploadCustomTraffic() {
@@ -2253,6 +2311,7 @@
         // 显示热力图和负载流量（直接全屏）
         async showHeatmapAndFlow() {
           try {
+            this.fullscreenSimpleMode = false
             // 先获取负载流量数据
             if (!this.flowData) {
               this.showToast('正在获取负载数据...', 'info')
@@ -2267,23 +2326,29 @@
             // 准备热力图数据
             let flows = []
             if (this.flowData.flow_records && Array.isArray(this.flowData.flow_records)) {
-              flows = this.flowData.flow_records.map(f => ({ src: f.src, dst: f.dst }))
+              flows = this.flowData.flow_records.map(f => ({
+                src: f.src,
+                dst: f.dst,
+                type: this.normalizeFlowType(f.flow_type || f.type || this.extractFlowTypeFromFile(f.file))
+              }))
             } else if (this.flowData.edges && Array.isArray(this.flowData.edges)) {
               flows = this.flowData.edges
                 .filter(e => e.type === 'flow')
-                .map(e => ({ src: e.source, dst: e.target }))
+                .map(e => ({ src: e.source, dst: e.target, type: 'UNK' }))
             }
             
             const numHosts = this.load.host_num || 64
             const matrix = Array(numHosts).fill(0).map(() => Array(numHosts).fill(0))
             const flowList = []
+            const typeMatrix = this.createHeatmapTypeMatrix(numHosts)
             
             flows.forEach(flow => {
               const src = parseInt(flow.src)
               const dst = parseInt(flow.dst)
               if (src >= 0 && src < numHosts && dst >= 0 && dst < numHosts) {
                 matrix[src][dst]++
-                flowList.push({ src, dst })
+                flowList.push({ src, dst, type: flow.type })
+                this.incrementHeatmapType(typeMatrix, src, dst, flow.type)
               }
             })
             
@@ -2303,6 +2368,79 @@
               totalFlows: flowList.length
             }
             this.heatmapMatrix = Array(numHosts).fill(0).map(() => Array(numHosts).fill(0))
+            this.heatmapTypeMatrix = typeMatrix
+            this.heatmapMaxValue = maxValue
+            this.heatmapAnimationIndex = 0
+            this.heatmapAnimationRunning = false
+            
+            // 直接打开全屏
+            this.openFullscreenHeatmapAndFlow()
+          } catch (error) {
+            this.showToast(`错误: ${error.message}`, 'error')
+            console.error('显示热力图和负载流量失败:', error)
+          }
+        },
+
+        async showHeatmapAndFlowSimple() {
+          try {
+            this.fullscreenSimpleMode = true
+            // 先获取负载流量数据
+            if (!this.flowData) {
+              this.showToast('正在获取负载数据...', 'info')
+              await this.visualizeLoadFlow()
+            }
+            
+            if (!this.flowData) {
+              this.showToast('没有负载数据，请先生成负载', 'error')
+              return
+            }
+            
+            // 准备热力图数据
+            let flows = []
+            if (this.flowData.flow_records && Array.isArray(this.flowData.flow_records)) {
+              flows = this.flowData.flow_records.map(f => ({
+                src: f.src,
+                dst: f.dst,
+                type: this.normalizeFlowType(f.flow_type || f.type || this.extractFlowTypeFromFile(f.file))
+              }))
+            } else if (this.flowData.edges && Array.isArray(this.flowData.edges)) {
+              flows = this.flowData.edges
+                .filter(e => e.type === 'flow')
+                .map(e => ({ src: e.source, dst: e.target, type: 'UNK' }))
+            }
+            
+            const numHosts = this.load.host_num || 64
+            const matrix = Array(numHosts).fill(0).map(() => Array(numHosts).fill(0))
+            const flowList = []
+            const typeMatrix = this.createHeatmapTypeMatrix(numHosts)
+            
+            flows.forEach(flow => {
+              const src = parseInt(flow.src)
+              const dst = parseInt(flow.dst)
+              if (src >= 0 && src < numHosts && dst >= 0 && dst < numHosts) {
+                matrix[src][dst]++
+                flowList.push({ src, dst, type: flow.type })
+                this.incrementHeatmapType(typeMatrix, src, dst, flow.type)
+              }
+            })
+            
+            let maxValue = 0
+            for (let i = 0; i < numHosts; i++) {
+              for (let j = 0; j < numHosts; j++) {
+                if (matrix[i][j] > maxValue) {
+                  maxValue = matrix[i][j]
+                }
+              }
+            }
+            
+            this.heatmapData = {
+              matrix,
+              flowList,
+              numHosts,
+              totalFlows: flowList.length
+            }
+            this.heatmapMatrix = Array(numHosts).fill(0).map(() => Array(numHosts).fill(0))
+            this.heatmapTypeMatrix = typeMatrix
             this.heatmapMaxValue = maxValue
             this.heatmapAnimationIndex = 0
             this.heatmapAnimationRunning = false
@@ -2381,6 +2519,7 @@
               const value = this.heatmapMatrix[row][col]
               return colorScale(value)
             })
+
             .attr('stroke', d => {
               const row = Math.floor(d / numHosts)
               const col = d % numHosts
@@ -2399,8 +2538,11 @@
               const row = Math.floor(d / numHosts)
               const col = d % numHosts
               const value = this.heatmapMatrix[row][col]
-              return `发送方: H${row}, 接收方: H${col}, 流量数: ${value}`
+              const typeSummary = this.getHeatmapCellTypeSummary(row, col)
+              return `发送方: H${row}, 接收方: H${col}, 流量数: ${value}${typeSummary ? `, 类型: ${typeSummary}` : ''}`
             })
+          
+          // 类型信息改为悬浮提示，不在格子内显示文字
           
           // 绘制坐标轴标签
           const labelGroup = svg.append('g')
@@ -2512,6 +2654,7 @@
           // 重置矩阵
           this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
             .map(() => Array(this.heatmapData.numHosts).fill(0))
+          this.heatmapTypeMatrix = this.createHeatmapTypeMatrix(this.heatmapData.numHosts)
           this.heatmapAnimationIndex = 0
           this.heatmapAnimationRunning = true
           
@@ -2540,6 +2683,7 @@
             for (let i = 0; i < batchSize && this.heatmapAnimationIndex < this.heatmapData.flowList.length; i++) {
               const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
               this.heatmapMatrix[flow.src][flow.dst]++
+              this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
               this.heatmapAnimationIndex++
             }
             
@@ -2565,6 +2709,7 @@
           this.heatmapAnimationRunning = false
           this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
             .map(() => Array(this.heatmapData.numHosts).fill(0))
+          this.heatmapTypeMatrix = this.createHeatmapTypeMatrix(this.heatmapData.numHosts)
           this.heatmapAnimationIndex = 0
           // 根据当前视图更新
           if (this.modal && this.modal.type === 'heatmap-and-flow') {
@@ -2601,6 +2746,7 @@
           // 重置状态
           this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
             .map(() => Array(this.heatmapData.numHosts).fill(0))
+          this.heatmapTypeMatrix = this.createHeatmapTypeMatrix(this.heatmapData.numHosts)
           this.heatmapAnimationIndex = 0
           this.synchronizedFlowIndex = 0
           this.synchronizedFlowTotal = heatmapBatches
@@ -2629,6 +2775,7 @@
             for (let i = 0; i < batchSize && this.heatmapAnimationIndex < heatmapTotalFlows; i++) {
               const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
               this.heatmapMatrix[flow.src][flow.dst]++
+              this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
               this.heatmapAnimationIndex++
             }
             
@@ -2661,6 +2808,87 @@
           animateHeatmap()
           
           this.showToast('同步运行已开始', 'info')
+        },
+
+        createHeatmapTypeMatrix(numHosts) {
+          return Array(numHosts).fill(0).map(() =>
+            Array(numHosts).fill(0).map(() => ({
+              TP: 0,
+              EP: 0,
+              PP: 0,
+              DP: 0,
+              UNK: 0
+            }))
+          )
+        },
+
+        normalizeFlowType(rawType) {
+          const value = (rawType || '').toString().toUpperCase()
+          if (value === 'TP' || value === 'EP' || value === 'PP' || value === 'DP') {
+            return value
+          }
+          return 'UNK'
+        },
+
+        extractFlowTypeFromFile(filePath) {
+          if (!filePath) return 'UNK'
+          const match = filePath.toString().toUpperCase().match(/(TP|EP|PP|DP)/)
+          return match ? match[1] : 'UNK'
+        },
+
+        incrementHeatmapType(typeMatrix, src, dst, rawType) {
+          if (!typeMatrix || !typeMatrix[src] || !typeMatrix[src][dst]) return
+          const typeKey = this.normalizeFlowType(rawType)
+          typeMatrix[src][dst][typeKey]++
+        },
+
+        getHeatmapCellDominantType(row, col) {
+          if (!this.heatmapTypeMatrix || !this.heatmapTypeMatrix[row] || !this.heatmapTypeMatrix[row][col]) {
+            return 'UNK'
+          }
+          const counts = this.heatmapTypeMatrix[row][col]
+          let dominant = 'UNK'
+          let max = 0
+          Object.keys(counts).forEach((key) => {
+            if (counts[key] > max) {
+              max = counts[key]
+              dominant = key
+            }
+          })
+          return dominant
+        },
+
+        getHeatmapCellTypeLabel(row, col) {
+          if (!this.heatmapTypeMatrix || !this.heatmapTypeMatrix[row] || !this.heatmapTypeMatrix[row][col]) {
+            return ''
+          }
+          const counts = this.heatmapTypeMatrix[row][col]
+          const entries = Object.entries(counts)
+            .filter(([key, value]) => value > 0 && key !== 'UNK')
+            .sort((a, b) => b[1] - a[1])
+          if (entries.length === 0) {
+            return counts.UNK > 0 ? 'UNK' : ''
+          }
+          const labels = entries.slice(0, 2).map(([key]) => key)
+          return entries.length > 2 ? `${labels.join('/')}` : labels.join('/')
+        },
+
+        getHeatmapCellTypeSummary(row, col) {
+          if (!this.heatmapTypeMatrix || !this.heatmapTypeMatrix[row] || !this.heatmapTypeMatrix[row][col]) {
+            return ''
+          }
+          const counts = this.heatmapTypeMatrix[row][col]
+          const ordered = ['TP', 'EP', 'PP', 'DP']
+          const parts = ordered
+            .filter((key) => counts[key] > 0)
+            .map((key) => `${key}:${counts[key]}`)
+          if (!parts.length && counts.UNK > 0) {
+            return `UNK:${counts.UNK}`
+          }
+          if (parts.length && counts.UNK > 0) {
+            parts.push(`UNK:${counts.UNK}`)
+          }
+          return parts.join(', ')
         },
 
         // 停止同步运行
@@ -2707,7 +2935,7 @@
           if (this.synchronizedRunning) {
             this.stopSynchronizedAnimation()
           }
-          
+
           // 停止热力图动画
           this.heatmapAnimationRunning = false
           
@@ -2766,6 +2994,7 @@
           
           // 关闭全屏
           this.fullscreenHeatmap.show = false
+          this.fullscreenSimpleMode = false
         },
 
         // 可视化负载流量
@@ -4787,6 +5016,22 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
         async analyzeResults() {
           this.isAnalyzing = true
           try {
+            try {
+              const baselineResponse = await fetch(`${this.apiUrl}/baseline-status`)
+              if (baselineResponse.ok) {
+                const baselineInfo = await baselineResponse.json()
+                if (baselineInfo && baselineInfo.needs_refresh) {
+                  this.showToast('检测到实验变化，正在重跑包粒度基线...', 'info')
+                } else if (baselineInfo && !baselineInfo.has_baseline) {
+                  this.showToast('正在跑包粒度基线，请稍候...', 'info')
+                } else if (baselineInfo && baselineInfo.is_running) {
+                  this.showToast('包粒度基线正在运行，请稍候...', 'info')
+                }
+              }
+            } catch (baselineError) {
+              console.warn('[WARNING] 获取基线状态失败:', baselineError)
+            }
+
             const response = await fetch(`${this.apiUrl}/analyze-results`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
