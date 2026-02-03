@@ -1,6 +1,321 @@
 ===== Transition Stage: 0 =====
-No difference detected.
-===== Transition Stage: 1 =====
-No difference detected.
-===== Transition Stage: 2 =====
-No difference detected.
+Switch ID: 128
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 129
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 130
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 131
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 132
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 133
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 134
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 135
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 136
+  Ingress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 9 queue 3: enter=60, exit=60, delta=0
+  Egress port 10 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 137
+  Ingress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 9 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 138
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 9 queue 3: enter=1048, exit=1048, delta=0
+  Ingress port 12 queue 3: enter=60, exit=60, delta=0
+
+Switch ID: 139
+  Ingress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 12 queue 3: enter=60, exit=60, delta=0
+
+Switch ID: 140
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 12 queue 3: enter=1048, exit=1048, delta=0
+
+Switch ID: 141
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 10 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 142
+  Ingress port 1 queue 3: enter=1048, exit=1048, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 9 queue 3: enter=1048, exit=1048, delta=0
+  Ingress port 11 queue 3: enter=60, exit=60, delta=0
+
+Switch ID: 143
+  Ingress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Egress port 1 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 2 queue 3: enter=60, exit=60, delta=0
+  Egress port 2 queue 3: enter=1108, exit=1108, delta=0
+  Ingress port 3 queue 3: enter=60, exit=60, delta=0
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 4 queue 3: enter=60, exit=60, delta=0
+  Ingress port 5 queue 3: enter=60, exit=60, delta=0
+  Egress port 5 queue 3: enter=60, exit=60, delta=0
+  Ingress port 6 queue 3: enter=60, exit=60, delta=0
+  Egress port 6 queue 3: enter=60, exit=60, delta=0
+  Ingress port 7 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 11 queue 3: enter=60, exit=60, delta=0
+  Ingress port 12 queue 3: enter=1108, exit=1108, delta=0
+
+Switch ID: 145
+  Egress port 3 queue 3: enter=60, exit=60, delta=0
+  Ingress port 4 queue 3: enter=60, exit=60, delta=0
+  Egress port 7 queue 3: enter=60, exit=60, delta=0
+  Ingress port 8 queue 3: enter=60, exit=60, delta=0
+  Egress port 8 queue 3: enter=60, exit=60, delta=0
+  Ingress port 9 queue 3: enter=60, exit=60, delta=0
+  Egress port 10 queue 3: enter=60, exit=60, delta=0
+  Ingress port 11 queue 3: enter=60, exit=60, delta=0
+  Egress port 14 queue 3: enter=60, exit=60, delta=0
+  Ingress port 15 queue 3: enter=60, exit=60, delta=0
+
+Switch ID: 147
+  Ingress port 1 queue 3: enter=60, exit=60, delta=0
+  Egress port 16 queue 3: enter=60, exit=60, delta=0
+

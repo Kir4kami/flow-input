@@ -169,6 +169,9 @@ public:
 	uint64_t txBytesIngress[pCnt][qCnt];
 	uint64_t txBytesEgress[pCnt][qCnt];
 	uint64_t bandwidth[pCnt];
+	// 累积统计：进入和离开端口的总字节数
+	uint64_t totalIngressBytes[pCnt][qCnt]; // 进入端口的总字节数（累积值）
+	uint64_t totalEgressBytes[pCnt][qCnt];  // 离开端口的总字节数（累积值）
 	uint32_t congestionIndicator;
 	double alphaHigh;
 	double updateIntervalNS;

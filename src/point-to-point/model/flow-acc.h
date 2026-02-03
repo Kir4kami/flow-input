@@ -5,6 +5,7 @@
 #include<set>
 #include<string>
 #include<vector>
+#include<deque>
 #include "ns3/nstime.h"
 
 using namespace std;
@@ -12,12 +13,29 @@ using namespace std;
 // 流统计结构体，记录字节数和时间戳
 struct FlowStat {
     uint64_t byteCount;    // 累计的字节数
-    uint64_t timestamp;    // 数据包到达的时间戳（单位：毫秒）
+    uint64_t timestamp;    // 数据包到达的时间戳（单位：纳秒）
     std::vector<double> rate;   //用来存储速率的队列
     bool ifnewpacket = true; //新的周期内是否有新数据包进入
     int size = 10;//队列大小(判断是否进入稳态)
     bool steadyStateReached = false; //是否进入稳态的标志
     uint32_t steadyCooldown = 0; //稳态降级缓冲周期计数
+    
+    // 【新增】基于数据包到达间隔的速率计算
+    uint64_t lastPacketTime;  // 上一个数据包的到达时间
+    uint64_t lastPacketSize;  // 上一个数据包的大小
+
+    std::deque<std::pair<uint64_t, uint64_t>> packetWindow;  // <时间戳, 字节数> 滑动窗口
+    uint64_t windowSize = 100000;  // 滑动窗口大小（100微秒）
+    
+    // 【修改】固定时间窗口速率计算（替代滑动窗口）
+    uint64_t monitorWindowStartTime = 0;  // 监测时间窗口开始时间
+    uint64_t monitorWindowSize = 3000;   // 监测时间窗口大小（纳秒），默认3000ns（对应phase:3000）
+    uint64_t monitorWindowBytes = 0;     // 监测时间窗口内累计的字节数
+    uint64_t monitorWindowPacketCount = 0; // 监测时间窗口内的数据包数量
+    
+    // 【新增】流级别的累计字节数统计
+    uint64_t totalIngressBytes = 0;  // 该流进入端口的总字节数（累积值）
+    uint64_t totalEgressBytes = 0;    // 该流离开端口的总字节数（累积值）
 
 };
 
@@ -29,7 +47,7 @@ struct NodeStat{
 
 constexpr uint32_t pCnt = 257;  // 端口数量
 constexpr uint32_t qCnt = 8;    // 队列数量
-constexpr double kSteadyRelativeThreshold = 0.2; // 稳态相对波动阈值
+constexpr double kSteadyRelativeThreshold = 0.01; // 稳态相对波动阈值
 constexpr uint32_t kSteadyMinSamples = 5;         // 判定稳态的最小样本数,没有用到
 constexpr uint32_t kSteadyCooldownCycles = 3;     // 稳态降级前的缓冲周期数
 constexpr double kSteadyRateEpsilon = 1e-9;       // 避免除零的速率下限
@@ -82,6 +100,10 @@ extern std::set<string> flow_fin_unack; //已发送待确认的流
 //extern std::set<string> flow_fin_ack;
 
 extern bool g_enableSwitchDiffLogging;//在开启跃迁时，是否记录进入稳态和退出稳态SwitchStats的差异
+extern bool flag_ENABLE_SWITCH_PORT_RATE_CALC; // 启用交换机端口流速率计算
+extern bool flag_ENABLE_SWITCH_PORT_RATE_LOG; // 启用交换机端口流速率日志输出
+extern bool flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG; // 启用交换机端口队列数据量日志输出
+extern bool flag_ENABLE_QBB_DEVICE_RATE_CALC; // 启用QbbNetDevice接收端流速率计算
 
 bool IsAllZero(const SwitchStat& stat);
 void loadFlowSwitchStats(const std::string &filename);

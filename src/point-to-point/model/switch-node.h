@@ -2,6 +2,11 @@
 #define SWITCH_NODE_H
 
 #include <unordered_map>
+#include <map>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <deque>
 #include <ns3/node.h>
 #include "qbb-net-device.h"
 #include "switch-mmu.h"
@@ -70,11 +75,41 @@ public:
 	void BandWidthMonitor(Ptr<Packet> packet, CustomHeader &ch);
 	void Caculate(Ptr<Packet> packet, CustomHeader &ch);
 
+	// 交换机端口流速率计算
+	void CalculateFlowRateAtPort(uint32_t port, const std::string& flowid, uint16_t packetSize, bool isIngress = true, uint32_t qIndex = 0);
+	std::string GenerateFlowIdFromPacket(Ptr<Packet> packet, CustomHeader &ch);
+	
+	// 获取端口数据量
+	void GetPortQueueBytes(uint32_t port, uint32_t qIndex, uint64_t& ingressBytes, uint64_t& egressBytes, uint64_t& ingressLpfBytes, uint64_t& egressLpfBytes);
+	
+	// 获取端口累积统计（进入和离开的总字节数）
+	void GetPortTotalBytes(uint32_t port, uint32_t qIndex, uint64_t& totalIngressBytes, uint64_t& totalEgressBytes);
+	
+	// 输出端口数据量
+	void LogPortQueueBytes(uint32_t port, uint32_t qIndex, bool isIngress, uint64_t currentTime, const std::string& flowid = "");
+	
+	// 输出速率到CSV文件
+	void LogRateToCsv(uint32_t port, uint32_t qIndex, bool isIngress, const std::string& flowid, double avgRate, double instantRate, 
+	                  uint64_t windowStart, uint64_t windowEnd, uint64_t windowBytes, uint64_t packetCount, uint64_t currentTime);
+	
+	// 输出端口数据量到CSV文件
+	void LogPortQueueBytesToCsv(uint32_t port, uint32_t qIndex, bool isIngress, const std::string& flowid, uint64_t currentTime);
+	
+	// 输出与流相关的交换机端口数据量（该流经过的入端口和出端口）
+	void LogFlowRelatedPortsQueueBytes(const std::string& flowid, uint32_t inPort, uint32_t outPort, uint32_t qIndex, uint64_t currentTime);
+	
+	// 记录PFC详细统计信息到CSV文件
+	void LogPfcDetailedStats(uint32_t port, uint32_t queue, bool pause);
+	
 	// for approximate calc in PINT
 	int logres_shift(int b, int l);
 	int log2apprx(int x, int b, int m, int l); // given x of at most b bits, use most significant m bits of x, calc the result in l bits
-};
 
+private:
+	// 每个交换机的每个端口的流统计信息：switchId -> port -> flowid -> FlowStat
+	// 使用交换机ID作为第一层键，确保不同交换机的数据完全隔离
+	std::map<uint32_t, std::map<uint32_t, std::map<std::string, FlowStat>>> m_switchPortFlowStats;
+};
 } /* namespace ns3 */
 
 #endif /* SWITCH_NODE_H */

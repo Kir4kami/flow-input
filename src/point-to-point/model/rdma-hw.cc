@@ -440,6 +440,7 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 			std::ostringstream oss;
 			oss << ((qp->sip.Get() >> 8)&0xffff) << "-" << ((qp->dip.Get() >>8) &0xffff) << "-" << qp->sport << "-" << qp->dport;
 			std::string flowid = oss.str();
+			//发送端确认接收端已收到所有数据，流真正完成
 			auto iter=flow_fin_unack.find(flowid);
 			if(iter!=flow_fin_unack.end())
 				flow_fin_unack.erase(iter);

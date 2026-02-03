@@ -35,8 +35,12 @@ build_lib(
     model/rdma-queue-pair.cc
     model/switch-mmu.cc
     model/switch-node.cc
+    model/switch-timing-tag.cc
     helper/qbb-helper.cc
     model/flow-acc.cc
+    model/simplified-switch-simulator-wrapper.cc
+    model/simplified-switch-node.cc
+    model/output-directory.cc
   HEADER_FILES
     ${mpi_headers}
     helper/point-to-point-helper.h
@@ -55,10 +59,14 @@ build_lib(
     model/rdma-queue-pair.h
     model/switch-mmu.h
     model/switch-node.h
+    model/switch-timing-tag.h
     model/trace-format.h
     helper/qbb-helper.h
     helper/sim-setting.h
     model/flow-acc.h
+    model/simplified-switch-simulator-wrapper.h
+    model/simplified-switch-node.h
+    model/output-directory.h
   LIBRARIES_TO_LINK ${libnetwork}
                     ${mpi_libraries}
                     ${internet}

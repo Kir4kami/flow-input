@@ -10,7 +10,7 @@ using namespace std;
 
 // 构造函数，初始化监测周期
 std::map<uint32_t, NodeStat>NodeStats;
-uint64_t MONITOR_PERIOD =100000; // 监测周期(ns)
+uint64_t MONITOR_PERIOD =10000; // 监测周期(ns)
 
 
 std::map<uint32_t,SwitchStat> SwitchStats;
@@ -21,7 +21,7 @@ std::vector<SwitchStatsPair> multiSwitchStats;
 bool isFirstOpen = true;
 bool isFirstOpen_SwitchStats=true;
 bool isFirstOpen_SwitchDiff = true;
-bool g_enableSwitchDiffLogging = false;
+bool g_enableSwitchDiffLogging = true;  //是否记录进入稳态和退出稳态SwitchStats的差异
 std::map<std::string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
 uint64_t steadyStateStartTime = 0;  // 记录稳态进入时间
 bool inSteadyState = false;         // 标识系统是否处于稳态
@@ -31,6 +31,10 @@ double next_trans_avail=0; //更新下一次状态转换时间
 std::map<uint32_t,ns3::Time> node_latency_fix;
 std::set<string> filter;
 std::set<string> flow_fin_unack; //已发送待确认的流
+bool flag_ENABLE_SWITCH_PORT_RATE_CALC = true; // 启用交换机端口流速率计算
+bool flag_ENABLE_SWITCH_PORT_RATE_LOG = true; // 启用交换机端口流速率日志输出
+bool flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG = true; // 启用交换机端口队列数据量日志输出
+bool flag_ENABLE_QBB_DEVICE_RATE_CALC = true; // 启用QbbNetDevice接收端流速率计算
 
 
 bool IsAllZero(const SwitchStat& stat) {
@@ -189,15 +193,15 @@ void LogSwitchStatsDiff(const std::map<uint32_t,SwitchStat>& normalStats,
         const SwitchStat& exitStat = exitIt->second;
 
         std::ostringstream switchStream;
-        bool switchHasDiff = false;
+        bool switchHasOutput = false;
 
         for (int port = 0; port < static_cast<int>(pCnt); ++port) {
             for (int queue = 0; queue < static_cast<int>(qCnt); ++queue) {
                 uint64_t ingressEnter = normalStat.ingress_bytes[port][queue];
                 uint64_t ingressExit = exitStat.ingress_bytes[port][queue];
-                int64_t ingressDelta = static_cast<int64_t>(ingressExit) - static_cast<int64_t>(ingressEnter);
-                if (ingressDelta != 0) {
-                    switchHasDiff = true;
+                if (ingressEnter != 0 || ingressExit != 0) {
+                    int64_t ingressDelta = static_cast<int64_t>(ingressExit) - static_cast<int64_t>(ingressEnter);
+                    switchHasOutput = true;
                     switchStream << "  Ingress port " << port << " queue " << queue
                                  << ": enter=" << ingressEnter
                                  << ", exit=" << ingressExit
@@ -206,9 +210,9 @@ void LogSwitchStatsDiff(const std::map<uint32_t,SwitchStat>& normalStats,
 
                 uint64_t egressEnter = normalStat.egress_bytes[port][queue];
                 uint64_t egressExit = exitStat.egress_bytes[port][queue];
-                int64_t egressDelta = static_cast<int64_t>(egressExit) - static_cast<int64_t>(egressEnter);
-                if (egressDelta != 0) {
-                    switchHasDiff = true;
+                if (egressEnter != 0 || egressExit != 0) {
+                    int64_t egressDelta = static_cast<int64_t>(egressExit) - static_cast<int64_t>(egressEnter);
+                    switchHasOutput = true;
                     switchStream << "  Egress port " << port << " queue " << queue
                                  << ": enter=" << egressEnter
                                  << ", exit=" << egressExit
@@ -217,7 +221,7 @@ void LogSwitchStatsDiff(const std::map<uint32_t,SwitchStat>& normalStats,
             }
         }
 
-        if (switchHasDiff) {
+        if (switchHasOutput) {
             anySwitch = true;
             stageStream << "Switch ID: " << switchId << std::endl;
             stageStream << switchStream.str();

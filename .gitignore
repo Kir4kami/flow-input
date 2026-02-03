@@ -21,3 +21,7 @@ examples/Reverie/Generator/TreeCut/ecmp_outputs
 examples/Reverie/Generator/TreeCut/TreeGroup
 examples/Reverie/Generator/TreeCut/rdma_result
 examples/Reverie/Generator/TreeCut/Input_
+examples/Reverie/Generator
+output
+examples/Reverie/results_compare_20260127_132031
+examples/Reverie/results_topology_default

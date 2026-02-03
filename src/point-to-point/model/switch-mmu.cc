@@ -117,6 +117,9 @@ SwitchMmu::SwitchMmu(void) {
 			txBytesEgress[port][q] = 0; // used for calculating dequeue rates. counter for tx bytes of egress queues
 			dequeueRateIngress[port][q] = 1; // normalized dequeue rate of an ingress queue
 			dequeueRateEgress[port][q]  = 1; // normalized dequeue rate of an egress queue
+			
+			totalIngressBytes[port][q] = 0; // 累积统计：进入端口的总字节数
+			totalEgressBytes[port][q] = 0;  // 累积统计：离开端口的总字节数
 		}
 	}
 
@@ -843,18 +846,23 @@ void SwitchMmu::UpdateIngressAdmission(uint32_t port, uint32_t qIndex, uint32_t 
 	// ingress_bytes[port][qIndex] - xoffUsed[port][qIndex] - GetIngressReservedUsed(port,qIndex) gives us the occupancy in ingress shared pool.
 	ingress_bytes[port][qIndex] += psize;
 	totalUsed += psize; // IMPORTANT: totalUsed is only updated in the ingress. No need to update in egress. Avoid double counting.
+	// 累积统计：累加进入端口的总字节数
+	totalIngressBytes[port][qIndex] += psize;
 
 	totalIngressReservedUsed += GetIngressReservedUsed(port, qIndex); // updating with the new reserved used.
 
 	// Update the total headroom used.
 	if (type == LOSSLESS) {
 		sharedPoolUsed += psize;
-		// uint64_t inst_ingress_shared_bytes = ingress_bytes[port][qIndex];//-xoffUsed[port][qIndex];
-		// ingressLpf_bytes[port][qIndex] = Reveriegamma * ingressLpf_bytes[port][qIndex] + (1.0 - Reveriegamma) * (inst_ingress_shared_bytes);
-		// if (ingress_bytes[port][qIndex] < ingressLpf_bytes[port][qIndex]) {
-		// // if (1){
-		// 	ingressLpf_bytes[port][qIndex] = ingress_bytes[port][qIndex];
-		// }
+		// Update ingressLpf_bytes before checking threshold to ensure accurate headroom usage detection
+		// This is important for numerical simulation where packet processing order may differ
+		uint64_t inst_ingress_shared_bytes = ingress_bytes[port][qIndex];//-xoffUsed[port][qIndex];
+		if (model == "reverie") {
+			ingressLpf_bytes[port][qIndex] = Reveriegamma * ingressLpf_bytes[port][qIndex] + (1.0 - Reveriegamma) * (inst_ingress_shared_bytes);
+			if (ingress_bytes[port][qIndex] < ingressLpf_bytes[port][qIndex]) {
+				ingressLpf_bytes[port][qIndex] = ingress_bytes[port][qIndex];
+			}
+		}
 		uint64_t threshold = 0;
 
 		if (model=="sonic"){
@@ -890,8 +898,6 @@ void SwitchMmu::UpdateIngressAdmission(uint32_t port, uint32_t qIndex, uint32_t 
 		}
 		// Finally, update the total headroom used by adding (since we removed before) the latest value of xoffUsed (headroom used) by the queue
 		xoffTotalUsed += xoffUsed[port][qIndex]; // add the current used headroom to total headroom
-		// uint64_t inst_ingress_shared_bytes = ingress_bytes[port][qIndex]-xoffUsed[port][qIndex];
-		// ingressLpf_bytes[port][qIndex] = Reveriegamma * ingressLpf_bytes [port][qIndex] + (1-Reveriegamma) * (inst_ingress_shared_bytes);
 	}
 }
 
@@ -982,6 +988,8 @@ void SwitchMmu::RemoveFromIngressAdmission(uint32_t port, uint32_t qIndex, uint3
 void SwitchMmu::RemoveFromEgressAdmission(uint32_t port, uint32_t qIndex, uint32_t psize, uint32_t type) {
 
 	txBytesEgress[port][qIndex] += psize; // We assume that the packet will not be dropped after this step for any other reason.
+	// 累积统计：累加离开端口的总字节数（数据包真正离开端口时）
+	totalEgressBytes[port][qIndex] += psize;
 
 	if (egress_bytes[port][qIndex] >= psize)
 		egress_bytes[port][qIndex] -= psize;

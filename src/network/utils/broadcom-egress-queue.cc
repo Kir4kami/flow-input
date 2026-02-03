@@ -17,6 +17,7 @@
 */
 #include <iostream>
 #include <stdio.h>
+#include <fstream>
 #include "ns3/log.h"
 #include "ns3/enum.h"
 #include "ns3/uinteger.h"
@@ -25,6 +26,9 @@
 #include "drop-tail-queue.h"
 #include "broadcom-egress-queue.h"
 #include "ns3/packet.h"
+
+// 外部声明：用于访问qbb-net-device.cc中的全局变量和标志
+extern bool flag_ENABLE_ROUND_ROBIN_DEBUG;
 
 
 namespace ns3 {
@@ -120,7 +124,12 @@ namespace ns3 {
 			{
 				for (qIndex = 1; qIndex <= qCnt; qIndex++)
 				{
-					if (!paused[(qIndex + m_rrlast) % qCnt] && m_queues[(qIndex + m_rrlast) % qCnt]->GetNPackets() > 0)  //round robin
+					uint32_t checkIdx = (qIndex + m_rrlast) % qCnt;
+					bool isPaused = paused[checkIdx];
+					uint32_t packetsInQueue = m_queues[checkIdx]->GetNPackets();
+					bool hasPackets = (packetsInQueue > 0);
+
+					if (!isPaused && hasPackets)  //round robin
 					{
 						found = true;
 						break;
@@ -144,7 +153,6 @@ namespace ns3 {
 			NS_LOG_LOGIC("Number bytes " << m_bytesInQueueTotal);
 			// vamsi
 			numTxBytes+=p->GetSize();
-//			std::cout << "numBytes" << numTxBytes << std::endl;
 			return p;
 		}
 		NS_LOG_LOGIC("Nothing can be sent");

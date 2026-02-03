@@ -109,6 +109,24 @@ public:
   void calculateMintime();
   //计算流完成时间的子函数
   void flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ);
+  // 方案1：流完成后重置相关流的稳态状态
+  void resetRemainingFlowsSteadyState();
+  // 记录交换机状态信息（只记录与指定流相关的交换机）
+  void LogSwitchQueueInfo(std::ofstream& flowstatsFile, uint64_t currentTime, const std::string& flowid);
+  // 记录所有交换机的队列信息（用于仿真开始和结束时）
+  void LogAllSwitchQueueInfo(std::ofstream& flowstatsFile, uint64_t currentTime, const std::string& label);
+  // 设置是否启用交换机队列记录
+  static void SetEnableSwitchQueueLogging(bool enable);
+  // 获取是否启用交换机队列记录
+  static bool GetEnableSwitchQueueLogging();
+  // 设置是否启用轮询调度调试日志（round_robin_debug.csv 和 rrlast_update.csv）
+  static void SetEnableRoundRobinDebug(bool enable);
+  // 获取是否启用轮询调度调试日志
+  static bool GetEnableRoundRobinDebug();
+  // 输出接收端速率到CSV文件
+  void LogReceiverRateToCsv(const std::string& flowid, double avgRate, double instantRate, 
+                             uint64_t windowStart, uint64_t windowEnd, uint64_t windowBytes, 
+                             uint64_t packetCount, uint64_t currentTime);
 
 
   /**
