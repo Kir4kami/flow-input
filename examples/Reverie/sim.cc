@@ -16,7 +16,7 @@
 #include <ns3/rdma-client.h>
 #include <ns3/rdma-client-helper.h>
 #include <ns3/rdma-driver.h>
-#include <ns3/switch-node.h>
+#include <ns3/simplified-switch-node.h>
 #include <ns3/sim-setting.h>
 //#include "ns3/mpi-interface.h"
 
@@ -304,7 +304,7 @@ void SetRoutingEntries() {
                 Ptr<Node> next = nexts[k];
                 uint32_t interface = nbr2if[node][next].idx;
                 if (node->GetNodeType() == 1)
-                    DynamicCast<SwitchNode>(node)->AddTableEntry(dstAddr, interface);
+                    DynamicCast<SimplifiedSwitchNode>(node)->AddTableEntry(dstAddr, interface);
                 else
                     node->GetObject<RdmaDriver>()->m_rdma->AddTableEntry(dstAddr, interface);
             }
@@ -632,7 +632,7 @@ uint32_t flowEnd = 0;
 void printBuffer(Ptr<OutputStreamWrapper> fout, NodeContainer switches, double delay) {
     for (uint32_t i = 0; i < switches.GetN(); i++) {
         if (switches.Get(i)->GetNodeType()) { // switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(switches.Get(i));
+            Ptr<SimplifiedSwitchNode> sw = DynamicCast<SimplifiedSwitchNode>(switches.Get(i));
             *fout->GetStream() 
                 << i
                 << " " << sw->m_mmu->totalUsed
@@ -706,7 +706,7 @@ int main(int argc, char *argv[]){
     cmd.AddValue("rdmaWindowCheck", "windowCheck", rdmaWindowCheck);
     uint32_t rdmaVarWin = 9;
     cmd.AddValue("rdmaVarWin", "windowCheck", rdmaVarWin);
-    uint64_t buffer_size = 5000000;//5.4;
+    uint64_t buffer_size =2610000; //5000000;//5.4;
     cmd.AddValue("buffersize", "buffer size in MB",buffer_size);
     uint32_t bufferalgIngress = DT;
     cmd.AddValue ("bufferalgIngress", "specify buffer management algorithm to be used at the ingress", bufferalgIngress);
@@ -1059,7 +1059,7 @@ int main(int argc, char *argv[]){
             serverNodes.Add(node);
         }
         else {
-            Ptr<SwitchNode> sw = CreateObject<SwitchNode>();
+            Ptr<SimplifiedSwitchNode> sw = CreateObject<SimplifiedSwitchNode>();
             n.Add(sw);
             switchNodes.Add(sw);
             allNodes.Add(sw);
@@ -1273,7 +1273,7 @@ int main(int argc, char *argv[]){
     uint64_t totalHeadroom=0;
     for (uint32_t i = 0; i < node_num; i++) {
         if (n.Get(i)->GetNodeType()) { // is switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(n.Get(i));
+            Ptr<SimplifiedSwitchNode> sw = DynamicCast<SimplifiedSwitchNode>(n.Get(i));
             totalHeadroom = 0;
             sw->m_mmu->SetIngressLossyAlg(bufferalgIngress);
             sw->m_mmu->SetIngressLosslessAlg(bufferalgIngress);
@@ -1331,7 +1331,7 @@ int main(int argc, char *argv[]){
     //
     for (uint32_t i = 0; i < node_num; i++) {
         if (n.Get(i)->GetNodeType()) { // switch
-            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(n.Get(i));
+            Ptr<SimplifiedSwitchNode> sw = DynamicCast<SimplifiedSwitchNode>(n.Get(i));
             sw->SetAttribute("CcMode", UintegerValue(rdmacc));
             sw->SetAttribute("MaxRtt", UintegerValue(maxRtt));
             sw->SetAttribute("PowerEnabled", BooleanValue(powertcp));

@@ -4,9 +4,9 @@ import networkx as nx
 
 graph = netisim_graph.NetiSimGraph()
 
-host_num = 128
-leaf_sw_num = 16
-spine_sw_num = 8
+host_num = 768
+leaf_sw_num = 768
+spine_sw_num = 64
 rdma_log_num =176
 
 

@@ -56,8 +56,16 @@ class RouteEntry:
 
 
 def parse_rdma_operate(file_path):
+    """
+    从 RDMA 文件中解析流量对，生成双向流量
+    
+    对于每个 src->dst 的流量，同时生成 dst->src 的反向流量
+    这样可以更准确地反映 RDMA 操作的双向特性（请求-响应）
+    """
     flow_list = []
     flow_id_count = 1
+    seen_pairs = set()  # 用于去重，避免重复添加相同的流量对
+    
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
@@ -67,9 +75,22 @@ def parse_rdma_operate(file_path):
             if match:
                 src_node = int(match.group(1))
                 dst_node = int(match.group(2))
-                flow = FlowInfo(flow_id_count, src_node, dst_node)
-                flow_list.append(flow)
-                flow_id_count += 1
+                
+                # 添加正向流量 (src -> dst)
+                pair_key = (src_node, dst_node)
+                if pair_key not in seen_pairs:
+                    flow = FlowInfo(flow_id_count, src_node, dst_node)
+                    flow_list.append(flow)
+                    flow_id_count += 1
+                    seen_pairs.add(pair_key)
+                
+                # 添加反向流量 (dst -> src)，如果不同的话
+                reverse_pair_key = (dst_node, src_node)
+                if reverse_pair_key != pair_key and reverse_pair_key not in seen_pairs:
+                    flow = FlowInfo(flow_id_count, dst_node, src_node)
+                    flow_list.append(flow)
+                    flow_id_count += 1
+                    seen_pairs.add(reverse_pair_key)
         if "phase" in line:
             continue
     return flow_list
@@ -110,12 +131,7 @@ def parse_topology_xml(file_path):
         reverse_link_map[(int(dst_node), int(dst_port))].append(link)
         link_id_count += 1
 
-    node_config = root.find('.//dcn_common_node_config/ft_host/node_config')
-    hostnum = node_config.get('host_num')
-    leafnum = node_config.get('leaf_num')
-    spinenum = node_config.get('spine_num')
-
-    return link_list, link_map, reverse_link_map, int(hostnum), int(leafnum), int(spinenum)
+    return link_list, link_map, reverse_link_map
 
 
 def parse_route_xml(file_path):
@@ -200,7 +216,145 @@ def parse_route_xml(file_path):
 #       flow_paths_port.append((flow.flow_id, paths_port))
 #   return flow_paths, flow_paths_port
 
+def find_first_hop_link(src_node, dst_node, link_info_list, nodes_to_route):
+    """
+    查找从源节点（host）出发的第一跳链路
+    
+    拓扑特点：
+    - 源节点只会是 host
+    - 有的交换机向下连接 host，向上连接其他交换机（可以转发）
+    - 有的交换机只连接 host，不连接其他交换机（边缘交换机，无法向上转发）
+    - 每个交换机可能只覆盖部分 host（例如：某个交换机只覆盖 host 0-15）
+    
+    选择策略（使用启发式方法，不依赖拓扑参数）：
+    1. 优先选择连接到在路由表中有条目的交换机（说明是交换机，可以转发）
+    2. 智能选择：
+       a) 如果目标 host 在某个交换机的覆盖范围内（该交换机有到目标 host 的路由），优先选择该交换机
+       b) 如果目标 host 不在任何交换机的覆盖范围内，选择能向上连接到其他交换机的交换机
+    3. 如果都找不到，返回第一条链路
+    
+    参数:
+        src_node: 源 host 节点
+        dst_node: 目标 host 节点
+        link_info_list: 链路列表
+        nodes_to_route: 节点到路由条目的映射（用于判断节点类型和路由能力）
+    
+    返回: (LinkInfo, 是否找到)
+    """
+    candidate_links = []
+    
+    # 收集所有从 src_node（host）出发的链路
+    for link in link_info_list:
+        if link.src_node == src_node:
+            candidate_links.append(link)
+    
+    if not candidate_links:
+        return None, False
+    
+    # 策略1：优先选择目标节点在路由表中有条目的链路（说明是交换机）
+    # 这样可以排除 host->host 的情况
+    links_to_switch = []
+    for link in candidate_links:
+        if link.dst_node in nodes_to_route:
+            links_to_switch.append(link)
+    
+    if not links_to_switch:
+        # 如果没有找到到交换机的链路，返回第一条（可能是 host->host，但这种情况应该很少）
+        return candidate_links[0], True
+    
+    # 策略2：智能选择 - 根据目标 host 选择最合适的 leaf
+    best_link = None
+    
+    # 检查每个 leaf 是否有到目标 host 的路由（说明目标 host 在该 leaf 的覆盖范围内）
+    links_with_dst_route = []  # 有到目标 host 路由的 leaf
+    links_without_dst_route = []  # 没有到目标 host 路由的 leaf
+    
+    for link in links_to_switch:
+        leaf_node = link.dst_node
+        # 检查该 leaf 是否有到目标 host 的路由
+        has_dst_route = False
+        if leaf_node in nodes_to_route:
+            for route in nodes_to_route[leaf_node]:
+                if route.target_node_id == dst_node:
+                    has_dst_route = True
+                    break
+        
+        if has_dst_route:
+            links_with_dst_route.append(link)
+        else:
+            links_without_dst_route.append(link)
+    
+    # 优先选择策略（使用启发式方法，不依赖拓扑参数）：
+    # 1. 如果目标 host 在某个交换机的覆盖范围内，优先选择该交换机（即使它不能向上转发）
+    #    因为同交换机下的 host 可以直接通信，不需要向上转发
+    if links_with_dst_route:
+        # 在能到达目标 host 的交换机中，优先选择**不能向上转发**的交换机
+        # 因为如果目标 host 在该交换机的覆盖范围内，可以直接通信，不需要向上转发
+        # 这样可以避免不必要的向上转发，提高效率
+        links_without_upward = []  # 不能向上转发的交换机
+        links_with_upward = []     # 能向上转发的交换机
+        
+        for link in links_with_dst_route:
+            switch_node = link.dst_node
+            has_upward_link = False
+            for check_link in link_info_list:
+                if check_link.src_node == switch_node:
+                    # 启发式：如果目标节点在路由表中有条目，说明是交换机（不是 host）
+                    # host 通常不在路由表中，只有交换机才会在路由表中有条目
+                    if check_link.dst_node in nodes_to_route:
+                        has_upward_link = True
+                        break
+            
+            if has_upward_link:
+                links_with_upward.append(link)
+            else:
+                links_without_upward.append(link)
+        
+        # 优先选择不能向上转发的交换机（因为目标 host 在它的覆盖范围内，可以直接通信）
+        if links_without_upward:
+            best_link = links_without_upward[0]
+        # 如果没有不能向上转发的，选择能向上转发的（作为备选）
+        elif links_with_upward:
+            best_link = links_with_upward[0]
+        else:
+            # 容错：选择第一个能到达目标 host 的交换机
+            best_link = links_with_dst_route[0]
+    else:
+        # 2. 如果目标 host 不在任何交换机的覆盖范围内，必须选择能向上转发的交换机
+        #    这样才能通过其他交换机到达目标 host
+        # 启发式判断：检查交换机是否有到其他交换机的链路
+        for link in links_without_dst_route:
+            switch_node = link.dst_node
+            has_upward_link = False
+            for check_link in link_info_list:
+                if check_link.src_node == switch_node:
+                    # 启发式：如果目标节点在路由表中有条目，说明是交换机（不是 host）
+                    if check_link.dst_node in nodes_to_route:
+                        has_upward_link = True
+                        break
+            
+            if has_upward_link:
+                best_link = link
+                break
+        
+        # 如果没找到能向上转发的，使用第一个到交换机的链路（容错处理）
+        if best_link is None:
+            best_link = links_to_switch[0]
+    
+    return best_link, True
+
+
 def find_ecmp_path(flow_info_list, link_info_list, route_info_table, link_map, reverse_link_map):
+    """
+    查找 ECMP 路径（使用启发式方法，不依赖拓扑参数）
+    
+    参数:
+        flow_info_list: 流信息列表
+        link_info_list: 链路信息列表
+        route_info_table: 路由表
+        link_map: 链路映射
+        reverse_link_map: 反向链路映射
+    """
     flow_paths = []
     flow_paths_port = []
 
@@ -228,15 +382,17 @@ def find_ecmp_path(flow_info_list, link_info_list, route_info_table, link_map, r
         in_port = None  # 到达当前节点的入端口（对第一跳，host 无入端口，但交换机需要知道从哪个端口进来的）
         current_node = src_node
 
-        # 找从 src_node 出发的链路（host -> switch）
-        for link in link_info_list:
-            if link.src_node == src_node:
-                first_link = link
-                break
-        else:
-            raise RuntimeError(f"未找到从源节点 {src_node} 出发的链路")
+        # 改进的第一跳链路查找：源节点只会是 host
+        # 根据目标 host 智能选择（使用启发式方法，不依赖拓扑参数）：
+        # - 如果目标 host 在某个交换机的覆盖范围内，优先选择该交换机
+        # - 如果目标 host 不在任何交换机的覆盖范围内，选择能向上转发的交换机
+        first_link, found = find_first_hop_link(
+            src_node, dst_node, link_info_list, nodes_to_route
+        )
+        if not found:
+            raise RuntimeError(f"未找到从源节点 {src_node} 出发的有效链路")
 
-                # 第一跳：host -> switch
+        # 第一跳：host -> switch
         next_node = first_link.dst_node
         paths.append(next_node)
         # 记录端口路径: host -> out_port -> in_port -> switch
@@ -305,13 +461,14 @@ def load_file(working_directory, file_addr):
     topology_file_path = working_directory + "/dcn2.0_config.xml"
     route_file_path = working_directory + "/router_mine.xml"
 
-    link_info_list, link_map, reverse_link_map, hostnum, leafnum, spinenum = parse_topology_xml(topology_file_path)
+    link_info_list, link_map, reverse_link_map = parse_topology_xml(topology_file_path)
     route_info_table = parse_route_xml(route_file_path)
     flow_info_list = []
     for rdma_file in rdma_file_path:
         flow_info_list.extend(parse_rdma_operate(rdma_file))
         print(f"{rdma_file} load file success")
-    return flow_info_list, link_info_list, route_info_table, link_map, reverse_link_map, hostnum, leafnum, spinenum
+    return (flow_info_list, link_info_list, route_info_table, link_map,
+            reverse_link_map)
 
 def get_rdma_files(file_dir):
     file_path_list = []
@@ -325,9 +482,10 @@ def get_rdma_files(file_dir):
 # 主函數入口
 if __name__ == "__main__":
     # 在此处更改工作目录
-    Working_Directory = "./64-4-1_DP2"
+    Working_Directory = "./new_case"
     file_path_list = get_rdma_files(Working_Directory)
-    Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map, Reverse_Link_Map, host_num, leaf_num, spine_num = load_file(
+    (Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map,
+     Reverse_Link_Map) = load_file(
         Working_Directory, file_path_list)
     Total_Flow_Path, Flow_Paths_Port = find_ecmp_path(Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map,
                                                       Reverse_Link_Map)

@@ -301,6 +301,20 @@
         <common_node>
             <template index="0">
                 <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..2" tot_thld="2880" up_thld="88" low_thld="80"/>
+                </pfc>
+                <buf tot_max="1200000000">
+                    <sp_buf>
+                        <sp_grp port="0..2" num="1200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..2" num="1200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>
+            </template>
+            <template index="1">
+                <pfc enable="true" dynamic="0">
                     <sp_grp port="0..15" tot_thld="2880" up_thld="88" low_thld="80"/>
                 </pfc>
                 <buf tot_max="1200000000">
@@ -309,6 +323,34 @@
                     </sp_buf>
                     <tp_buf>
                         <tp_grp port="0..15" num="1200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>
+            </template>
+            <template index="2">
+                <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..31" tot_thld="2880" up_thld="88" low_thld="80"/>
+                </pfc>
+                <buf tot_max="1200000000">
+                    <sp_buf>
+                        <sp_grp port="0..31" num="1200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..31" num="1200000000"/>
+                    </tp_buf>
+                </buf>
+                <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>
+            </template>
+            <template index="3">
+                <pfc enable="true" dynamic="0">
+                    <sp_grp port="0..47" tot_thld="2880" up_thld="88" low_thld="80"/>
+                </pfc>
+                <buf tot_max="1200000000">
+                    <sp_buf>
+                        <sp_grp port="0..47" num="1200000000"/>
+                    </sp_buf>
+                    <tp_buf>
+                        <tp_grp port="0..47" num="1200000000"/>
                     </tp_buf>
                 </buf>
                 <ecn ecn_enable="0" fast_ecn_enable="0" ecn_cfg_th="88" ecn_th0_pct="1 1 1 1 1 1 1 1" ecn_th1_pct="4 4 4 4 4 4 4 4" ecn_maxp_pct="2 2 2 2 2 2 2 2" fast_ecn_cfg_th="180" fast_ecn_th0_pct="0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2" fast_ecn_th1_pct="0.8 0.7 0.6 0.5 0.45 0.4 0.35 0.3" fast_ecn_maxp_pct="0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8"/>

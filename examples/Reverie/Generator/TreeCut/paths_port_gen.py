@@ -21,6 +21,7 @@
 #                                                      Reverse_Link_Map)
 #    parse_flow_paths_port(Flow_Paths_Port, 'flow_paths_port_output.txt')
 import os
+import shutil
 from ecmp_path import get_rdma_files, load_file, find_ecmp_path
 
 
@@ -34,12 +35,27 @@ def parse_flow_paths_port(flow_paths_port, filename):
 
 
 def main():
-    # 输入根目录
-    input_base_dir = "./rdma_result"
-    # 输出目录（自动创建）
-    output_dir = "./ecmp_outputs"
+    import argparse
     
-    # 创建输出目录（如果不存在）
+    parser = argparse.ArgumentParser(description='生成 ECMP 路径')
+    parser.add_argument('--input-dir', type=str, default='./new_case',
+                       help='输入目录（包含节点目录，默认: ./new_case）')
+    parser.add_argument('--output-dir', type=str, default='./ecmp_outputs',
+                       help='ECMP输出目录（默认: ./ecmp_outputs）')
+    
+    args = parser.parse_args()
+    
+    # 输入根目录
+    input_base_dir = args.input_dir
+    # 输出目录（自动创建）
+    output_dir = args.output_dir
+    
+    # 如果输出目录已存在，清空它（默认覆盖）
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+        print(f"已清空输出目录: {output_dir}")
+    
+    # 创建输出目录
     os.makedirs(output_dir, exist_ok=True)
 
     # 检查输入目录是否存在
@@ -64,12 +80,13 @@ def main():
                 print(f"警告：'{item}' 中未找到有效 RDMA 文件，跳过。")
                 continue
 
-            # 加载数据
-            Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map, Reverse_Link_Map, host_num, leaf_num, spine_num = load_file(
+            # 加载数据（拓扑参数不再使用，使用下划线忽略）
+            (Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map,
+             Reverse_Link_Map) = load_file(
                 input_subdir, file_path_list
             )
 
-            # 计算 ECMP 路径
+            # 计算 ECMP 路径（使用启发式方法，不依赖拓扑参数）
             _, Flow_Paths_Port = find_ecmp_path(
                 Flow_Info_List, Link_Info_List, Route_Info_Table, Link_Map, Reverse_Link_Map
             )

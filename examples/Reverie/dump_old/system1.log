@@ -1,0 +1,33 @@
+workFolder:examples/Reverie/task1
+Found 1 rdma_operate files
+config finished
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 442920 ingressPool 2167080 egressLosslessPool 2610000 egressLossyPool 1733664 sharedPool 2167080
+total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
+total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
+total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
+total headroom: 295280 ingressPool 2314720 egressLosslessPool 2610000 egressLossyPool 1851776 sharedPool 2314720
+calculate routing
+calculate routing end
+SERVER_COUNT 8 LEAF_COUNT 8 SPINE_COUNT 4 LINK_COUNT 1 oversubRatio 2
+Reading dependence
+dependenceFile not detcted.
+Reading flow info
+system 0 from 1 to 0 fromportNumber 1016 destportNumder 1016 time 0 flowsize 4096000 Flow actual path: 1:1 -> 64:1 -> 0:0
+system 0 from 2 to 0 fromportNumber 1016 destportNumder 1016 time 0 flowsize 4096000 Flow actual path: 2:1 -> 64:1 -> 0:0
+apps finished
+Run Simulation.
+ operate 0 phase 0 flow 1 0.00275236
+ operate 0 phase 0 flow 2 0.00275269
+operate 0 complete a phase
+operate 0 complete a operate
+
+total time: 19457 ms
+simulation time: 19006 ms
+Done

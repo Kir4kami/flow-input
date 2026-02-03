@@ -128,6 +128,14 @@ def constructTreeStatic(G, root_node):
     硬编码的通信树构建（原版本）
     仅在没有提供流量输入文件时使用
     """
+
+   #root0 = addCommunicationEdge(G, 1, "MoE_Dispatch", root_node)
+   #root1 = addCommunicationEdge(G, 1, "TopK_Dispatch", root_node)
+   #root2 = addCommunicationEdge(G, 1, "AllGather_Aggregation", root_node)
+   #root3 = addCommunicationEdge(G, 2, "Score_Expansion", root2)
+   #root4 = addCommunicationEdge(G, 3, "Value_Simplification", root3)
+   #root5 = addCommunicationEdge(G, 4, "Head_Reduce", root4)
+    
     TP1 = addCommunicationEdge(G, 1, "TP", root_node)
     EP1 = addCommunicationEdge(G, 2, "EP", TP1)
     PP1 = addCommunicationEdge(G, 3, "PP", EP1)

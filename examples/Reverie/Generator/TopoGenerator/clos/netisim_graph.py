@@ -40,6 +40,7 @@ class NetiSimGraph(nx.Graph):
         self.avtive_ids = set() # 根据激活的通信域id, 基于路由表生成的激活节点id. 用于修剪拓扑
 
         self.path_finding_algo = nx.all_shortest_paths
+        
     # 增加host节点, 通常表示netisim中的交换机
     def add_netisim_host(self, node_id, **attr):
         self.host_ids.append(node_id)
@@ -89,7 +90,7 @@ class NetiSimGraph(nx.Graph):
     def node_is_host(self, node_id):
         return self.nodes[node_id]['type'] == 'host'
     
-    def build_graph_config(self, template_xml = "./dcn2.0_config_template.xml", write_flag=True, output_name=None,  rdma_log_num= "1"):
+    def build_graph_config(self, template_xml = "./dcn2.0_config_rdma_template.xml", write_flag=True, output_name=None,  rdma_log_num= "1"):
         # graph到xml文件的转换
         assert self.check_graph_index_valid()
         try:
