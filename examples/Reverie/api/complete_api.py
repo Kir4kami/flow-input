@@ -3,8 +3,8 @@
 # 包含：拓扑切分、负载设置、拓扑设置、仿真控制、混合粒度控制、结果分析
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel
 import os
 import sys
@@ -22,10 +22,8 @@ from datetime import datetime
 import hashlib
 
 # 添加父目录到路径，以便导入TreeCut
-parent_parent = Path(__file__).absolute().parent.parent
-if str(parent_parent) not in sys.path:
-    sys.path.insert(0, str(parent_parent))
-from TreeCut import performTreeCut
+sys.path.append(str(Path(__file__).parent.parent))
+from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
 import matplotlib.pyplot as plt
 import copy
@@ -74,7 +72,6 @@ class SimulationStatus:
         self.results = {}
 
 simulation_status = SimulationStatus()
-
 
 class BaselineStatus:
     def __init__(self):
@@ -822,6 +819,9 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         T.add_node(root_node, name='Root', nodes_passed=[], children=[])
         constructTree(T, root_node)
     
+    # 保存原始通信树用于3D可视化
+    original_tree_for_viz = copy.deepcopy(T)
+    
     if show_graphs:
         ShowGraph(T)
     
@@ -852,6 +852,23 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
     # 保存TreeGroup为JSON文件
     json_overview = saveTreeGroupToJson(Tree_list, output_dir)
     
+    # 生成3D分层可视化HTML（使用TreeCut中的可视化函数）
+    viz_path_relative: Optional[str] = None
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        viz_output_file = os.path.join(output_dir, "tree_split_3d.html")
+        visualize3DSplitTreeHTML(original_tree_for_viz, Tree_list, viz_output_file)
+        print(f"[INFO] 3D树组可视化HTML已生成: {viz_output_file}")
+        
+        api_dir_for_viz = Path(__file__).parent
+        try:
+            viz_path_relative = str(Path(viz_output_file).relative_to(api_dir_for_viz))
+        except ValueError:
+            viz_path_relative = viz_output_file
+    except Exception as e:
+        print(f"[WARNING] 3D树组可视化HTML生成失败: {e}")
+        viz_path_relative = None
+    
     # 返回结果（output_directory使用相对路径，相对于api目录）
     api_dir = Path(__file__).parent
     try:
@@ -866,7 +883,8 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         "output_directory": output_dir_relative,
         "json_overview": json_overview,
         "tree_list": Tree_list,
-        "out_dependence_list": out_dependence_list
+        "out_dependence_list": out_dependence_list,
+        "tree_split_3d_html": viz_path_relative,
     }
     
     return result
@@ -892,7 +910,7 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         if request.input_file:
             input_file = request.input_file
         else:
-            base_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
+            base_dir = Path(__file__).parent.parent / "TrafficGenerator"
             if request.model.lower() == "qwen":
                 input_file = str(base_dir / "qwen.txt")
             elif request.model.lower() == "deepseek":
@@ -903,13 +921,11 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         if not os.path.exists(input_file):
             raise HTTPException(status_code=404, detail=f"输入文件不存在: {input_file}")
         
-        traffic_gen_script = Path(__file__).absolute().parent.parent / "TrafficGenerator" / "trafficGen.py"
+        traffic_gen_script = Path(__file__).parent.parent / "TrafficGenerator" / "trafficGen.py"
         if not os.path.exists(traffic_gen_script):
-            raise HTTPException(status_code=500, detail=f"TrafficGenerator脚本不存在: {traffic_gen_script}")
+            raise HTTPException(status_code=500, detail="TrafficGenerator脚本不存在")
         
-        traffic_gen_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
-        print(f"[DEBUG] 运行命令: python3 trafficGen.py --input_file {input_file}")
-        print(f"[DEBUG] 工作目录: {traffic_gen_dir}")
+        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
         result = subprocess.run(
             ["python3", "trafficGen.py", "--input_file", input_file],
             cwd=str(traffic_gen_dir),
@@ -918,20 +934,12 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             timeout=300
         )
         
-        print(f"[DEBUG] 返回码: {result.returncode}")
-        print(f"[DEBUG] stdout: {result.stdout[:500]}")
-        print(f"[DEBUG] stderr: {result.stderr[:500]}")
-        
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else result.stdout
-            raise HTTPException(status_code=500, detail=f"生成失败 (返回码: {result.returncode}): {error_msg}")
+            raise HTTPException(status_code=500, detail=f"生成失败: {result.stderr}")
         
         json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
         if not os.path.exists(json_file):
-            # 列出目录内容以便调试
-            rdma_result_dir = traffic_gen_dir / "rdma_result"
-            existing_files = list(rdma_result_dir.glob("*.json")) if rdma_result_dir.exists() else []
-            raise HTTPException(status_code=500, detail=f"未找到生成的通信树JSON文件: {json_file}. 目录中的文件: {[str(f) for f in existing_files]}")
+            raise HTTPException(status_code=500, detail="未找到生成的通信树JSON文件")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -944,14 +952,9 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             nodes_count=len(tree_data.get("nodes", [])),
             edges_count=len(tree_data.get("edges", []))
         )
-    except HTTPException:
-        raise
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="生成超时")
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"[ERROR] 生成通信树时发生异常: {error_trace}")
         raise HTTPException(status_code=500, detail=f"生成失败: {str(e)}")
 
 @app.post("/visualize-full-tree")
@@ -963,13 +966,11 @@ async def visualize_full_tree():
         import matplotlib.pyplot as plt
         import networkx as nx
         
-        traffic_gen_dir = Path(__file__).absolute().parent.parent / "TrafficGenerator"
+        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
         json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
         
-        print(f"[DEBUG] visualize-full-tree: traffic_gen_dir={traffic_gen_dir}, json_file={json_file}, exists={json_file.exists()}")
-        
         if not json_file.exists():
-            raise HTTPException(status_code=404, detail=f"通信树文件不存在，请先生成: {json_file}")
+            raise HTTPException(status_code=404, detail="通信树文件不存在，请先生成")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -1018,24 +1019,17 @@ async def visualize_full_tree():
         plt.axis('off')
         plt.tight_layout(pad=0.5)
         
-        output_file = Path(__file__).absolute().parent / 'full_communication_tree.png'
-        print(f"[DEBUG] 保存图片到: {output_file}")
+        output_file = Path(__file__).parent / 'full_communication_tree.png'
         plt.savefig(output_file, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close()
         
         return {"success": True, "message": "可视化成功", "nodes_count": len(G.nodes()), "edges_count": len(G.edges())}
-    except HTTPException:
-        raise
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"[ERROR] 可视化完整通信树时发生异常: {error_trace}")
         raise HTTPException(status_code=500, detail=f"可视化失败: {str(e)}")
 
 @app.get("/get-full-tree-image")
 async def get_full_tree_image():
     """获取完整通信树图片"""
-    from fastapi.responses import FileResponse
     image_path = Path(__file__).parent / 'full_communication_tree.png'
     if not image_path.exists():
         raise HTTPException(status_code=404, detail="图片不存在")
@@ -1061,7 +1055,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             except Exception as e:
                 print(f"[WARNING] 删除旧图片失败: {old_img}, 错误: {e}")
         
-        base_dir = Path(__file__).absolute().parent.parent
+        base_dir = Path(__file__).parent.parent
         tree_dir = (Path(__file__).parent / output_dir).resolve()
         if not tree_dir.exists():
             tree_dir = (base_dir / output_dir).resolve()
@@ -1139,7 +1133,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             plt.title(f'Tree Group {i}\nNodes: {len(tree_data.get("nodes", []))} | Edges: {len(tree_data.get("edges", []))}', fontsize=24, fontweight='bold', pad=12)
             
             from matplotlib.patches import Patch
-            plt.legend(handles=[Patch(facecolor='#ff6b6b', edgecolor='black', linewidth=2, label='Root'), Patch(facecolor='#4ecdc4', edgecolor='black', linewidth=2, label='DP'), Patch(facecolor='#95e1d3', edgecolor='black', linewidth=2, label='PP'), Patch(facecolor='#ffd93d', edgecolor='black', linewidth=2, label='TP')], loc='upper right', fontsize=14)
+            plt.legend(handles=[Patch(facecolor='#ff6b6b', edgecolor='black', linewidth=2, label='Root'), Patch(facecolor='#4ecdc4', edgecolor='black', linewidth=2, label='DP'), Patch(facecolor='#95e1d3', edgecolor='black', linewidth=2, label='PP'), Patch(facecolor='#ffd93d', edgecolor='black', linewidth=2, label='TP')], loc='upper right', fontsize=20)
             
             plt.axis('off')
             plt.tight_layout(pad=0.5)
@@ -1150,14 +1144,41 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             
             visualized_groups.append({"group_id": i, "node_count": len(tree_data.get('nodes', [])), "edge_count": len(tree_data.get('edges', []))})
         
-        return {"success": True, "groups": visualized_groups, "total_groups": total_groups}
+        # 检查是否已经生成了3D树组可视化HTML
+        viz_html_file = tree_dir / "tree_split_3d.html"
+        has_3d_viz = viz_html_file.exists()
+        
+        return {
+            "success": True,
+            "groups": visualized_groups,
+            "total_groups": total_groups,
+            "has_3d_viz": has_3d_viz
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"可视化失败: {str(e)}")
+
+
+@app.get("/get-tree-groups-3d")
+async def get_tree_groups_3d(output_dir: str = "TreeGroup"):
+    """获取树组3D切分可视化HTML"""
+    api_dir = Path(__file__).parent
+    base_dir = Path(__file__).parent.parent
+    
+    tree_dir = (api_dir / output_dir).resolve()
+    if not tree_dir.exists():
+        tree_dir = (base_dir / output_dir).resolve()
+    if not tree_dir.exists():
+        raise HTTPException(status_code=404, detail=f"树组目录不存在: {output_dir}")
+    
+    html_file = tree_dir / "tree_split_3d.html"
+    if not html_file.exists():
+        raise HTTPException(status_code=404, detail="3D树组可视化HTML不存在，请先执行通信树切分")
+    
+    return FileResponse(str(html_file), media_type='text/html')
 
 @app.get("/get-tree-image/{group_id}")
 async def get_tree_image(group_id: int):
     """获取树组图片"""
-    from fastapi.responses import FileResponse
     image_file = Path(__file__).parent / f"tree_group_{group_id}.png"
     if not image_file.exists():
         raise HTTPException(status_code=404, detail="图片不存在")
@@ -1717,7 +1738,7 @@ async def extract_link_competition_flows(use_latest_workflow: bool = True):
         包含提取结果的响应
     """
     try:
-        base_dir = Path(__file__).absolute().parent.parent
+        base_dir = Path(__file__).parent.parent
         
         # 1. 获取流量数据和路径信息
         parse_result = await parse_load_files(directory="rdma_result", use_latest_workflow=use_latest_workflow)
@@ -2010,6 +2031,7 @@ class TreeCutResponse(BaseModel):
     output_directory: str
     json_overview: Dict[str, Any]
     result_files: List[str]
+    tree_split_3d_html: Optional[str] = None
 
 @app.post("/tree-cut", response_model=TreeCutResponse)
 async def tree_cut(request: TreeCutRequest):
@@ -2049,7 +2071,7 @@ async def tree_cut(request: TreeCutRequest):
         result_files = []
         # 尝试多个可能的路径查找结果文件
         api_dir = Path(__file__).parent
-        base_dir = Path(__file__).absolute().parent.parent
+        base_dir = Path(__file__).parent.parent
         possible_output_dirs = [
             api_dir / request.output_dir,  # examples/Reverie/api/TreeGroup
             base_dir / request.output_dir,  # examples/Reverie/TreeGroup
@@ -2073,7 +2095,8 @@ async def tree_cut(request: TreeCutRequest):
             tree_groups=result["tree_groups"],
             output_directory=result["output_directory"],
             json_overview=result["json_overview"],
-            result_files=result_files
+            result_files=result_files,
+            tree_split_3d_html=result.get("tree_split_3d_html")
         )
         
     except Exception as e:
@@ -2799,7 +2822,7 @@ def _compute_ecmp_for_directory(rdma_stage_dir: Path, mode: str = "expected") ->
     if mode == "actual":
         # 实际路径：从仿真日志文件中解析
         # 查找 dump 目录（通常在 examples/Reverie/dump/）
-        base_dir = Path(__file__).absolute().parent.parent
+        base_dir = Path(__file__).parent.parent
         dump_dir = base_dir / "dump"
         
         # 如果当前目录是 workflow 输出目录，尝试从 workflow 输出中查找 dump
@@ -3587,6 +3610,9 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         
         # 启动仿真进程
         env = os.environ.copy()
+        # 设置编码环境变量，避免 Windows 上的编码问题
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["LC_ALL"] = "C.UTF-8"
         env["LLM_OVERRIDE"] = llm_model
         env["TASKNUM_OVERRIDE"] = str(task_num)
         if use_custom_config:
@@ -4135,8 +4161,9 @@ async def get_steady_state_status():
     获取稳态状态（通过分析flow_stats.txt中的流速率数据来判断稳态）
     不再依赖C++代码输出,而是Python自己分析
     """
-    # 使用本地路径的 flow_stats.txt
-    flow_stats_file = Path("/home/chanel/flow-input-local/flow_stats.txt")
+    # 使用相对路径查找 flow_stats.txt
+    base_dir = Path(__file__).parent.parent
+    flow_stats_file = base_dir / "flow_stats.txt"
     
     if not flow_stats_file.exists():
         # 尝试其他可能的路径
@@ -4268,7 +4295,7 @@ async def analyze_results(request: AnalysisRequest):
             baseline_status.is_running = True
             baseline_status.last_started = time.time()
             try:
-                # 基线应使用“未切分”的完整流量，因此从 all_rdma_files 重新生成 task1
+                # 基线应使用"未切分"的完整流量，因此从 all_rdma_files 重新生成 task1
                 task_backup_root = _backup_task_dirs(base_dir)
                 _write_task_inputs_from_all_rdma_files(base_dir=base_dir, task_num=1)
                 run_simulation(
@@ -4565,7 +4592,6 @@ def generate_analysis_summary(results):
 @app.get("/complete_frontend.html")
 async def get_frontend():
     """提供前端HTML页面"""
-    from fastapi.responses import HTMLResponse
     html_file = Path(__file__).parent / "complete_frontend.html"
     if html_file.exists():
         return FileResponse(html_file, media_type="text/html")
@@ -4628,7 +4654,6 @@ async def health_check():
         "steady_state": simulation_status.steady_state
     }
 
-
 @app.get("/baseline-status")
 async def baseline_status_check():
     """检查包粒度基线结果是否存在"""
@@ -4648,7 +4673,6 @@ async def baseline_status_check():
 
 # ==================== 文件访问接口 ====================
 
-from fastapi.responses import FileResponse, JSONResponse
 import mimetypes
 
 @app.get("/read-file")
@@ -4797,15 +4821,6 @@ async def list_files(directory: str = "."):
                 "is_dir": item.is_dir(),
                 "size": item.stat().st_size if item.is_file() else 0
             })
-
-        def _numeric_key(entry: Dict[str, Any]) -> Tuple[int, List[int], str]:
-            name = entry.get("name", "")
-            nums = re.findall(r"\d+", name)
-            if nums:
-                return (0, [int(n) for n in nums], name)
-            return (1, [], name)
-
-        files.sort(key=_numeric_key)
         
         return {
             "success": True,

@@ -31,14 +31,49 @@
       console.log('[INFO] 本地D3.js已加载');
     }
   </script>
+  <!-- Three.js for 3D globe - 优先使用本地文件，如果不存在则使用CDN -->
+  <script src="./three.min.js"></script>
+  <script>
+    // 如果本地Three.js不存在，尝试从CDN加载
+    if (typeof THREE === 'undefined') {
+      console.log('[INFO] 本地Three.js未找到，尝试从CDN加载...')
+      const script1 = document.createElement('script')
+      script1.src = 'https://unpkg.com/three@0.128.0/build/three.min.js'
+      script1.onerror = function() {
+        console.error('[ERROR] 无法加载Three.js，请下载到本地')
+      }
+      document.head.appendChild(script1)
+    } else {
+      console.log('[INFO] 本地Three.js已加载')
+    }
+  </script>
+  <script src="./OrbitControls.js"></script>
+  <script>
+    // 如果本地OrbitControls不存在，尝试从CDN加载
+    if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls === 'undefined') {
+      console.log('[INFO] 本地OrbitControls未找到，尝试从CDN加载...')
+      const script2 = document.createElement('script')
+      script2.src = 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js'
+      script2.onerror = function() {
+        console.error('[ERROR] 无法加载OrbitControls，请下载到本地')
+      }
+      document.head.appendChild(script2)
+    }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
       background: #f5f7fa;
+      padding: 0;
+      margin: 0;
+      transition: background-color 0.3s ease;
+    }
+    .container { 
+      max-width: 1400px; 
+      margin: 0 auto;
       padding: 20px;
     }
-    .container { max-width: 1400px; margin: 0 auto; }
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -49,6 +84,579 @@
     }
     .header h1 { font-size: 32px; margin-bottom: 10px; }
     .header p { opacity: 0.9; }
+
+    /* =========================
+       门户页面（入口页，参照示例图风格）
+       默认先展示门户；点击“进入系统”后显示现有 #app
+       ========================= */
+    #portal {
+      min-height: 100vh;
+      height: 100vh;
+      border-radius: 0;
+      overflow: hidden;
+      position: relative;
+      background-image: url('./background.jpg');
+      background-size: cover;
+      background-position: right center;
+      background-repeat: no-repeat;
+      background-color: #0a0e2a;
+      box-shadow: none;
+      padding: 34px 34px 26px;
+      color: #ffffff;
+    }
+
+    .portal-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .portal-logo {
+      height: 96px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,0.25));
+      background: none;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .portal-logo-fallback {
+      display: none;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-size: 15px;
+      color: rgba(255,255,255,0.95);
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(10px);
+    }
+
+    .portal-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .portal-nav a {
+      color: rgba(255,255,255,0.92);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.0);
+      border: 1px solid rgba(255,255,255,0.0);
+    }
+
+    .portal-nav a:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.14);
+    }
+
+    .portal-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 60px 6px 22px;
+      position: relative;
+      z-index: 2;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      min-height: 80vh;
+    }
+
+    .portal-hero > div:first-child {
+      margin-left: 100px;
+      margin-top: -15vh;
+      max-width: 800px;
+    }
+
+    @media (max-width: 980px) {
+      .portal-hero > div:first-child {
+        margin-left: 20px;
+      }
+      
+      .portal-detail-list {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      
+      .portal-detail-title {
+        font-size: 36px;
+        margin-bottom: 40px;
+      }
+    }
+
+    .portal-title {
+      font-size: 72px;
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin: 6px 0 14px;
+      text-shadow: 0 12px 30px rgba(0,0,0,0.22);
+    }
+
+    .portal-subtitle {
+      display: none;
+    }
+
+    .portal-slogans {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 720px;
+    }
+
+    @media (max-width: 700px) {
+      .portal-slogans { grid-template-columns: 1fr; }
+    }
+
+    .portal-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+      backdrop-filter: blur(10px);
+      font-weight: 800;
+      color: rgba(255,255,255,0.96);
+    }
+
+    .portal-cta-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin-top: 110px;
+      flex-wrap: wrap;
+    }
+
+    .portal-enter-btn {
+      border: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0b1d5a;
+      background: linear-gradient(135deg, #ffffff 0%, #e9f0ff 55%, #dbe7ff 100%);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .portal-enter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22);
+    }
+
+
+    .portal-card {
+      border-radius: 16px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+      padding: 16px 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+
+    .portal-card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      text-align: center;
+    }
+
+    .portal-card p {
+      margin: 0;
+      color: rgba(255,255,255,0.88);
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .portal-sections {
+      position: relative;
+      z-index: 2;
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 50%;
+    }
+
+    @media (max-width: 980px) {
+      .portal-sections { max-width: 100%; }
+    }
+
+    /* 功能简介块与开发者信息 */
+    .portal-feature-block {
+      margin-top: 10px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+      max-width: 520px;
+    }
+
+    .portal-feature-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+
+    .portal-feature-block .portal-slogans {
+      margin-top: 10px;
+    }
+
+    .portal-feature-inline {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.96);
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .portal-feature-label {
+      font-weight: 800;
+      margin-right: 4px;
+    }
+
+    .portal-feature-separator {
+      margin: 0 8px;
+      opacity: 0.7;
+    }
+
+    .portal-detail-btn {
+      border: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      min-width: 180px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      backdrop-filter: blur(10px);
+    }
+
+    .portal-detail-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22);
+      background: rgba(255,255,255,0.18);
+    }
+
+    .portal-devline {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: rgba(226,237,255,0.96);
+      max-width: 520px;
+      text-align: left;
+    }
+
+    /* 详情介绍弹窗 */
+    .portal-detail-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(120,160,255,0.35), rgba(4,9,40,0.96));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 4000;
+    }
+
+    .portal-detail-modal {
+      width: min(1080px, 96vw);
+      max-height: 88vh;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(12,28,90,0.98), rgba(34,60,150,0.98));
+      border: 1px solid rgba(157,197,255,0.55);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.65);
+      padding: 20px 22px 18px;
+      color: #e5eeff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-detail-modal h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+    }
+
+    .portal-detail-body {
+      font-size: 16px;
+      line-height: 1.7;
+      margin-top: 4px;
+      overflow-y: auto;
+      max-height: calc(80vh - 80px);
+    }
+
+    .portal-detail-body p {
+      margin: 10px 0 0;
+    }
+
+    .portal-detail-body .sec-title {
+      margin-top: 12px;
+      font-weight: 900;
+      color: #ffffff;
+    }
+
+    /* 详情页面（新页面） */
+    .portal-detail-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      display: none;
+      opacity: 0;
+      z-index: 3000;
+      overflow-y: auto;
+    }
+
+    .portal-detail-page.active {
+      display: block;
+      opacity: 1;
+      background-color: #ffffff;
+      animation: pageFadeIn 0.6s ease-out forwards;
+    }
+
+    .portal-detail-page.fade-out {
+      background-color: #ffffff;
+      animation: pageFadeOut 0.4s ease-in forwards;
+    }
+
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+        background-color: #ffffff;
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        background-color: #ffffff;
+      }
+    }
+
+    @keyframes pageFadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+        background-color: #ffffff;
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-30px);
+        background-color: #ffffff;
+      }
+    }
+
+    .portal-detail-back-btn {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      color: rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .portal-detail-back-btn:hover {
+      background: rgba(0, 0, 0, 0.15);
+      transform: translateX(-3px);
+    }
+
+    /* 系统页面回退按钮 */
+    .app-back-btn {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(102, 126, 234, 0.9);
+      border: 1px solid rgba(102, 126, 234, 1);
+      color: rgba(255, 255, 255, 0.95);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .app-back-btn:hover {
+      background: rgba(102, 126, 234, 1);
+      transform: translateX(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .portal-detail-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 120px 40px 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .portal-detail-title {
+      font-size: 48px;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 80px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .portal-detail-list {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 35px;
+      max-width: 100%;
+      margin: 0;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .portal-detail-item {
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 50px 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      min-width: 0; /* 允许flex子元素收缩 */
+    }
+
+    .portal-detail-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .portal-detail-dot {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      background: #667eea;
+      flex-shrink: 0;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 32px;
+    }
+
+    .portal-detail-text {
+      flex: 1;
+      min-width: 0; /* 允许文本容器收缩 */
+      overflow: hidden; /* 防止内容溢出 */
+    }
+
+    .portal-detail-item-title {
+      margin: 0 0 20px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      white-space: nowrap;
+      overflow: visible;
+      word-break: keep-all;
+      letter-spacing: 0.5px;
+    }
+
+    .portal-detail-item-desc {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.7;
+      color: #000000 !important;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.3px;
+    }
+
+    .portal-detail-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: rgba(255,255,255,0.16);
+      color: #ffffff;
+      font-size: 18px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .portal-detail-close:hover {
+      background: rgba(255,255,255,0.26);
+      transform: translateY(-1px);
+    }
+
+    /* 默认隐藏系统面板，点击进入后显示 */
+    #app { 
+      display: none;
+      background-color: #0a0e2a;
+      min-height: 100vh;
+    }
 
     .main-grid {
       display: grid;
@@ -273,11 +881,39 @@
       border-radius: 12px;
       width: 90%;
       max-width: 1000px;
-      max-height: 85vh;
+      max-height: 90vh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       position: relative;
+      overflow: hidden;
+    }
+    
+    /* 树可视化模态框特别宽 */
+    .tree-visualization-container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* 放大树组可视化中的图例字体 */
+    .tree-visualization-container img {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    
+    /* 尝试影响iframe内的图例（如果同源） */
+    .tree-visualization-container iframe {
+      zoom: 1;
+    }
+    
+    .modal-content:has(.tree-visualization-container) {
+      max-width: 95vw;
+      width: 95vw;
+      height: 90vh;
+      max-height: 90vh;
     }
 
     .modal-content.draggable {
@@ -302,6 +938,17 @@
       padding: 24px;
       overflow-y: auto;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    
+    /* 树可视化时，modal-body需要填满高度，保持overflow: hidden */
+    .modal-body:has(.tree-visualization-container) {
+      padding: 24px;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .modal-footer {
@@ -686,6 +1333,145 @@
       100% { stroke-dashoffset: 20; }
     }
 
+    /* 全屏河流图与路由表可视化 */
+    .fullscreen-river-table-container {
+      width: 95%;
+      height: 95%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: rgba(2, 6, 23, 0.85);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 35px rgba(10, 40, 90, 0.55);
+      border: 1px solid rgba(60, 130, 200, 0.12);
+    }
+
+    .fullscreen-river-table-header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .fullscreen-river-table-controls {
+      display: flex;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .fullscreen-river-table-content {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .fullscreen-river-table-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .fullscreen-river-table-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      border-left: 4px solid rgba(56, 189, 248, 0.7);
+      padding-left: 20px;
+      margin-left: 10px;
+      box-shadow: -3px 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    #fullscreen-streamgraph {
+      flex: 1;
+      min-height: 400px;
+      background: rgba(2, 6, 23, 0.85);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    #fullscreen-streamgraph svg {
+      display: block;
+      background: rgba(2, 6, 23, 0.85);
+    }
+
+    .fullscreen-streamgraph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 8px;
+    }
+
+    .fullscreen-streamgraph-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+
+    .fullscreen-streamgraph-legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .fullscreen-routing-table-container {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: auto;
+      background: rgba(2, 6, 23, 0.85);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    #fullscreen-routing-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      table-layout: fixed;
+      color: #e2e8f0;
+    }
+
+    #fullscreen-routing-table thead {
+      background: rgba(15, 23, 42, 0.6);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    #fullscreen-routing-table th {
+      padding: 12px;
+      text-align: center;
+      color: #38bdf8;
+      font-weight: 600;
+      border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #fullscreen-routing-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      word-break: break-all;
+      color: #e2e8f0;
+    }
+
+    #fullscreen-routing-table tbody tr:hover {
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    #fullscreen-routing-table .transition-row td {
+      font-weight: 700;
+      color: #f472b6;
+    }
+
     .flow-particle {
       fill: rgba(80, 230, 255, 0.95);
       stroke: rgba(180, 255, 255, 0.9);
@@ -744,6 +1530,332 @@
   </style>
 </head>
 <body>
+  <!-- 门户页（入口页） -->
+  <div id="portal" style="transition: opacity 0.4s ease, transform 0.4s ease;">
+    <div class="portal-topbar">
+      <div class="portal-brand">
+        <img
+          class="portal-logo"
+          src="./njupt_logo.png"
+          alt="南京邮电大学 Logo"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+        />
+        <span class="portal-logo-fallback">南京邮电大学</span>
+      </div>
+    </div>
+
+    <div class="portal-hero">
+      <div>
+        <div class="portal-title">仿真加速可视化平台</div>
+
+        <div class="portal-feature-inline">
+          <span class="portal-feature-label">功能特色：</span>
+          <svg width="1.3em" height="1.3em" viewBox="0 0 40 40" style="vertical-align: middle; margin: 0 4px;"><polygon points="20,5 25,15 15,15" fill="currentColor"/><rect x="17" y="15" width="6" height="20" fill="currentColor"/><polygon points="15,35 25,35 30,40 10,40" fill="currentColor"/></svg>
+          <span>多粒度加速</span>
+          <span class="portal-feature-separator">·</span>
+          <svg width="1.3em" height="1.3em" viewBox="0 0 40 40" style="vertical-align: middle; margin: 0 4px;"><path d="M12,12 L20,20 M28,12 L20,20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="10" cy="28" r="6" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="30" cy="28" r="6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+          <span>智能切分</span>
+          <span class="portal-feature-separator">·</span>
+          <svg width="1.3em" height="1.3em" viewBox="0 0 60 40" style="vertical-align: middle; margin: 0 4px;"><rect x="5" y="15" width="10" height="25" fill="currentColor"/><rect x="20" y="5" width="10" height="35" fill="currentColor"/><rect x="35" y="25" width="10" height="15" fill="currentColor"/></svg>
+          <span>实时可视</span>
+        </div>
+
+        <div class="portal-devline">项目开发人员：</div>
+
+        <div class="portal-cta-row">
+          <button id="enter-system-btn" class="portal-enter-btn" type="button">进入系统</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详情页面 -->
+  <div id="portal-detail-page" class="portal-detail-page">
+    <button id="portal-detail-back-btn" class="portal-detail-back-btn" type="button" aria-label="返回">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div class="portal-detail-content">
+      <h2 class="portal-detail-title">功能详情介绍</h2>
+      <div class="portal-detail-list">
+        <div class="portal-detail-item">
+          <div class="portal-detail-dot">
+            <svg width="40" height="40" viewBox="0 0 60 40" fill="currentColor">
+              <rect x="5" y="15" width="10" height="25" fill="currentColor"/>
+              <rect x="20" y="5" width="10" height="35" fill="currentColor"/>
+              <rect x="35" y="25" width="10" height="15" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="portal-detail-text">
+            <h3 class="portal-detail-item-title">总体</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">面向万卡级大模型训练网络，本项目打造可复用的仿真加速引擎，融合包/流多粒度建模与时空无损切分并行，实现快速、可复现且可解释的网络性能评估，并显著降低仿真时间与内存开销。</p>
+          </div>
+        </div>
+        <div class="portal-detail-item">
+          <div class="portal-detail-dot">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="currentColor">
+              <polygon points="20,5 25,15 15,15" fill="currentColor"/>
+              <rect x="17" y="15" width="6" height="20" fill="currentColor"/>
+              <polygon points="15,35 25,35 30,40 10,40" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="portal-detail-text">
+            <h3 class="portal-detail-item-title">多粒度仿真（Packet + Flow）</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">在拥塞/阶段切换等非稳态区间保留包级高保真，在稳态区间自动切换为流级可计算推进，实现显著提速且关键指标依然可解释、可复现。</p>
+          </div>
+        </div>
+        <div class="portal-detail-item">
+          <div class="portal-detail-dot">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="currentColor">
+              <path d="M12,12 L20,20 M28,12 L20,20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="10" cy="28" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="30" cy="28" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <div class="portal-detail-text">
+            <h3 class="portal-detail-item-title">时空切分并行（Spatiotemporal Decomposition）</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">基于通信依赖与链路占用将大规模仿真无损拆分为多个最小仿真单元并行执行，并对拓扑子图按需实例化，在加速的同时有效降低状态规模与内存峰值。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const portal = document.getElementById('portal')
+      const app = document.getElementById('app')
+      const btn = document.getElementById('enter-system-btn')
+
+      function enterSystem() {
+        console.log('进入系统按钮被点击')
+        const portal = document.getElementById('portal')
+        const app = document.getElementById('app')
+        
+        console.log('portal元素:', portal)
+        console.log('app元素:', app)
+        console.log('Vue是否加载:', typeof Vue !== 'undefined')
+        console.log('D3是否加载:', typeof d3 !== 'undefined')
+        console.log('Vue应用是否已挂载:', !!window.__flowApp)
+        
+        if (portal) {
+          console.log('隐藏portal')
+          portal.style.display = 'none'
+        }
+        
+        if (app) {
+          console.log('显示app')
+          app.style.display = 'block'
+          // 移除 v-cloak 属性，确保内容能显示
+          // Vue 应用挂载完成后会自动移除 v-cloak，但如果挂载失败，手动移除可以确保内容显示
+          app.removeAttribute('v-cloak')
+          console.log('已移除 v-cloak 属性')
+        }
+        
+        // 显示回退按钮
+        const appBackBtn = document.getElementById('app-back-btn')
+        if (appBackBtn) {
+          appBackBtn.style.display = 'flex'
+          console.log('回退按钮已显示')
+        } else {
+          console.error('回退按钮未找到')
+        }
+        
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch (e) { window.scrollTo(0, 0) }
+      }
+
+      const detailPage = document.getElementById('portal-detail-page')
+      const detailBackBtn = document.getElementById('portal-detail-back-btn')
+
+      function openDetail() {
+        // 显示详情页面并添加动画
+        if (detailPage) {
+          console.log('打开详情页面', detailPage)
+          // 先设置body背景颜色，避免白色闪烁
+          document.body.style.backgroundColor = '#ffffff'
+          
+          // 先隐藏门户页面
+          if (portal) {
+            portal.style.display = 'none'
+          }
+          
+          // 显示详情页面 - 确保背景颜色在动画过程中可见
+          detailPage.style.display = 'block'
+          detailPage.style.backgroundColor = '#ffffff'
+          detailPage.style.opacity = '0'
+          detailPage.style.visibility = 'visible'
+          detailPage.style.zIndex = '9999'
+          
+          // 添加动画类
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              detailPage.classList.add('active')
+              console.log('详情页面已添加active类', detailPage.classList)
+              
+              // 调整标题字体大小
+              adjustTitleFontSizes()
+            })
+          })
+          
+          // 禁用滚动监听
+          window.removeEventListener('wheel', handleWheel)
+        } else {
+          console.error('详情页面元素未找到')
+        }
+      }
+
+      // 根据标题长度自动调整字体大小
+      function adjustTitleFontSizes() {
+        const titles = document.querySelectorAll('.portal-detail-item-title')
+        const maxWidth = 300 // 最大宽度（px）
+        const baseFontSize = 24 // 基础字体大小
+        const minFontSize = 16 // 最小字体大小
+        
+        titles.forEach(title => {
+          // 重置字体大小
+          title.style.fontSize = baseFontSize + 'px'
+          
+          // 获取文本长度
+          const textLength = title.textContent.length
+          
+          // 根据文本长度计算合适的字体大小
+          let fontSize = baseFontSize
+          if (textLength > 20) {
+            fontSize = Math.max(minFontSize, baseFontSize - (textLength - 20) * 0.8)
+          } else if (textLength > 10) {
+            fontSize = baseFontSize - (textLength - 10) * 0.5
+          }
+          
+          // 应用字体大小
+          title.style.fontSize = fontSize + 'px'
+        })
+      }
+
+      function closeDetail() {
+        // 添加淡出动画
+        if (detailPage) {
+          // 确保背景颜色在动画过程中可见
+          detailPage.style.backgroundColor = '#ffffff'
+          document.body.style.backgroundColor = '#ffffff'
+          detailPage.classList.remove('active')
+          detailPage.classList.add('fade-out')
+          
+          // 动画结束后隐藏页面
+          setTimeout(() => {
+            detailPage.style.display = 'none'
+            detailPage.style.opacity = '0'
+            detailPage.style.visibility = 'hidden'
+            detailPage.classList.remove('fade-out')
+            
+            // 恢复body背景颜色
+            document.body.style.backgroundColor = '#f5f7fa'
+            
+            // 恢复门户页面内容
+            if (portal) {
+              portal.style.display = 'block'
+              portal.style.opacity = '1'
+              portal.style.transform = 'translateX(0)'
+              portal.style.transition = 'opacity 0.4s ease, transform 0.4s ease'
+            }
+            
+            // 重置滚动状态并重新启用滚动监听
+            hasScrolled = false
+            wheelDelta = 0
+            window.addEventListener('wheel', handleWheel, { passive: true })
+          }, 400)
+        }
+      }
+
+      // 鼠标滚轮监听 - 当向下滚动时显示详情页面
+      let wheelDelta = 0
+      let hasScrolled = false
+      const wheelThreshold = 3 // 需要滚动3次才触发
+
+      function handleWheel(e) {
+        // 如果门户页面已隐藏，不处理滚动
+        if (!portal || portal.style.display === 'none' || hasScrolled) {
+          return
+        }
+
+        // 检测向下滚动
+        if (e.deltaY > 0) {
+          wheelDelta++
+          if (wheelDelta >= wheelThreshold) {
+            hasScrolled = true
+            openDetail()
+          }
+        } else {
+          // 向上滚动时重置计数器
+          wheelDelta = Math.max(0, wheelDelta - 1)
+        }
+      }
+
+      // 添加滚轮事件监听
+      window.addEventListener('wheel', handleWheel, { passive: true })
+
+      // 支持通过 ?view=app 直接进入系统
+      try {
+        const params = new URLSearchParams(location.search)
+        if (params.get('view') === 'app') {
+          enterSystem()
+        }
+      } catch (e) {}
+
+      // 系统页面回退按钮 - 使用事件委托，确保即使按钮动态显示也能工作
+      function backToPortal() {
+        console.log('回退按钮被点击')
+        const portal = document.getElementById('portal')
+        const app = document.getElementById('app')
+        const appBackBtn = document.getElementById('app-back-btn')
+        
+        console.log('portal元素:', portal)
+        console.log('app元素:', app)
+        console.log('appBackBtn元素:', appBackBtn)
+        
+        if (app) {
+          console.log('隐藏app')
+          app.style.display = 'none'
+        }
+        
+        // 隐藏回退按钮
+        if (appBackBtn) {
+          appBackBtn.style.display = 'none'
+        }
+        
+        if (portal) {
+          console.log('显示portal')
+          portal.style.display = 'block'
+          portal.style.opacity = '1'
+          portal.style.transform = 'translateX(0)'
+          portal.style.transition = 'opacity 0.4s ease, transform 0.4s ease'
+        }
+        
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch (e) { window.scrollTo(0, 0) }
+      }
+
+      // 使用事件委托，监听整个document上的点击事件
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.closest('#app-back-btn')) {
+          e.preventDefault()
+          backToPortal()
+        }
+      })
+
+      if (btn) btn.addEventListener('click', enterSystem)
+      if (detailBackBtn) detailBackBtn.addEventListener('click', closeDetail)
+
+      window.__enterSystem = enterSystem
+    })()
+  </script>
+
+  <!-- 系统页面回退按钮（放在app外部，确保始终可见） -->
+  <button id="app-back-btn" class="app-back-btn" type="button" aria-label="返回门户" style="display: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </button>
+
   <div id="app" v-cloak>
     <div class="container">
       <!-- 头部 -->
@@ -756,7 +1868,7 @@
       <div class="main-grid">
         <!-- 1. 拓扑设置 -->
         <div class="section">
-          <h3 class="section-title">拓扑设置</h3>
+          <h3 class="section-title">第一步：拓扑设置<span v-if="topologyCompleted" style="color: #52c41a; margin-left: 10px; font-weight: normal;">√已完成</span></h3>
           <div class="input-group">
             <label>TOR交换机数量：</label>
             <input v-model.number="topology.torSwitches" type="number" min="1" placeholder="例如: 8">
@@ -784,7 +1896,7 @@
 
         <!-- 2. 负载设置 -->
         <div class="section">
-          <h3 class="section-title">负载设置</h3>
+          <h3 class="section-title">第二步：拓扑设置<span v-if="loadCompleted" style="color: #52c41a; margin-left: 10px; font-weight: normal;">√已完成</span></h3>
           <div class="input-group">
             <label>节点数量：</label>
             <input v-model.number="load.host_num" type="number" min="1" placeholder="例如: 64">
@@ -853,7 +1965,7 @@
 
         <!-- 3. 通信树生成与切分 -->
         <div class="section">
-          <h3 class="section-title">通信树生成与切分</h3>
+          <h3 class="section-title">第三步：通信树生成与切分</h3>
           
           <div class="input-group">
             <label>训练模型：</label>
@@ -914,6 +2026,7 @@
         </div>
 
         <!-- 4. Workflow 自动化 -->
+        <!--
         <div class="section">
           <h3 class="section-title">Workflow 自动化</h3>
           <p class="info-text" style="color: #1890ff; margin-bottom: 15px;">
@@ -979,6 +2092,7 @@
             </div>
           </div>
         </div>
+        -->
 
         <!-- 5. 仿真控制 -->
         <div class="section">
@@ -1051,6 +2165,9 @@
           </button>
           <button class="btn btn-secondary" @click="stopAutoMonitor" :disabled="!autoMonitoring">
             停止监控
+          </button>
+          <button class="btn btn-success" @click="openRiverTableVisualization">
+            示例数据展示
           </button>
           <div v-if="steadyStateInfo" class="result-box">
             <p><strong>稳态状态:</strong> {{ steadyStateInfo.is_steady ? '已进入稳态' : '未进入稳态' }}</p>
@@ -1131,41 +2248,9 @@
                     <strong>总流数:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.total_flows || 0 }}<br>
                     <strong>平均流大小:</strong> {{ analysisResult.results.performance_analysis.flow_statistics?.average_flow_size_MB?.toFixed(2) || 0 }} MB
                   </p>
-                  <p v-if="analysisResult.results.performance_analysis.memory_mb !== null && analysisResult.results.performance_analysis.memory_mb !== undefined">
-                    <strong>内存使用:</strong> {{ analysisResult.results.performance_analysis.memory_mb?.toFixed(2) || 0 }} MB
-                  </p>
                 </div>
                 <p v-else style="color: #999;">
                   {{ analysisResult.results.performance_analysis.error || '无数据' }}
-                </p>
-              </div>
-              
-              <div v-if="analysisResult.results.baseline_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <h4 style="margin-top: 0; color: #667eea;">包粒度基线结果</h4>
-                <div v-if="analysisResult.results.baseline_analysis.fct_analysis?.file_found">
-                  <p>
-                    <strong>基线平均FCT:</strong> {{ analysisResult.results.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs
-                  </p>
-                </div>
-                <p v-else style="color: #999;">
-                  {{ analysisResult.results.baseline_analysis.fct_analysis?.error || '未获取基线结果' }}
-                </p>
-              </div>
-              
-              <div v-if="analysisResult.results.comparison" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <h4 style="margin-top: 0; color: #667eea;">对比指标（实验 vs 包粒度）</h4>
-                <p>
-                  <strong>FCT保真度:</strong> {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
-                  <strong>运行时间加速比（基线/实验）:</strong> {{ analysisResult.results.comparison.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
-                  <strong>运行时间差值（基线-实验）:</strong> {{ analysisResult.results.comparison.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
-                  <strong>实验总时间:</strong> {{ analysisResult.results.comparison.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
-                  <strong>基线总时间:</strong> {{ analysisResult.results.comparison.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
-                </p>
-                <p v-if="analysisResult.results.comparison.runtime_note" style="color: #999;">
-                  {{ analysisResult.results.comparison.runtime_note }}
-                </p>
-                <p v-if="analysisResult.results.comparison.memory_note" style="color: #999;">
-                  {{ analysisResult.results.comparison.memory_note }}
                 </p>
               </div>
             </div>
@@ -1214,7 +2299,7 @@
             <div v-else-if="modal.type === 'analysis'">
               <pre style="max-height: 500px; overflow: auto;">{{ JSON.stringify(modal.data, null, 2) }}</pre>
             </div>
-            <div v-else-if="modal.type === 'tree-visualization'" v-html="modal.content">
+            <div v-else-if="modal.type === 'tree-visualization'" class="tree-visualization-container" v-html="modal.content">
             </div>
             <div v-else-if="modal.type === 'heatmap-and-flow'">
               <div style="display: flex; gap: 20px; height: 80vh;">
@@ -1369,7 +2454,7 @@
                 </div>
               </div>
             </div>
-            <div v-else style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px; border: 1px solid #1890ff;" @click.stop>
+            <div v-if="!fullscreenSimpleMode" style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px; border: 1px solid #1890ff;" @click.stop>
               <button class="btn btn-success" @click="startSynchronizedAnimation" :disabled="synchronizedRunning || heatmapAnimationRunning || flowAnimationRunning" style="padding: 8px 16px; font-size: 13px; font-weight: 600; width: 100%;">
                 {{ synchronizedRunning ? '同步运行中...' : '🚀 同时运行' }}
               </button>
@@ -1421,6 +2506,7 @@
                 </div>
               </div>
             </div>
+            <!-- 可视化区域 -->
             <div id="fullscreen-flow-visualization-container" style="flex: 1; border: 1px solid #e8e8e8; border-radius: 8px; background: #fafafa; position: relative; min-height: 400px;"></div>
           </div>
         </div>
@@ -1446,6 +2532,56 @@
         </div>
         <div class="fullscreen-hint">
           🖱️ 滚轮缩放 | 🤚 拖动平移 | ESC 或点击背景关闭
+        </div>
+      </div>
+
+      <!-- 全屏河流图与路由表可视化 -->
+      <div v-if="fullscreenRiverTable.show" class="fullscreen-flow-overlay" @click.self="closeFullscreenRiverTable">
+        <button class="fullscreen-close" @click="closeFullscreenRiverTable">×</button>
+        <div class="fullscreen-river-table-container" @click.stop>
+          <div class="fullscreen-river-table-header">
+            <h2 style="color: white; margin: 0 0 15px 0;">河流图与路由表同步可视化</h2>
+            <div style="margin-bottom: 15px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <label for="fullscreen-river-table-file-input" style="color: #94a3b8; font-size: 0.95rem;">选择 flow_stats.txt：</label>
+              <input type="file" id="fullscreen-river-table-file-input" accept=".txt" @change="handleRiverTableFileSelect" style="padding: 8px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2); color: #e2e8f0; background: rgba(15,23,42,0.6);">
+            </div>
+            <div class="fullscreen-river-table-controls">
+              <button class="btn btn-primary" @click="riverTableAnimation.isPlaying ? pauseRiverTableAnimation() : playRiverTableAnimation()" style="margin: 0 5px;">
+                {{ riverTableAnimation.isPlaying ? '⏸ 暂停' : '▶ 播放' }}
+              </button>
+              <span style="margin: 0 10px; color: white; font-size: 0.9rem;" id="fullscreen-river-table-time-display">时间: 0.00 μs</span>
+              <input type="range" id="fullscreen-river-table-slider" min="0" max="100" value="0" @input="onRiverTableSliderChange" style="flex: 1; margin: 0 10px; cursor: pointer; max-width: 400px;">
+            </div>
+          </div>
+          <div class="fullscreen-river-table-content">
+            <div class="fullscreen-river-table-left">
+              <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 12px;">🌊 带宽河流图</h3>
+              <div id="fullscreen-streamgraph"></div>
+              <div class="fullscreen-streamgraph-legend" id="fullscreen-streamgraphLegend"></div>
+            </div>
+            <div class="fullscreen-river-table-right">
+              <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 12px;">📊 路由速率表</h3>
+              <div class="fullscreen-routing-table-container" id="fullscreen-routing-table-container">
+                <div class="fullscreen-routing-table-wrapper" id="fullscreen-routing-table-wrapper">
+                  <table id="fullscreen-routing-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 160px;">时间 (ns)</th>
+                        <th>流 ID</th>
+                        <th style="width: 140px;">速率 (Gbps)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="fullscreen-routing-table-body">
+                      <tr><td colspan="3" style="text-align:center;color:#94a3b8;">请先载入 flow_stats.txt</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fullscreen-hint">
+          🖱️ 河流图和路由表同步播放 | ESC 或点击背景关闭
         </div>
       </div>
 
@@ -1529,6 +2665,7 @@
           isGeneratingTopology: false,
           topologyResult: null,
           topologyGenerated: false,
+          topologyCompleted: false,
           topologyImageUrl: null,
 
           // 负载设置
@@ -1543,6 +2680,7 @@
           isGeneratingLoad: false,
           loadResult: null,
           loadGenerated: false,
+          loadCompleted: false,
           loadSource: 'generated',
           customTrafficFile: null,
           customTrafficResult: null,
@@ -1666,10 +2804,10 @@
           heatmapMatrix: null,
           heatmapTypeMatrix: null,
           heatmapMaxValue: 0,
+          fullscreenSimpleMode: false,
           fullscreenHeatmap: {
             show: false
           },
-          fullscreenSimpleMode: false,
           
           // 同步运行
           synchronizedRunning: false,
@@ -1677,6 +2815,7 @@
           synchronizedFlowTotal: 0,
           synchronizedFlowInterval: 2600,
           synchronizedFlowTimer: null,
+          
           // 全屏流量可视化
           fullscreenFlow: {
             show: false,
@@ -1718,7 +2857,39 @@
 
           globalFlowClickHandler: null,
           ecmpPlaybackTimer: null,
-          ecmpPlaybackIndex: 0
+          ecmpPlaybackIndex: 0,
+
+          // 河流图与路由表可视化
+          fullscreenRiverTable: {
+            show: false
+          },
+          riverTableAnimation: {
+            currentFrame: 0,
+            isPlaying: false,
+            timer: null,
+            speed: 400
+          },
+          riverTableData: {
+            seriesMap: null,
+            timeline: null,
+            slotMap: null,
+            steadyStateEnters: [],
+            transitions: [],
+            fileName: "",
+            routingRows: [],
+            routingTimeline: []
+          },
+          streamgraphAnimation: {
+            frames: [],
+            timeline: [],
+            segmentStackedData: [],
+            timelineSegments: [],
+            steadyStateLines: [],
+            flowIds: [],
+            x: null,
+            y: null,
+            g: null
+          }
         }
       },
       computed: {
@@ -1975,6 +3146,7 @@
             if (result.success) {
               this.topologyResult = result
               this.topologyGenerated = true
+              this.topologyCompleted = true
               // 自动更新负载设置中的节点数量
               if (result.num_hosts) {
                 this.load.host_num = result.num_hosts
@@ -2188,9 +3360,8 @@
             if (result.success) {
               this.loadResult = result
               this.loadGenerated = true
+              this.loadCompleted = true
               this.loadSource = 'generated'
-              
-              // 清除自定义流量相关状态
               this.customTrafficResult = null
               this.customTrafficFile = null
               // 清除文件输入框的值（需要通过DOM操作）
@@ -2233,10 +3404,10 @@
         clearCustomTraffic() {
           this.customTrafficFile = null
           this.customTrafficResult = null
-          // 清除文件输入框的值
           if (this.$refs.customTrafficFileInput) {
             this.$refs.customTrafficFileInput.value = ''
           }
+          this.showToast('已清除自定义流量', 'info')
         },
 
         async uploadCustomTraffic() {
@@ -2519,7 +3690,6 @@
               const value = this.heatmapMatrix[row][col]
               return colorScale(value)
             })
-
             .attr('stroke', d => {
               const row = Math.floor(d / numHosts)
               const col = d % numHosts
@@ -2541,8 +3711,6 @@
               const typeSummary = this.getHeatmapCellTypeSummary(row, col)
               return `发送方: H${row}, 接收方: H${col}, 流量数: ${value}${typeSummary ? `, 类型: ${typeSummary}` : ''}`
             })
-          
-          // 类型信息改为悬浮提示，不在格子内显示文字
           
           // 绘制坐标轴标签
           const labelGroup = svg.append('g')
@@ -2683,7 +3851,9 @@
             for (let i = 0; i < batchSize && this.heatmapAnimationIndex < this.heatmapData.flowList.length; i++) {
               const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
               this.heatmapMatrix[flow.src][flow.dst]++
-              this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
+              if (this.heatmapTypeMatrix && flow.type) {
+                this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
+              }
               this.heatmapAnimationIndex++
             }
             
@@ -2722,94 +3892,7 @@
           }
         },
 
-        // 开始同步运行（热力图和负载流量同时运行）
-        startSynchronizedAnimation() {
-          if (!this.heatmapData || !this.flowRecordList || this.flowRecordList.length === 0) {
-            this.showToast('请先确保热力图和负载流量数据都已准备好', 'error')
-            return
-          }
-          
-          // 计算热力图的完成批次
-          const heatmapTotalFlows = this.heatmapData.totalFlows
-          if (!heatmapTotalFlows) {
-            this.showToast('热力图无流量数据', 'warning')
-            return
-          }
-          const batchSize = Math.max(1, Math.floor(heatmapTotalFlows / 100))
-          const heatmapBatches = Math.ceil(heatmapTotalFlows / batchSize)
-          const heatmapInterval = 50 // 50ms per batch
-          
-          // 抽样负载流量，使其与热力图同步完成
-          const flowTotalRecords = this.flowRecordList.length
-          const flowSampleStep = flowTotalRecords / heatmapBatches
-          
-          // 重置状态
-          this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
-            .map(() => Array(this.heatmapData.numHosts).fill(0))
-          this.heatmapTypeMatrix = this.createHeatmapTypeMatrix(this.heatmapData.numHosts)
-          this.heatmapAnimationIndex = 0
-          this.synchronizedFlowIndex = 0
-          this.synchronizedFlowTotal = heatmapBatches
-          this.synchronizedFlowInterval = heatmapInterval
-          this.synchronizedRunning = true
-          this.heatmapAnimationRunning = true
-          this.flowAnimationRunning = true
-          
-          // 绘制初始状态
-          this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
-          this.drawFlowVisualization('fullscreen-flow-visualization-container')
-          
-          // 同步驱动热力图与流量抽样播放
-          const animateHeatmap = () => {
-            if (!this.synchronizedRunning) {
-              return
-            }
-            if (this.heatmapAnimationIndex >= heatmapTotalFlows) {
-              this.heatmapAnimationRunning = false
-              this.flowAnimationRunning = false
-              this.stopSynchronizedAnimation()
-              return
-            }
-            
-            // 每次添加一批流量
-            for (let i = 0; i < batchSize && this.heatmapAnimationIndex < heatmapTotalFlows; i++) {
-              const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
-              this.heatmapMatrix[flow.src][flow.dst]++
-              this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
-              this.heatmapAnimationIndex++
-            }
-            
-            // 抽样更新负载流量（保证与热力图同步完成）
-            const sampleIndex = Math.min(
-              flowTotalRecords - 1,
-              Math.floor(this.synchronizedFlowIndex * flowSampleStep)
-            )
-            const record = this.flowRecordList[sampleIndex]
-            if (record) {
-              this.setSelectedFlow(record.src, record.dst, record, false, true)
-            }
-            this.synchronizedFlowIndex++
-            
-            // 更新热力图
-            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
-            
-            // 如果已经完成，立即结束（保证与流量同步完成）
-            if (this.heatmapAnimationIndex >= heatmapTotalFlows || this.synchronizedFlowIndex >= heatmapBatches) {
-              this.heatmapAnimationRunning = false
-              this.flowAnimationRunning = false
-              this.stopSynchronizedAnimation()
-              return
-            }
-            
-            // 继续动画
-            this.synchronizedFlowTimer = setTimeout(animateHeatmap, heatmapInterval)
-          }
-          
-          animateHeatmap()
-          
-          this.showToast('同步运行已开始', 'info')
-        },
-
+        // 流量类型相关辅助函数
         createHeatmapTypeMatrix(numHosts) {
           return Array(numHosts).fill(0).map(() =>
             Array(numHosts).fill(0).map(() => ({
@@ -2891,21 +3974,6 @@
           return parts.join(', ')
         },
 
-        // 停止同步运行
-        stopSynchronizedAnimation() {
-          this.synchronizedRunning = false
-          this.heatmapAnimationRunning = false
-          this.flowAnimationRunning = false
-          
-          if (this.synchronizedFlowTimer) {
-            clearTimeout(this.synchronizedFlowTimer)
-            this.synchronizedFlowTimer = null
-          }
-          
-          this.stopFlowAnimation()
-          this.showToast('同步运行完成！', 'success')
-        },
-
         // 打开全屏热力图和负载流量（合并视图）
         openFullscreenHeatmapAndFlow() {
           if (!this.heatmapData || !this.flowData) {
@@ -2935,7 +4003,7 @@
           if (this.synchronizedRunning) {
             this.stopSynchronizedAnimation()
           }
-
+          
           // 停止热力图动画
           this.heatmapAnimationRunning = false
           
@@ -2995,6 +4063,111 @@
           // 关闭全屏
           this.fullscreenHeatmap.show = false
           this.fullscreenSimpleMode = false
+        },
+
+        // 开始同步运行（热力图和负载流量同时运行）
+        startSynchronizedAnimation() {
+          if (!this.heatmapData || !this.flowRecordList || this.flowRecordList.length === 0) {
+            this.showToast('请先确保热力图和负载流量数据都已准备好', 'error')
+            return
+          }
+          
+          // 计算热力图的完成批次
+          const heatmapTotalFlows = this.heatmapData.totalFlows
+          if (!heatmapTotalFlows) {
+            this.showToast('热力图无流量数据', 'warning')
+            return
+          }
+          const batchSize = Math.max(1, Math.floor(heatmapTotalFlows / 100))
+          const heatmapBatches = Math.ceil(heatmapTotalFlows / batchSize)
+          const heatmapInterval = 50 // 50ms per batch
+          
+          // 抽样负载流量，使其与热力图同步完成
+          const flowTotalRecords = this.flowRecordList.length
+          const flowSampleStep = flowTotalRecords / heatmapBatches
+          
+          // 重置状态
+          this.heatmapMatrix = Array(this.heatmapData.numHosts).fill(0)
+            .map(() => Array(this.heatmapData.numHosts).fill(0))
+          this.heatmapTypeMatrix = this.createHeatmapTypeMatrix(this.heatmapData.numHosts)
+          this.heatmapAnimationIndex = 0
+          this.synchronizedFlowIndex = 0
+          this.synchronizedFlowTotal = heatmapBatches
+          this.synchronizedFlowInterval = heatmapInterval
+          this.synchronizedRunning = true
+          this.heatmapAnimationRunning = true
+          this.flowAnimationRunning = true
+          
+          // 绘制初始状态
+          this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+          this.drawFlowVisualization('fullscreen-flow-visualization-container')
+          
+          // 同步驱动热力图与流量抽样播放
+          const animateHeatmap = () => {
+            if (!this.synchronizedRunning) {
+              return
+            }
+            if (this.heatmapAnimationIndex >= heatmapTotalFlows) {
+              this.heatmapAnimationRunning = false
+              this.flowAnimationRunning = false
+              this.stopSynchronizedAnimation()
+              return
+            }
+            
+            // 每次添加一批流量
+            for (let i = 0; i < batchSize && this.heatmapAnimationIndex < heatmapTotalFlows; i++) {
+              const flow = this.heatmapData.flowList[this.heatmapAnimationIndex]
+              this.heatmapMatrix[flow.src][flow.dst]++
+              if (this.heatmapTypeMatrix && flow.type) {
+                this.incrementHeatmapType(this.heatmapTypeMatrix, flow.src, flow.dst, flow.type)
+              }
+              this.heatmapAnimationIndex++
+            }
+            
+            // 抽样更新负载流量（保证与热力图同步完成）
+            const sampleIndex = Math.min(
+              flowTotalRecords - 1,
+              Math.floor(this.synchronizedFlowIndex * flowSampleStep)
+            )
+            const record = this.flowRecordList[sampleIndex]
+            if (record) {
+              this.setSelectedFlow(record.src, record.dst, record, false, true)
+            }
+            this.synchronizedFlowIndex++
+            
+            // 更新热力图
+            this.drawHeatmap(true, 'fullscreen-heatmap-svg-container')
+            
+            // 如果已经完成，立即结束（保证与流量同步完成）
+            if (this.heatmapAnimationIndex >= heatmapTotalFlows || this.synchronizedFlowIndex >= heatmapBatches) {
+              this.heatmapAnimationRunning = false
+              this.flowAnimationRunning = false
+              this.stopSynchronizedAnimation()
+              return
+            }
+            
+            // 继续动画
+            this.synchronizedFlowTimer = setTimeout(animateHeatmap, heatmapInterval)
+          }
+          
+          animateHeatmap()
+          
+          this.showToast('同步运行已开始', 'info')
+        },
+
+        // 停止同步运行
+        stopSynchronizedAnimation() {
+          this.synchronizedRunning = false
+          this.heatmapAnimationRunning = false
+          this.flowAnimationRunning = false
+          
+          if (this.synchronizedFlowTimer) {
+            clearTimeout(this.synchronizedFlowTimer)
+            this.synchronizedFlowTimer = null
+          }
+          
+          this.stopFlowAnimation()
+          this.showToast('同步运行完成！', 'success')
         },
 
         // 可视化负载流量
@@ -3894,7 +5067,7 @@
           }
           
           this.flowSvg = svg
-        this.flowGlowFilterId = this.ensureGlowDefs(svg)
+          this.flowGlowFilterId = this.ensureGlowDefs(svg)
           this.flowSvgSize = { width, height }
           this.ecmpOverlayGroup = svg.append('g').attr('class', 'ecmp-overlay')
           
@@ -4535,8 +5708,20 @@
             if (result.success) {
               // 构建HTML内容，显示所有树组的图片
               const groups = result.groups
-              let htmlContent = `<div style="text-align: center;">
-                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">💡 提示：双击图片可全屏查看</p>`
+              const has3D = result.has_3d_viz
+              
+              // 3D可视化HTML的访问地址（右侧显示）
+              const viz3DUrl = `${this.apiUrl}/get-tree-groups-3d?output_dir=${encodeURIComponent(this.treeCut.output_dir)}&t=${Date.now()}`
+              
+              // 使用左右两栏布局：左边树组PNG（可滚动），右边3D切分可视化（固定画布）
+              let htmlContent = `<style>
+                .tree-viz-legend { font-size: 18px !important; }
+                .tree-viz-legend * { font-size: 18px !important; }
+                iframe { zoom: 1.2; }
+              </style>
+              <div style="display: flex; gap: 32px; align-items: stretch; height: 100%; min-height: 0; overflow: hidden; flex: 1;">
+                <div style="flex: 0 0 45%; overflow-y: scroll; overflow-x: hidden; min-height: 0; padding-right: 8px; text-align: center;">
+                  <p style="color: #999; font-size: 12px; margin-bottom: 20px;">💡 提示：左侧树组图片可双击全屏查看</p>`
               
               groups.forEach((group, index) => {
                 const imageUrl = `${this.apiUrl}/get-tree-image/${group.group_id}?t=${Date.now()}`
@@ -4557,7 +5742,30 @@
                 }
               })
               
-              htmlContent += `</div>`
+              htmlContent += `</div>` // 结束左侧列
+              
+              // 右侧3D切分可视化区域 - 直接使用iframe，无多余包装
+              if (has3D) {
+                htmlContent += `
+                  <div style="flex: 1; min-width: 0; position: relative; overflow: hidden;">
+                    <iframe 
+                      src="${viz3DUrl}" 
+                      style="width: 100%; height: 100%; border: none; background: #ffffff; overflow: hidden; display: block; margin: 0; padding: 0; transform: scale(1.1) translateX(-60px); transform-origin: top left;"
+                      scrolling="no"
+                      frameborder="0"
+                      title="3D分层切分可视化">
+                    </iframe>
+                  </div>`
+              } else {
+                htmlContent += `
+                  <div style="flex: 1; min-width: 0; padding-left: 16px; height: 100%; overflow: hidden;">
+                    <p style="color: #999; font-size: 14px; text-align: center; margin-top: 40px;">
+                      尚未生成3D切分可视化，请先执行一次通信树切分。
+                    </p>
+                  </div>`
+              }
+              
+              htmlContent += `</div>` // 结束整体容器
               
               this.modal = {
                 show: true,
@@ -4914,7 +6122,7 @@
               this.simulationWallClockEnd = endTs
               this.simulationWallClockDuration = endTs - this.simulationWallClockStart
             }
-        this.syncSteadyStateFromStatus(result)
+            this.syncSteadyStateFromStatus(result)
           } catch (error) {
             console.error('检查状态失败:', error)
           }
@@ -5016,22 +6224,6 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
         async analyzeResults() {
           this.isAnalyzing = true
           try {
-            try {
-              const baselineResponse = await fetch(`${this.apiUrl}/baseline-status`)
-              if (baselineResponse.ok) {
-                const baselineInfo = await baselineResponse.json()
-                if (baselineInfo && baselineInfo.needs_refresh) {
-                  this.showToast('检测到实验变化，正在重跑包粒度基线...', 'info')
-                } else if (baselineInfo && !baselineInfo.has_baseline) {
-                  this.showToast('正在跑包粒度基线，请稍候...', 'info')
-                } else if (baselineInfo && baselineInfo.is_running) {
-                  this.showToast('包粒度基线正在运行，请稍候...', 'info')
-                }
-              }
-            } catch (baselineError) {
-              console.warn('[WARNING] 获取基线状态失败:', baselineError)
-            }
-
             const response = await fetch(`${this.apiUrl}/analyze-results`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -6060,6 +7252,1195 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           const ctrl2YClamped = effectiveHeight ? clamp(ctrl2Y, marginY, effectiveHeight - marginY) : ctrl2Y
 
           return `M${sx},${sy} C${ctrl1XClamped},${ctrl1YClamped} ${ctrl2XClamped},${ctrl2YClamped} ${tx},${ty}`
+        },
+
+        // 打开河流图与路由表可视化
+        openRiverTableVisualization() {
+          try {
+            this.fullscreenRiverTable.show = true
+            // 不自动加载数据，等待用户选择文件或点击示例数据按钮
+          } catch (error) {
+            console.error("打开可视化时出错:", error)
+            this.showToast("打开可视化失败: " + error.message, 'error')
+          }
+        },
+
+        // 处理文件选择
+        handleRiverTableFileSelect(event) {
+          const file = event.target.files?.[0]
+          if (!file) return
+          const reader = new FileReader()
+          reader.onload = (ev) => {
+            try {
+              this.handleRiverTableData(ev.target.result, file.name)
+            } catch (error) {
+              console.error("处理文件数据时出错:", error)
+              this.showToast("处理文件失败: " + error.message, 'error')
+            }
+          }
+          reader.readAsText(file)
+        },
+
+        // 关闭河流图与路由表可视化
+        closeFullscreenRiverTable() {
+          this.fullscreenRiverTable.show = false
+          // 停止动画
+          if (this.riverTableAnimation.timer) {
+            clearTimeout(this.riverTableAnimation.timer)
+            this.riverTableAnimation.timer = null
+          }
+          this.riverTableAnimation.isPlaying = false
+          // 清理数据
+          this.riverTableData = {
+            seriesMap: null,
+            timeline: null,
+            slotMap: null,
+            steadyStateEnters: [],
+            transitions: [],
+            fileName: "",
+            routingRows: [],
+            routingTimeline: []
+          }
+        },
+
+        // 加载示例数据
+        loadRiverTableDemoData() {
+          const demo = `Flow ID: 0-1-1016-1016 - Rate: 8.112 Gbps currentTime: 10584000
+Flow ID: 0-2-1016-1016 - Rate: 8.112 Gbps currentTime: 10550500
+Flow ID: 0-3-1016-1016 - Rate: 8.112 Gbps currentTime: 10584000
+Flow ID: 0-2-1016-1016 - Rate: 11.3568 Gbps currentTime: 276669000
+Flow ID: 0-3-1016-1016 - Rate: 11.3568 Gbps currentTime: 276702500
+Flow ID: 0-2-1016-1016 - Rate: 12.168 Gbps currentTime: 277674000
+Flow ID: 0-3-1016-1016 - Rate: 12.168 Gbps currentTime: 277707500
+Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
+          this.handleRiverTableData(demo, "示例数据")
+        },
+
+        // 处理河流图与路由表数据
+        handleRiverTableData(text, fileName) {
+          if (typeof d3 === 'undefined') {
+            this.showToast('D3.js未加载，请检查网络连接', 'error')
+            return
+          }
+
+          const lines = text.split(/\r?\n/)
+          const seriesMap = new Map()
+          const slotMap = new Map()
+          const steadyStateEnters = []
+          const transitions = []
+          let totalSamples = 0
+          
+          const flowRegex = /Flow ID:\s*([^\s]+)\s*-\s*Rate:\s*([0-9.]+)\s*Gbps\s*currentTime:\s*([0-9]+)/i
+          const steadyRegex = /System entered steady state at time:\s*([0-9]+)\s*ns/i
+          
+          const allFlowsForTable = []
+          const transitionTimesForTable = []
+          
+          for (const raw of lines) {
+            const line = raw.trim()
+            if (!line) continue
+            
+            const steadyMatch = line.match(steadyRegex)
+            if (steadyMatch) {
+              const timeNs = Number(steadyMatch[1])
+              const timeSec = timeNs / 1e9
+              if (!isNaN(timeSec)) {
+                steadyStateEnters.push(timeSec)
+                transitions.push(timeSec)
+                transitionTimesForTable.push(timeNs)
+              }
+              continue
+            }
+            
+            const flowMatch = line.match(flowRegex)
+            if (flowMatch) {
+              const flow = flowMatch[1]
+              const rate = Number(flowMatch[2])
+              const timeNs = Number(flowMatch[3])
+              const timeSec = timeNs / 1e9
+              
+              if (isNaN(rate) || isNaN(timeSec)) {
+                console.warn("解析到无效数据:", line)
+                continue
+              }
+              
+              if (!seriesMap.has(flow)) seriesMap.set(flow, [])
+              seriesMap.get(flow).push({ t: timeSec, rate })
+              if (!slotMap.has(timeSec)) slotMap.set(timeSec, new Map())
+              slotMap.get(timeSec).set(flow, rate)
+              totalSamples++
+              
+              allFlowsForTable.push({
+                id: flow,
+                rate: rate,
+                time: timeNs
+              })
+              continue
+            }
+          }
+          
+          if (!seriesMap.size) {
+            this.showToast("未解析到有效数据", 'error')
+            return
+          }
+          
+          for (const [, arr] of seriesMap) {
+            arr.sort((a, b) => a.t - b.t)
+          }
+          
+          const allTimes = Array.from(slotMap.keys()).sort((a, b) => a - b)
+          const timeline = allTimes.length ? allTimes : Array.from(new Set(
+            [...seriesMap.values()].flatMap(v => v.map(p => p.t))
+          )).sort((a, b) => a - b)
+
+          if (seriesMap.size === 0 || timeline.length === 0) {
+            this.showToast("错误：数据解析失败", 'error')
+            return
+          }
+          
+          const routingData = this.generateRiverTableRoutingData(allFlowsForTable, transitionTimesForTable)
+          
+          console.log("路由表数据生成完成:", {
+            routingRowsCount: routingData.rows.length,
+            routingTimelineCount: routingData.timeline.length,
+            sampleRows: routingData.rows.slice(0, 3).map(r => ({
+              time: r.time,
+              timeSec: r.timeSec,
+              transition: r.transition,
+              entriesCount: r.entries?.length || 0
+            }))
+          })
+          
+          this.riverTableData = {
+            seriesMap,
+            timeline,
+            slotMap,
+            steadyStateEnters,
+            transitions,
+            fileName: fileName,
+            routingRows: routingData.rows,
+            routingTimeline: routingData.timeline
+          }
+          
+          // 设置滑块
+          const slider = document.getElementById("fullscreen-river-table-slider")
+          if (slider) {
+            slider.max = Math.max(0, timeline.length - 1)
+            slider.value = timeline.length - 1
+          }
+          
+          this.riverTableAnimation.currentFrame = Math.max(0, timeline.length - 1)
+          
+          // 渲染河流图和路由表
+          try {
+            console.log("开始渲染，数据统计:", {
+              seriesMapSize: seriesMap.size,
+              timelineLength: timeline.length,
+              routingRowsLength: routingData.rows.length,
+              routingTimelineLength: routingData.timeline.length
+            })
+            this.renderRiverTableStreamgraph(seriesMap, timeline, fileName, steadyStateEnters, transitions)
+            this.updateRiverTableRoutingTable()
+            console.log("渲染完成")
+          } catch (error) {
+            console.error("渲染时出错:", error)
+            console.error("错误堆栈:", error.stack)
+            this.showToast("渲染图表时出错: " + (error.message || String(error)), 'error')
+          }
+        },
+
+        // 生成路由表数据
+        generateRiverTableRoutingData(allFlows, transitionTimes) {
+          transitionTimes.sort((a, b) => a - b)
+          const rows = []
+          let flowIndex = 0
+          
+          for (let phaseIndex = 0; phaseIndex <= transitionTimes.length; phaseIndex++) {
+            const phaseStartTime = phaseIndex === 0 ? 0 : transitionTimes[phaseIndex - 1]
+            const phaseEndTime = phaseIndex < transitionTimes.length ? transitionTimes[phaseIndex] : Infinity
+            
+            const phaseFlows = []
+            while (flowIndex < allFlows.length && allFlows[flowIndex].time <= phaseEndTime) {
+              phaseFlows.push(allFlows[flowIndex])
+              flowIndex++
+            }
+            
+            if (phaseFlows.length === 0) continue
+            
+            const uniqueIds = []
+            phaseFlows.forEach(f => {
+              if (!uniqueIds.includes(f.id)) uniqueIds.push(f.id)
+            })
+            const groupSize = uniqueIds.length || 1
+            
+            for (let i = 0; i < phaseFlows.length; i += groupSize) {
+              const group = phaseFlows.slice(i, i + groupSize)
+              if (group.length === 0) break
+              const timeLabel = group[0].time.toString()
+              rows.push({
+                time: timeLabel,
+                timeSec: group[0].time / 1e9,
+                entries: group.map(g => ({ id: g.id, rate: g.rate.toFixed(4) })),
+              })
+            }
+            
+            if (phaseIndex < transitionTimes.length) {
+              const transitionTime = transitionTimes[phaseIndex]
+              const isLastTransition = phaseIndex === transitionTimes.length - 1
+              
+              let firstFlowAfterTransition = null
+              if (!isLastTransition && flowIndex < allFlows.length) {
+                firstFlowAfterTransition = allFlows[flowIndex].time
+              }
+              
+              let transitionTimeLabel
+              if (isLastTransition) {
+                transitionTimeLabel = `${transitionTime}~t`
+              } else if (firstFlowAfterTransition !== null) {
+                transitionTimeLabel = `${transitionTime}~${firstFlowAfterTransition}`
+              } else {
+                transitionTimeLabel = `${transitionTime}~t`
+              }
+              
+              rows.push({
+                time: transitionTimeLabel,
+                timeSec: transitionTime / 1e9,
+                entries: [{ id: "跃迁", rate: "跃迁" }],
+                transition: true,
+              })
+            }
+          }
+          
+          const timeMap = new Map()
+          rows.forEach((row, index) => {
+            const timeKey = row.time
+            if (!timeMap.has(timeKey)) {
+              timeMap.set(timeKey, [])
+            }
+            timeMap.get(timeKey).push(index)
+          })
+          
+          const timeline = Array.from(timeMap.keys()).sort((a, b) => {
+            const timeA = this.parseRiverTableTime(a)
+            const timeB = this.parseRiverTableTime(b)
+            return timeA - timeB
+          })
+          
+          return { rows, timeline }
+        },
+
+
+
+        // 渲染河流图（简化版，基于packet-river.html的核心逻辑）
+        renderRiverTableStreamgraph(seriesMap, timeline, title, steadyStateEnters, transitions) {
+          if (!steadyStateEnters) steadyStateEnters = []
+          if (!transitions) transitions = []
+          if (!timeline || timeline.length === 0 || !seriesMap || seriesMap.size === 0) {
+            console.error("河流图：数据无效")
+            return
+          }
+          
+          const useOriginalLogic = title && title.includes("flow_stats_packet_true.txt")
+          const streamgraphDiv = document.getElementById("fullscreen-streamgraph")
+          if (!streamgraphDiv) return
+
+          const width = streamgraphDiv.clientWidth || 900
+          const height = 500
+          const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+          const chartWidth = width - margin.left - margin.right
+          const chartHeight = height - margin.top - margin.bottom
+          
+          this.streamgraphAnimation.timeline = timeline
+          d3.select(streamgraphDiv).selectAll("*").remove()
+          
+          const svg = d3.select(streamgraphDiv)
+            .append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("width", width)
+            .attr("height", height)
+            .attr("style", "max-width: 100%; height: auto; background: rgba(2,6,23,0.85);")
+          
+          const defs = svg.append("defs")
+          const g = svg.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`)
+            .attr("class", "chart-content")
+          
+          const gAxes = svg.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`)
+            .attr("class", "chart-axes")
+          
+          const flowIds = Array.from(seriesMap.keys()).sort()
+          const n = flowIds.length
+          const m = timeline.length
+          
+          // 检测大时间间隔
+          const timeIntervals = []
+          for (let i = 1; i < timeline.length; i++) {
+            timeIntervals.push(timeline[i] - timeline[i - 1])
+          }
+          const avgInterval = timeIntervals.reduce((a, b) => a + b, 0) / timeIntervals.length
+          const largeIntervalThreshold = avgInterval * 10
+          
+          const breakPoints = [0]
+          for (let i = 0; i < timeIntervals.length; i++) {
+            if (timeIntervals[i] > largeIntervalThreshold) {
+              breakPoints.push(i + 1)
+            }
+          }
+          breakPoints.push(timeline.length)
+          
+          const timelineSegments = []
+          for (let i = 0; i < breakPoints.length - 1; i++) {
+            timelineSegments.push({
+              startIdx: breakPoints[i],
+              endIdx: breakPoints[i + 1],
+              timeline: timeline.slice(breakPoints[i], breakPoints[i + 1]),
+              segmentIndex: i
+            })
+          }
+          
+          const dataMatrix = []
+          const flowLastValues = new Map()
+          const flowLastTime = new Map()
+          const flowLastRate = new Map()
+          
+          flowIds.forEach(flow => {
+            const flowData = seriesMap.get(flow)
+            if (flowData.length > 0) {
+              const lastPoint = flowData[flowData.length - 1]
+              flowLastTime.set(flow, lastPoint.t)
+              flowLastRate.set(flow, lastPoint.rate)
+            }
+          })
+          
+          for (let segIdx = 0; segIdx < timelineSegments.length; segIdx++) {
+            const segment = timelineSegments[segIdx]
+            for (const time of segment.timeline) {
+              const row = flowIds.map(flow => {
+                const flowData = seriesMap.get(flow)
+                const lastTime = flowLastTime.get(flow)
+                const lastRate = flowLastRate.get(flow)
+                
+                let point = flowData.find(p => Math.abs(p.t - time) < 1e-9)
+                if (point) {
+                  flowLastValues.set(flow, point.rate)
+                  return point.rate
+                }
+                
+                if (!useOriginalLogic && lastTime !== undefined && time > lastTime + 1e-9) {
+                  flowLastValues.set(flow, 0)
+                  return 0
+                }
+                
+                const beforePoints = flowData.filter(p => p.t <= time)
+                if (beforePoints.length > 0) {
+                  point = beforePoints[beforePoints.length - 1]
+                  flowLastValues.set(flow, point.rate)
+                  return point.rate
+                }
+                
+                if (lastTime !== undefined && time > lastTime + 1e-9) {
+                  if (useOriginalLogic && lastRate !== undefined) {
+                    flowLastValues.set(flow, lastRate)
+                    return lastRate
+                  } else {
+                    flowLastValues.set(flow, 0)
+                    return 0
+                  }
+                }
+                
+                if (flowLastValues.has(flow)) {
+                  return flowLastValues.get(flow)
+                }
+                
+                return 0
+              })
+              dataMatrix.push(row)
+            }
+          }
+          
+          const timeMin = timeline[0]
+          const timeMax = timeline[timeline.length - 1]
+          const x = d3.scaleLinear()
+            .domain([timeMin, timeMax])
+            .range([0, chartWidth])
+          
+          const y = d3.scaleLinear()
+            .range([chartHeight, 0])
+          
+          const colorPalette = ["#60a5fa", "#f472b6", "#facc15", "#34d399", "#a78bfa", "#fb7185"]
+          
+          const stack = d3.stack()
+            .keys(d3.range(n))
+            .offset((series, order) => {
+              const n = series.length
+              const m = series[0].length
+              for (let j = 0; j < m; ++j) {
+                let y0 = 0
+                for (let i = 0; i < n; ++i) {
+                  const o = order[i]
+                  const s = series[o]
+                  const v = s[j][1]
+                  if (!isNaN(v) && v > 0.001) {
+                    s[j][0] = y0
+                    s[j][1] = y0 += v
+                  } else {
+                    s[j][0] = 0
+                    s[j][1] = 0
+                  }
+                }
+              }
+            })
+            .order(d3.stackOrderNone)
+          
+          const segmentStackedData = []
+          let globalYMax = 0
+          
+          for (let segIdx = 0; segIdx < timelineSegments.length; segIdx++) {
+            const segment = timelineSegments[segIdx]
+            const segmentDataMatrix = dataMatrix.slice(segment.startIdx, segment.endIdx)
+            
+            const segmentLayers = flowIds.map((flow, flowIdx) => {
+              return segmentDataMatrix.map(row => {
+                const val = row[flowIdx]
+                return isNaN(val) ? 0 : val
+              })
+            })
+            
+            const segmentStacked = stack(d3.transpose(segmentLayers))
+            segmentStackedData.push({
+              segment: segment,
+              stackedData: segmentStacked,
+              segmentIndex: segIdx
+            })
+            
+            const segmentYMax = d3.max(segmentStacked, l => d3.max(l, d => d[1]))
+            if (segmentYMax > globalYMax) {
+              globalYMax = segmentYMax
+            }
+          }
+          
+          y.domain([0, globalYMax])
+          
+          // 创建渐变定义
+          flowIds.forEach((flow, idx) => {
+            const gradient = defs.append("linearGradient")
+              .attr("id", `gradient-${idx}`)
+              .attr("x1", "0%")
+              .attr("y1", "0%")
+              .attr("x2", "0%")
+              .attr("y2", "100%")
+            
+            const baseColor = colorPalette[idx % colorPalette.length]
+            gradient.append("stop")
+              .attr("offset", "0%")
+              .attr("stop-color", baseColor)
+              .attr("stop-opacity", 0.8)
+            gradient.append("stop")
+              .attr("offset", "100%")
+              .attr("stop-color", baseColor)
+              .attr("stop-opacity", 0.4)
+          })
+          
+          // 创建area生成器
+          const createAreaForSegment = (segment) => {
+            return d3.area()
+              .x((d, i) => {
+                const timeIndex = segment.startIdx + i
+                if (timeIndex >= 0 && timeIndex < timeline.length) {
+                  return x(timeline[timeIndex])
+                }
+                return 0
+              })
+              .y0(d => y(d[0]))
+              .y1(d => y(d[1]))
+              .curve(d3.curveMonotoneX)
+          }
+          
+          // 为动画准备帧数据
+          this.streamgraphAnimation.frames = []
+          for (let frameIdx = 0; frameIdx < timeline.length; frameIdx++) {
+            const currentTime = timeline[frameIdx]
+            const frameLayers = flowIds.map((flow, flowIdx) => {
+              return dataMatrix.slice(0, frameIdx + 1).map(row => {
+                const val = row[flowIdx]
+                return isNaN(val) ? 0 : val
+              })
+            })
+            
+            const frameStacked = stack(d3.transpose(frameLayers))
+            this.streamgraphAnimation.frames.push({
+              time: currentTime,
+              stackedData: frameStacked,
+              timeIndex: frameIdx
+            })
+          }
+          
+          if (segmentStackedData.length === 0 || globalYMax <= 0) {
+            g.append("text")
+              .attr("x", chartWidth / 2)
+              .attr("y", chartHeight / 2)
+              .attr("text-anchor", "middle")
+              .style("fill", "#e2e8f0")
+              .style("font-size", "16px")
+              .text("数据无效，无法绘制河流图")
+            return
+          }
+          
+          // 绘制路径
+          segmentStackedData.forEach(segmentData => {
+            const segment = segmentData.segment
+            const stackedData = segmentData.stackedData
+            const area = createAreaForSegment(segment)
+            
+            stackedData.forEach((layer, flowIdx) => {
+              g.append("path")
+                .datum(layer)
+                .attr("fill", `url(#gradient-${flowIdx})`)
+                .attr("fill-opacity", (d) => {
+                  const maxVal = d3.max(layer, point => point[1] - point[0])
+                  return maxVal > 0.001 ? 1 : 0
+                })
+                .attr("stroke", () => {
+                  const baseColor = colorPalette[flowIdx % colorPalette.length]
+                  return d3.color(baseColor).brighter(0.5)
+                })
+                .attr("stroke-width", 2)
+                .attr("stroke-opacity", 0.8)
+                .attr("d", area)
+                .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))")
+            })
+          })
+          
+          // 创建clipPath
+          const clipPath = svg.append("defs")
+            .append("clipPath")
+            .attr("id", "fullscreen-streamgraph-clip")
+          
+          clipPath.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", chartWidth)
+            .attr("height", chartHeight)
+          
+          // 保存到streamgraphAnimation
+          this.streamgraphAnimation.segmentStackedData = segmentStackedData
+          this.streamgraphAnimation.timelineSegments = timelineSegments
+          this.streamgraphAnimation.x = x
+          this.streamgraphAnimation.y = y
+          this.streamgraphAnimation.g = g
+          this.streamgraphAnimation.flowIds = flowIds
+          
+          // 添加坐标轴
+          const xAxis = d3.axisBottom(x)
+            .tickFormat((d) => {
+              return (d * 1e6).toFixed(0) + "μs"
+            })
+            .ticks(Math.min(10, m))
+          
+          gAxes.append("g")
+            .attr("transform", `translate(0,${chartHeight})`)
+            .attr("class", "x-axis")
+            .call(xAxis)
+            .selectAll("text")
+            .style("fill", "#e2e8f0")
+            .style("font-size", "11px")
+          
+          const yAxis = d3.axisLeft(y)
+            .tickFormat(d => d.toFixed(1) + " Gbps")
+          
+          gAxes.append("g")
+            .attr("class", "y-axis")
+            .call(yAxis)
+            .selectAll("text")
+            .style("fill", "#e2e8f0")
+            .style("font-size", "11px")
+          
+          svg.append("text")
+            .attr("x", 10)
+            .attr("y", 12)
+            .attr("text-anchor", "start")
+            .style("fill", "#e2e8f0")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("带宽 (Gbps)")
+          
+          gAxes.append("text")
+            .attr("x", chartWidth / 2)
+            .attr("y", chartHeight + margin.bottom - 5)
+            .attr("text-anchor", "middle")
+            .style("fill", "#e2e8f0")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("时间 (μs)")
+          
+          gAxes.selectAll(".domain, .tick line")
+            .style("stroke", "#e2e8f0")
+            .style("stroke-width", 1)
+          
+          // 添加稳态标记线
+          const steadyStateLines = []
+          steadyStateEnters.forEach((steadyTime, idx) => {
+            const timeIndex = timeline.findIndex(t => Math.abs(t - steadyTime) < 1e-9)
+            if (timeIndex >= 0) {
+              const xPos = x(steadyTime)
+              const line = g.append("line")
+                .attr("x1", xPos)
+                .attr("x2", xPos)
+                .attr("y1", 0)
+                .attr("y2", chartHeight)
+                .attr("stroke", "#10b981")
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5,5")
+                .attr("opacity", 0)
+                .attr("class", `steady-state-line-${idx}`)
+              
+              const annotationGroup = gAxes.append("g")
+                .attr("class", `steady-state-annotation-${idx}`)
+                .attr("opacity", 0)
+              
+              const textBg = annotationGroup.append("rect")
+                .attr("x", xPos - 40)
+                .attr("y", -20)
+                .attr("width", 80)
+                .attr("height", 18)
+                .attr("fill", "rgba(16,185,129,0.2)")
+                .attr("stroke", "#10b981")
+                .attr("stroke-width", 1)
+                .attr("rx", 3)
+              
+              const textLine1 = annotationGroup.append("text")
+                .attr("x", xPos)
+                .attr("y", -8)
+                .attr("text-anchor", "middle")
+                .style("fill", "#10b981")
+                .style("font-size", "10px")
+                .style("font-weight", "bold")
+                .text(`进入稳态${idx + 1}`)
+              
+              const textLine2 = annotationGroup.append("text")
+                .attr("x", xPos)
+                .attr("y", 3)
+                .attr("text-anchor", "middle")
+                .style("fill", "#10b981")
+                .style("font-size", "10px")
+                .style("font-weight", "bold")
+                .text(`${(steadyTime * 1e6).toFixed(0)}µs`)
+              
+              steadyStateLines.push({
+                timeIndex: timeIndex,
+                line: line,
+                annotationGroup: annotationGroup
+              })
+            }
+          })
+          
+          this.streamgraphAnimation.segmentStackedData = segmentStackedData
+          this.streamgraphAnimation.timelineSegments = timelineSegments
+          this.streamgraphAnimation.steadyStateLines = steadyStateLines
+          this.streamgraphAnimation.currentFrame = timeline.length - 1
+          
+          // 渲染图例
+          this.renderRiverTableStreamgraphLegend(flowIds)
+          
+          // 初始显示完整图表
+          this.updateRiverTableStreamgraphFrame(timeline.length - 1)
+        },
+
+        // 更新河流图到指定帧
+        updateRiverTableStreamgraphFrame(frameIndex) {
+          if (!this.streamgraphAnimation.frames || frameIndex < 0 || frameIndex >= this.streamgraphAnimation.frames.length) {
+            return
+          }
+          
+          const timeline = this.streamgraphAnimation.timeline
+          const segmentStackedData = this.streamgraphAnimation.segmentStackedData
+          const timelineSegments = this.streamgraphAnimation.timelineSegments
+          
+          if (!timeline || timeline.length === 0) {
+            return
+          }
+          
+          const streamgraphDiv = document.getElementById("fullscreen-streamgraph")
+          if (!streamgraphDiv) return
+          
+          const width = streamgraphDiv.clientWidth || 900
+          const height = 500
+          const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+          const chartWidth = width - margin.left - margin.right
+          const chartHeight = height - margin.top - margin.bottom
+          
+          const g = d3.select(streamgraphDiv).select(".chart-content")
+          const timeMin = timeline[0]
+          const timeMax = timeline[timeline.length - 1]
+          const x = d3.scaleLinear().domain([timeMin, timeMax]).range([0, chartWidth])
+          const y = d3.scaleLinear().range([chartHeight, 0])
+          
+          let globalYMax = 0
+          segmentStackedData.forEach(segData => {
+            const segYMax = d3.max(segData.stackedData, l => d3.max(l, d => d[1]))
+            if (segYMax > globalYMax) globalYMax = segYMax
+          })
+          y.domain([0, globalYMax])
+          
+          g.selectAll("path").remove()
+          
+          segmentStackedData.forEach(segmentData => {
+            const segment = segmentData.segment
+            if (frameIndex < segment.startIdx) {
+              return
+            }
+            
+            const segmentEndIdx = Math.min(frameIndex + 1, segment.endIdx)
+            const segmentLength = segmentEndIdx - segment.startIdx
+            
+            if (segmentLength <= 0) {
+              return
+            }
+            
+            const area = d3.area()
+              .x((d, i) => {
+                const timeIndex = segment.startIdx + i
+                if (timeIndex >= 0 && timeIndex < timeline.length) {
+                  return x(timeline[timeIndex])
+                }
+                return 0
+              })
+              .y0(d => y(d[0]))
+              .y1(d => y(d[1]))
+              .curve(d3.curveMonotoneX)
+            
+            const colorPalette = ["#60a5fa", "#f472b6", "#facc15", "#34d399", "#a78bfa", "#fb7185"]
+            
+            segmentData.stackedData.forEach((layer, flowIdx) => {
+              const visibleLayer = layer.slice(0, segmentLength)
+              
+              g.append("path")
+                .datum(visibleLayer)
+                .attr("fill", `url(#gradient-${flowIdx})`)
+                .attr("fill-opacity", () => {
+                  const maxVal = d3.max(visibleLayer, point => point[1] - point[0])
+                  return maxVal > 0.001 ? 1 : 0
+                })
+                .attr("stroke", () => {
+                  const baseColor = colorPalette[flowIdx % colorPalette.length]
+                  return d3.color(baseColor).brighter(0.5)
+                })
+                .attr("stroke-width", 2)
+                .attr("stroke-opacity", 0.8)
+                .attr("d", area)
+                .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))")
+            })
+          })
+          
+          // 更新clipPath
+          const clipRect = d3.select("#fullscreen-streamgraph-clip rect")
+          if (!clipRect.empty()) {
+            const currentTime = timeline[frameIndex]
+            const currentX = x(currentTime)
+            if (frameIndex < timeline.length - 1) {
+              g.attr("clip-path", "url(#fullscreen-streamgraph-clip)")
+              clipRect.attr("width", Math.max(0, currentX))
+            } else {
+              g.attr("clip-path", null)
+            }
+          }
+          
+          // 更新稳态标记线
+          if (this.streamgraphAnimation.steadyStateLines) {
+            this.streamgraphAnimation.steadyStateLines.forEach((steadyLine) => {
+              if (frameIndex >= steadyLine.timeIndex) {
+                steadyLine.line.attr("opacity", 0.6)
+                if (steadyLine.annotationGroup) {
+                  steadyLine.annotationGroup.attr("opacity", 1)
+                }
+              } else {
+                steadyLine.line.attr("opacity", 0)
+                if (steadyLine.annotationGroup) {
+                  steadyLine.annotationGroup.attr("opacity", 0)
+                }
+              }
+            })
+          }
+          
+          this.streamgraphAnimation.currentFrame = frameIndex
+        },
+
+        // 渲染河流图图例
+        renderRiverTableStreamgraphLegend(flowIds) {
+          const legendDiv = document.getElementById("fullscreen-streamgraphLegend")
+          if (!legendDiv) return
+          legendDiv.innerHTML = ""
+          const colorPalette = ["#60a5fa", "#f472b6", "#facc15", "#34d399", "#a78bfa", "#fb7185"]
+          flowIds.forEach((flow, idx) => {
+            const item = document.createElement("div")
+            item.className = "fullscreen-streamgraph-legend-item"
+            item.innerHTML = `
+              <div class="fullscreen-streamgraph-legend-color" style="background: ${colorPalette[idx % colorPalette.length]};"></div>
+              <span>Flow ${flow}</span>
+            `
+            legendDiv.appendChild(item)
+          })
+        },
+
+        // 生成路由表数据
+        generateRoutingTableData(allFlows, transitionTimes) {
+          const rows = []
+          let flowIndex = 0
+          
+          for (let phaseIndex = 0; phaseIndex <= transitionTimes.length; phaseIndex++) {
+            const phaseStartTime = phaseIndex === 0 ? 0 : transitionTimes[phaseIndex - 1]
+            const phaseEndTime = phaseIndex < transitionTimes.length ? transitionTimes[phaseIndex] : Infinity
+            
+            const phaseFlows = []
+            while (flowIndex < allFlows.length && allFlows[flowIndex].time <= phaseEndTime) {
+              phaseFlows.push(allFlows[flowIndex])
+              flowIndex++
+            }
+            
+            if (phaseFlows.length === 0) {
+              // 即使没有流数据，也要添加跃迁行
+              if (phaseIndex < transitionTimes.length) {
+                const transitionTime = transitionTimes[phaseIndex]
+                const isLastTransition = phaseIndex === transitionTimes.length - 1
+                let firstFlowAfterTransition = null
+                if (!isLastTransition && flowIndex < allFlows.length) {
+                  firstFlowAfterTransition = allFlows[flowIndex].time
+                }
+                
+                let transitionTimeLabel
+                if (isLastTransition) {
+                  transitionTimeLabel = `${transitionTime}~t`
+                } else if (firstFlowAfterTransition !== null) {
+                  transitionTimeLabel = `${transitionTime}~${firstFlowAfterTransition}`
+                } else {
+                  transitionTimeLabel = `${transitionTime}~t`
+                }
+                
+                rows.push({
+                  time: transitionTimeLabel,
+                  timeSec: transitionTime / 1e9,
+                  entries: [{ id: "跃迁", rate: "跃迁" }],
+                  transition: true
+                })
+              }
+              continue
+            }
+            
+            const uniqueIds = []
+            phaseFlows.forEach(f => {
+              if (!uniqueIds.includes(f.id)) uniqueIds.push(f.id)
+            })
+            const groupSize = uniqueIds.length || 1
+            
+            for (let i = 0; i < phaseFlows.length; i += groupSize) {
+              const group = phaseFlows.slice(i, i + groupSize)
+              if (group.length === 0) break
+              const timeLabel = group[0].time.toString()
+              rows.push({
+                time: timeLabel,
+                timeSec: group[0].time / 1e9,
+                entries: group.map(g => ({ id: g.id, rate: g.rate.toFixed(4) })),
+              })
+            }
+            
+            if (phaseIndex < transitionTimes.length) {
+              const transitionTime = transitionTimes[phaseIndex]
+              const isLastTransition = phaseIndex === transitionTimes.length - 1
+              let firstFlowAfterTransition = null
+              if (!isLastTransition && flowIndex < allFlows.length) {
+                firstFlowAfterTransition = allFlows[flowIndex].time
+              }
+              
+              let transitionTimeLabel
+              if (isLastTransition) {
+                transitionTimeLabel = `${transitionTime}~t`
+              } else if (firstFlowAfterTransition !== null) {
+                transitionTimeLabel = `${transitionTime}~${firstFlowAfterTransition}`
+              } else {
+                transitionTimeLabel = `${transitionTime}~t`
+              }
+              
+              rows.push({
+                time: transitionTimeLabel,
+                timeSec: transitionTime / 1e9,
+                entries: [{ id: "跃迁", rate: "跃迁" }],
+                transition: true
+              })
+            }
+          }
+          
+          // 构建时间轴（与packet-river.html逻辑一致）
+          const timeMap = new Map()
+          rows.forEach((row, index) => {
+            const timeKey = row.time
+            if (!timeMap.has(timeKey)) {
+              timeMap.set(timeKey, [])
+            }
+            timeMap.get(timeKey).push(index)
+          })
+          
+          const timeline = Array.from(timeMap.keys()).sort((a, b) => {
+            const timeA = this.parseRiverTableTime(a)
+            const timeB = this.parseRiverTableTime(b)
+            return timeA - timeB
+          })
+          
+          return { rows, timeline }
+        },
+
+        // 更新路由表显示（完全按照packet-river.html的逻辑）
+        updateRiverTableRoutingTable() {
+          const tableBody = document.getElementById("fullscreen-routing-table-body")
+          if (!tableBody || !this.riverTableData.routingRows || !this.riverTableData.routingTimeline) {
+            if (tableBody) {
+              tableBody.innerHTML = "<tr><td colspan='3' style='text-align:center;color:#94a3b8;'>未解析到任何流记录</td></tr>"
+            }
+            return
+          }
+          
+          const currentTimeSec = this.riverTableData.timeline[this.riverTableAnimation.currentFrame]
+          if (currentTimeSec === undefined) {
+            tableBody.innerHTML = "<tr><td colspan='3' style='text-align:center;color:#94a3b8;'>时间点无效</td></tr>"
+            return
+          }
+          
+          // 找到当前时间点及之前的所有路由表行
+          // 直接遍历所有路由表行，找到时间小于等于当前时间的行
+          const rowsToShow = []
+          const seenTimeKeys = new Set() // 用于避免重复添加相同时间的行
+          
+          this.riverTableData.routingRows.forEach((row) => {
+            // 对于普通行，检查 timeSec 是否 <= 当前时间
+            if (!row.transition) {
+              if (row.timeSec <= currentTimeSec + 1e-6) {
+                // 检查是否已经添加了相同时间的行（避免重复）
+                if (!seenTimeKeys.has(row.time)) {
+                  rowsToShow.push(row)
+                  seenTimeKeys.add(row.time)
+                }
+              }
+            }
+            // 对于跃迁行，检查是否应该显示（跃迁时间 <= 当前时间）
+            else if (row.transition && row.timeSec <= currentTimeSec + 1e-6) {
+              rowsToShow.push(row)
+            }
+          })
+          
+          // 按时间排序
+          rowsToShow.sort((a, b) => {
+            const timeA = this.parseRiverTableTime(a.time)
+            const timeB = this.parseRiverTableTime(b.time)
+            return timeA - timeB
+          })
+          
+          this.renderRiverTableRoutingTable(rowsToShow)
+          this.autoScaleRiverTable()
+          // 自动滚动到底部（在缩放之后）
+          // 使用多重延迟确保 DOM 完全更新和渲染
+          this.$nextTick(() => {
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                this.scrollRoutingTableToBottom()
+              }, 50)
+            })
+          })
+        },
+
+        // 自动滚动路由表到底部
+        scrollRoutingTableToBottom() {
+          // 使用 requestAnimationFrame 确保在渲染后执行
+          requestAnimationFrame(() => {
+            const container = document.getElementById("fullscreen-routing-table-container")
+            if (!container) {
+              console.warn("路由表容器不存在，无法滚动")
+              return
+            }
+            
+            try {
+              // 直接设置 scrollTop 为最大值，滚动到底部
+              const maxScroll = container.scrollHeight - container.clientHeight
+              if (maxScroll > 0) {
+                container.scrollTop = maxScroll
+              } else {
+                // 如果内容没有超出，也确保在底部
+                container.scrollTop = container.scrollHeight
+              }
+            } catch (error) {
+              console.warn("滚动路由表失败:", error)
+            }
+          })
+        },
+
+        // 解析路由表时间
+        parseRiverTableTime(timeStr) {
+          if (typeof timeStr === 'string' && timeStr.includes('~')) {
+            const parts = timeStr.split('~')
+            if (parts.length >= 1) {
+              return Number(parts[0])
+            }
+          }
+          return Number(timeStr)
+        },
+
+        // 渲染路由表
+        renderRiverTableRoutingTable(rowsToShow) {
+          const tableBody = document.getElementById("fullscreen-routing-table-body")
+          if (!tableBody) return
+          
+          tableBody.innerHTML = ""
+          if (!rowsToShow || rowsToShow.length === 0) {
+            const r = document.createElement("tr")
+            const c = document.createElement("td")
+            c.colSpan = 3
+            c.style.textAlign = "center"
+            c.style.color = "#94a3b8"
+            c.textContent = "未解析到任何流记录"
+            r.appendChild(c)
+            tableBody.appendChild(r)
+            return
+          }
+          
+          rowsToShow.forEach(row => {
+            if (row.transition) {
+              const tr = document.createElement("tr")
+              tr.classList.add("transition-row")
+              
+              const timeCell = document.createElement("td")
+              timeCell.textContent = row.time
+              tr.appendChild(timeCell)
+              
+              const transitionCell = document.createElement("td")
+              transitionCell.colSpan = 2
+              transitionCell.textContent = "跃迁"
+              transitionCell.style.textAlign = "center"
+              tr.appendChild(transitionCell)
+              
+              tableBody.appendChild(tr)
+            } else {
+              row.entries.forEach((entry, idx) => {
+                const tr = document.createElement("tr")
+                
+                if (idx === 0) {
+                  const timeCell = document.createElement("td")
+                  timeCell.rowSpan = row.entries.length
+                  timeCell.textContent = row.time
+                  tr.appendChild(timeCell)
+                }
+                
+                const idCell = document.createElement("td")
+                idCell.textContent = entry.id
+                tr.appendChild(idCell)
+                
+                const rateCell = document.createElement("td")
+                rateCell.textContent = `${entry.rate} Gbps`
+                tr.appendChild(rateCell)
+                
+                tableBody.appendChild(tr)
+              })
+            }
+          })
+        },
+
+
+        // 自动缩放路由表
+        autoScaleRiverTable() {
+          const container = document.getElementById("fullscreen-routing-table-wrapper")
+          const table = document.getElementById("fullscreen-routing-table")
+          if (!container || !table) return
+          
+          const containerHeight = container.clientHeight
+          const tableHeight = table.scrollHeight
+          
+          if (tableHeight <= containerHeight) {
+            table.style.transform = "scaleY(1)"
+            return
+          }
+          
+          const scale = containerHeight / tableHeight
+          const minScale = 0.6
+          const finalScale = Math.max(scale, minScale)
+          
+          table.style.transform = `scaleY(${finalScale})`
+          table.style.transformOrigin = "top center"
+          container.style.width = "100%"
+          table.style.width = "100%"
+        },
+
+        // 播放河流图与路由表动画
+        playRiverTableAnimation() {
+          if (!this.riverTableData.timeline || this.riverTableData.timeline.length === 0) return
+          
+          if (this.riverTableAnimation.currentFrame >= this.riverTableData.timeline.length - 1) {
+            this.riverTableAnimation.currentFrame = 0
+            this.updateUnifiedRiverTableFrame(0)
+          }
+          
+          this.riverTableAnimation.isPlaying = true
+          
+          const animate = () => {
+            if (!this.riverTableAnimation.isPlaying) return
+            
+            if (this.riverTableAnimation.currentFrame >= this.riverTableData.timeline.length - 1) {
+              this.riverTableAnimation.isPlaying = false
+              return
+            }
+            
+            this.riverTableAnimation.currentFrame++
+            this.updateUnifiedRiverTableFrame(this.riverTableAnimation.currentFrame)
+            
+            this.riverTableAnimation.timer = setTimeout(animate, this.riverTableAnimation.speed)
+          }
+          
+          animate()
+        },
+
+        // 暂停河流图与路由表动画
+        pauseRiverTableAnimation() {
+          this.riverTableAnimation.isPlaying = false
+          if (this.riverTableAnimation.timer) {
+            clearTimeout(this.riverTableAnimation.timer)
+            this.riverTableAnimation.timer = null
+          }
+        },
+
+        // 统一更新河流图和路由表
+        updateUnifiedRiverTableFrame(frameIndex) {
+          if (!this.riverTableData.timeline || frameIndex < 0 || frameIndex >= this.riverTableData.timeline.length) {
+            return
+          }
+          
+          this.riverTableAnimation.currentFrame = frameIndex
+          
+          // 更新河流图
+          this.updateRiverTableStreamgraphFrame(frameIndex)
+          
+          // 更新路由表
+          this.updateRiverTableRoutingTable()
+          
+          // 更新时间显示
+          const timeDisplay = document.getElementById("fullscreen-river-table-time-display")
+          if (timeDisplay) {
+            const currentTime = this.riverTableData.timeline[frameIndex]
+            timeDisplay.textContent = `时间: ${(currentTime * 1e6).toFixed(2)} μs`
+          }
+          
+          // 更新滑块
+          const slider = document.getElementById("fullscreen-river-table-slider")
+          if (slider) {
+            slider.value = frameIndex
+          }
+        },
+
+        // 处理滑块变化
+        onRiverTableSliderChange(event) {
+          const frameIndex = parseInt(event.target.value, 10)
+          if (!this.riverTableAnimation.isPlaying) {
+            this.updateUnifiedRiverTableFrame(frameIndex)
+          } else {
+            this.pauseRiverTableAnimation()
+            this.updateUnifiedRiverTableFrame(frameIndex)
+          }
         }
       },
       beforeUnmount() {
@@ -6070,7 +8451,18 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
     })
 
     window.__flowAppCtx = FlowApp
-    window.__flowApp = FlowApp.mount('#app')
+    try {
+      window.__flowApp = FlowApp.mount('#app')
+      console.log('Vue 应用挂载成功:', window.__flowApp)
+    } catch (error) {
+      console.error('Vue 应用挂载失败:', error)
+      // 即使挂载失败，也尝试显示界面
+      const appElement = document.getElementById('app')
+      if (appElement) {
+        appElement.style.display = 'block'
+        appElement.removeAttribute('v-cloak')
+      }
+    }
   </script>
 </body>
 </html>
