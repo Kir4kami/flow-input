@@ -61,7 +61,7 @@
 #include <fstream>
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
-#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
+// // // // // // // // #define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
 
 bool allSteadyStateReached=false;
 bool flag_steady =true;// 刚刚/第一次进入稳态

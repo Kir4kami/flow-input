@@ -2253,6 +2253,48 @@
                   {{ analysisResult.results.performance_analysis.error || '无数据' }}
                 </p>
               </div>
+              
+              <div v-if="analysisResult.results.baseline_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">包粒度基线结果</h4>
+                <div v-if="analysisResult.results.baseline_analysis.fct_analysis?.file_found">
+                  <p>
+                    <strong>基线平均FCT:</strong> {{ analysisResult.results.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs
+                  </p>
+                </div>
+                <p v-else style="color: #999;">
+                  {{ analysisResult.results.baseline_analysis.fct_analysis?.error || '未获取基线结果' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.comparison" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">对比指标（实验 vs 包粒度）</h4>
+                
+                <!-- FCT对比折线图 -->
+                <div v-if="analysisResult.results.fct_analysis && analysisResult.results.baseline_analysis && 
+                           analysisResult.results.fct_analysis.average_fct_us && 
+                           analysisResult.results.baseline_analysis.fct_analysis?.average_fct_us" 
+                     style="margin-bottom: 20px;">
+                  <h5 style="margin-bottom: 10px; color: #333;">FCT对比（实验 vs 基线）</h5>
+                  <div id="fct-comparison-chart" style="width: 100%; height: 300px; margin-bottom: 10px;"></div>
+                  <p style="text-align: center; color: #666; font-size: 12px;">
+                    FCT保真度: {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}
+                  </p>
+                </div>
+                
+                <p>
+                  <strong>FCT保真度:</strong> {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间加速比（基线/实验）:</strong> {{ analysisResult.results.comparison.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间差值（基线-实验）:</strong> {{ analysisResult.results.comparison.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>实验总时间:</strong> {{ analysisResult.results.comparison.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>基线总时间:</strong> {{ analysisResult.results.comparison.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
+                </p>
+                <p v-if="analysisResult.results.comparison.runtime_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.runtime_note }}
+                </p>
+                <p v-if="analysisResult.results.comparison.memory_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.memory_note }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -6237,6 +6279,10 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
               this.analysisResult = result
               if (result.results) {
                 this.applySteadyEventsFromAnalysis(result.results, 'analysis')
+                // 绘制 FCT 对比柱状图
+                this.$nextTick(() => {
+                  this.drawFctComparisonChart(result.results)
+                })
               }
               const fctFlows = result.results && result.results.fct_analysis && Number(result.results.fct_analysis.total_flows)
               const hasFctData = Number.isFinite(fctFlows) && fctFlows > 0
@@ -6277,6 +6323,237 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
             title: '分析详情',
             type: 'analysis',
             data: this.analysisResult.results
+          }
+        },
+
+        // 绘制 FCT 对比折线图（实验 vs 基线）
+        drawFctComparisonChart(results) {
+          if (!results || !results.fct_analysis || !results.baseline_analysis) {
+            return
+          }
+
+          const expFctValues = results.fct_analysis.sampled_fct_values || []
+          const baseFctValues = results.baseline_analysis.fct_analysis?.sampled_fct_values || []
+
+          if (expFctValues.length === 0 && baseFctValues.length === 0) {
+            return
+          }
+
+          // 查找图表容器
+          const container = document.getElementById('fct-comparison-chart')
+          if (!container) {
+            return
+          }
+
+          // 清除之前的内容
+          container.innerHTML = ''
+
+          const margin = { top: 20, right: 50, bottom: 50, left: 80 }
+          const width = container.clientWidth - margin.left - margin.right
+          const height = 300 - margin.top - margin.bottom
+
+          if (width <= 0 || height <= 0) {
+            return
+          }
+
+          const svg = d3.select(container)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+
+          const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`)
+
+          // 准备折线数据：将FCT值按索引排序，用于绘制分布曲线
+          const prepareLineData = (values) => {
+            if (values.length === 0) return []
+            const sorted = [...values].sort((a, b) => a - b)
+            return sorted.map((value, index) => ({
+              index: index,
+              value: value,
+              percentile: (index / (sorted.length - 1)) * 100
+            }))
+          }
+
+          const expLineData = prepareLineData(expFctValues)
+          const baseLineData = prepareLineData(baseFctValues)
+
+          // 计算Y轴范围（FCT值）
+          const allValues = [...expFctValues, ...baseFctValues]
+          const maxValue = allValues.length > 0 ? Math.max(...allValues) * 1.05 : 1000
+          const minValue = allValues.length > 0 ? Math.min(...allValues) * 0.95 : 0
+
+          // 计算X轴范围（百分位数）
+          const maxPercentile = 100
+
+          // 创建比例尺
+          const xScale = d3.scaleLinear()
+            .domain([0, maxPercentile])
+            .range([0, width])
+
+          const yScale = d3.scaleLinear()
+            .domain([minValue, maxValue])
+            .range([height, 0])
+
+          // 创建折线生成器
+          const line = d3.line()
+            .x(d => xScale(d.percentile))
+            .y(d => yScale(d.value))
+            .curve(d3.curveMonotoneX)  // 使用平滑曲线
+
+          // 添加Y轴
+          const yAxis = d3.axisLeft(yScale)
+            .ticks(8)
+            .tickFormat(d => {
+              if (d >= 1000000) return (d / 1000000).toFixed(1) + 'M'
+              if (d >= 1000) return (d / 1000).toFixed(1) + 'K'
+              return d.toFixed(0)
+            })
+
+          g.append('g')
+            .attr('class', 'y-axis')
+            .call(yAxis)
+            .append('text')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -60)
+            .attr('x', -height / 2)
+            .attr('dy', '0.71em')
+            .style('text-anchor', 'middle')
+            .style('fill', '#333')
+            .style('font-size', '13px')
+            .style('font-weight', 'bold')
+            .text('FCT (μs)')
+
+          // 添加X轴
+          const xAxis = d3.axisBottom(xScale)
+            .ticks(10)
+            .tickFormat(d => d.toFixed(0) + '%')
+
+          g.append('g')
+            .attr('class', 'x-axis')
+            .attr('transform', `translate(0,${height})`)
+            .call(xAxis)
+            .append('text')
+            .attr('x', width / 2)
+            .attr('y', 40)
+            .attr('dy', '0.71em')
+            .style('text-anchor', 'middle')
+            .style('fill', '#333')
+            .style('font-size', '13px')
+            .style('font-weight', 'bold')
+            .text('百分位数 (%)')
+
+          // 绘制基线折线
+          if (baseLineData.length > 0) {
+            g.append('path')
+              .datum(baseLineData)
+              .attr('class', 'line baseline-line')
+              .attr('d', line)
+              .attr('fill', 'none')
+              .attr('stroke', '#f093fb')
+              .attr('stroke-width', 2.5)
+              .attr('opacity', 0.8)
+          }
+
+          // 绘制实验折线
+          if (expLineData.length > 0) {
+            g.append('path')
+              .datum(expLineData)
+              .attr('class', 'line experiment-line')
+              .attr('d', line)
+              .attr('fill', 'none')
+              .attr('stroke', '#667eea')
+              .attr('stroke-width', 2.5)
+              .attr('opacity', 0.8)
+          }
+
+          // 添加数据点（可选，如果数据点不太多的话）
+          if (expLineData.length <= 200) {
+            g.selectAll('.exp-dot')
+              .data(expLineData)
+              .enter()
+              .append('circle')
+              .attr('class', 'exp-dot')
+              .attr('cx', d => xScale(d.percentile))
+              .attr('cy', d => yScale(d.value))
+              .attr('r', 2)
+              .attr('fill', '#667eea')
+              .attr('opacity', 0.6)
+          }
+
+          if (baseLineData.length <= 200) {
+            g.selectAll('.base-dot')
+              .data(baseLineData)
+              .enter()
+              .append('circle')
+              .attr('class', 'base-dot')
+              .attr('cx', d => xScale(d.percentile))
+              .attr('cy', d => yScale(d.value))
+              .attr('r', 2)
+              .attr('fill', '#f093fb')
+              .attr('opacity', 0.6)
+          }
+
+          // 添加图例
+          const legend = g.append('g')
+            .attr('class', 'legend')
+            .attr('transform', `translate(${width - 120}, 10)`)
+
+          const legendData = [
+            { label: '实验', color: '#667eea' },
+            { label: '基线', color: '#f093fb' }
+          ]
+
+          legend.selectAll('.legend-item')
+            .data(legendData)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(0, ${i * 20})`)
+            .each(function(d) {
+              const item = d3.select(this)
+              item.append('line')
+                .attr('x1', 0)
+                .attr('x2', 15)
+                .attr('y1', 7.5)
+                .attr('y2', 7.5)
+                .attr('stroke', d.color)
+                .attr('stroke-width', 2.5)
+                .attr('opacity', 0.8)
+              item.append('text')
+                .attr('x', 20)
+                .attr('y', 12)
+                .style('fill', '#333')
+                .style('font-size', '12px')
+                .text(d.label)
+            })
+
+          // 添加平均值参考线
+          if (results.fct_analysis.average_fct_us && results.baseline_analysis.fct_analysis?.average_fct_us) {
+            const expAvg = results.fct_analysis.average_fct_us
+            const baseAvg = results.baseline_analysis.fct_analysis.average_fct_us
+
+            // 实验平均值线
+            g.append('line')
+              .attr('x1', 0)
+              .attr('x2', width)
+              .attr('y1', yScale(expAvg))
+              .attr('y2', yScale(expAvg))
+              .attr('stroke', '#667eea')
+              .attr('stroke-width', 1.5)
+              .attr('stroke-dasharray', '5,5')
+              .attr('opacity', 0.5)
+
+            // 基线平均值线
+            g.append('line')
+              .attr('x1', 0)
+              .attr('x2', width)
+              .attr('y1', yScale(baseAvg))
+              .attr('y2', yScale(baseAvg))
+              .attr('stroke', '#f093fb')
+              .attr('stroke-width', 1.5)
+              .attr('stroke-dasharray', '5,5')
+              .attr('opacity', 0.5)
           }
         },
 

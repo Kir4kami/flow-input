@@ -19,3 +19,8 @@ cmake-cache/
 build_output.log
 flow_stats.txt
 build/
+examples/Reverie/api/logs
+examples/Reverie/dump*
+examples/Reverie/task*
+examples/Reverie/TrafficGenerator/rdma_result*
+examples/Reverie/rdma_result

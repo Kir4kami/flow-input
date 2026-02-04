@@ -22,7 +22,13 @@ from datetime import datetime
 import hashlib
 
 # 添加父目录到路径，以便导入TreeCut
-sys.path.append(str(Path(__file__).parent.parent))
+try:
+    parent_dir = str(Path(__file__).resolve().parent.parent)
+except Exception:
+    # 如果 __file__ 不可用，使用当前工作目录
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -907,10 +913,18 @@ class GenerateTreeResponse(BaseModel):
 async def generate_communication_tree(request: GenerateTreeRequest):
     """生成通信树"""
     try:
+        # 使用 resolve() 确保路径正确
+        try:
+            api_dir = Path(__file__).resolve().parent
+            base_dir = api_dir.parent / "TrafficGenerator"
+        except Exception:
+            # os 已在文件顶部导入，不需要重新导入
+            api_dir = Path(os.path.abspath(os.path.dirname(__file__)))
+            base_dir = api_dir.parent / "TrafficGenerator"
+        
         if request.input_file:
             input_file = request.input_file
         else:
-            base_dir = Path(__file__).parent.parent / "TrafficGenerator"
             if request.model.lower() == "qwen":
                 input_file = str(base_dir / "qwen.txt")
             elif request.model.lower() == "deepseek":
@@ -921,25 +935,38 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         if not os.path.exists(input_file):
             raise HTTPException(status_code=404, detail=f"输入文件不存在: {input_file}")
         
-        traffic_gen_script = Path(__file__).parent.parent / "TrafficGenerator" / "trafficGen.py"
+        traffic_gen_script = base_dir / "trafficGen.py"
         if not os.path.exists(traffic_gen_script):
-            raise HTTPException(status_code=500, detail="TrafficGenerator脚本不存在")
+            raise HTTPException(status_code=500, detail=f"TrafficGenerator脚本不存在: {traffic_gen_script}")
         
-        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
+        traffic_gen_dir = base_dir
+        print(f"[DEBUG] 执行命令: python3 trafficGen.py --input_file {input_file}")
+        print(f"[DEBUG] 工作目录: {traffic_gen_dir}")
+        print(f"[DEBUG] 输入文件路径: {input_file}")
+        print(f"[DEBUG] 脚本路径: {traffic_gen_script}")
         result = subprocess.run(
             ["python3", "trafficGen.py", "--input_file", input_file],
             cwd=str(traffic_gen_dir),
             capture_output=True,
             text=True,
-            timeout=300
+            timeout=600  # 增加到 10 分钟
         )
         
         if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"生成失败: {result.stderr}")
+            error_msg = f"生成失败 (返回码: {result.returncode})\nSTDOUT: {result.stdout[-1000:] if result.stdout else '(无输出)'}\nSTDERR: {result.stderr[-1000:] if result.stderr else '(无错误)'}"
+            print(f"[ERROR] {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
         
         json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
+        print(f"[DEBUG] 检查JSON文件: {json_file}")
+        print(f"[DEBUG] JSON文件是否存在: {os.path.exists(json_file)}")
         if not os.path.exists(json_file):
-            raise HTTPException(status_code=500, detail="未找到生成的通信树JSON文件")
+            # 列出 rdma_result 目录内容以便调试
+            rdma_result_dir = traffic_gen_dir / "rdma_result"
+            if rdma_result_dir.exists():
+                json_files = list(rdma_result_dir.glob("*.json"))
+                print(f"[DEBUG] rdma_result 目录中的 JSON 文件: {[str(f) for f in json_files]}")
+            raise HTTPException(status_code=500, detail=f"未找到生成的通信树JSON文件: {json_file}")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -952,9 +979,14 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             nodes_count=len(tree_data.get("nodes", [])),
             edges_count=len(tree_data.get("edges", []))
         )
+    except HTTPException:
+        raise
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="生成超时")
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 生成通信树时发生异常: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"生成失败: {str(e)}")
 
 @app.post("/visualize-full-tree")
@@ -4398,6 +4430,17 @@ def analyze_fct_metrics(content):
     avg_fct = sum(fct_values) / len(fct_values)
     avg_slowdown = sum(slowdowns) / len(slowdowns)
     
+    # 对FCT值进行抽样，用于绘制折线图（最多1000个点）
+    sorted_fct = sorted(fct_values)
+    sample_size = min(1000, len(sorted_fct))
+    sampled_fct_values = []
+    if sample_size > 0:
+        step = len(sorted_fct) / sample_size
+        for i in range(sample_size):
+            idx = int(i * step)
+            if idx < len(sorted_fct):
+                sampled_fct_values.append(sorted_fct[idx])
+    
     return {
         "total_flows": total_flows,
         "average_fct_us": avg_fct,
@@ -4409,7 +4452,8 @@ def analyze_fct_metrics(content):
             "p50": sorted(fct_values)[len(fct_values)//2] if fct_values else 0,
             "p95": sorted(fct_values)[int(len(fct_values)*0.95)] if fct_values else 0,
             "p99": sorted(fct_values)[int(len(fct_values)*0.99)] if fct_values else 0
-        }
+        },
+        "sampled_fct_values": sampled_fct_values  # 抽样后的FCT值列表，用于绘制折线图
     }
 
 def analyze_steady_state(content):
