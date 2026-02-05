@@ -174,7 +174,7 @@
     }
 
     .portal-hero > div:first-child {
-      margin-left: 100px;
+      margin-left: 80px;
       margin-top: -15vh;
       max-width: 800px;
     }
@@ -443,7 +443,7 @@
       display: none;
       opacity: 0;
       z-index: 3000;
-      overflow-y: auto;
+      overflow: hidden;
     }
 
     .portal-detail-page.active {
@@ -539,14 +539,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
-      padding: 120px 40px 40px;
+      justify-content: flex-start;
+      height: 100vh;
+      padding: 70px 40px 20px;
       max-width: 1600px;
       margin: 0 auto;
       position: relative;
       z-index: 1;
       width: 100%;
       box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .portal-detail-title {
@@ -576,14 +579,14 @@
       border: 1px solid #e0e0e0;
       border-radius: 16px;
       padding: 50px 40px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       min-width: 0; /* 允许flex子元素收缩 */
     }
 
     .portal-detail-item:hover {
       transform: translateY(-5px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 6px 16px rgba(0, 0, 0, 0.15);
     }
 
     .portal-detail-dot {
@@ -1546,7 +1549,7 @@
 
     <div class="portal-hero">
       <div>
-        <div class="portal-title">仿真加速可视化平台</div>
+        <div class="portal-title">智算网络数字孪生平台</div>
 
         <div class="portal-feature-inline">
           <span class="portal-feature-label">功能特色：</span>
@@ -1559,8 +1562,6 @@
           <svg width="1.3em" height="1.3em" viewBox="0 0 60 40" style="vertical-align: middle; margin: 0 4px;"><rect x="5" y="15" width="10" height="25" fill="currentColor"/><rect x="20" y="5" width="10" height="35" fill="currentColor"/><rect x="35" y="25" width="10" height="15" fill="currentColor"/></svg>
           <span>实时可视</span>
         </div>
-
-        <div class="portal-devline">项目开发人员：</div>
 
         <div class="portal-cta-row">
           <button id="enter-system-btn" class="portal-enter-btn" type="button">进入系统</button>
@@ -1577,7 +1578,10 @@
       </svg>
     </button>
     <div class="portal-detail-content">
-      <h2 class="portal-detail-title">功能详情介绍</h2>
+      <h2 class="portal-detail-title" style="margin-bottom: 20px;">功能详情介绍</h2>
+      <p style="text-align: center; font-size: 18px; line-height: 1.8; color: #666; margin-bottom: 40px; max-width: 1000px; margin-left: auto; margin-right: auto;">
+        本平台旨在构建智算网络数字孪生平台，加速智算网络仿真，实现端侧、网内通信行为高精度刻画，为智算网络的拓扑、协议以及拥塞控制算法设计提供方案
+      </p>
       <div class="portal-detail-list">
         <div class="portal-detail-item">
           <div class="portal-detail-dot">
@@ -1588,8 +1592,8 @@
             </svg>
           </div>
           <div class="portal-detail-text">
-            <h3 class="portal-detail-item-title">总体</h3>
-            <p class="portal-detail-item-desc" style="color: #000000 !important;">面向万卡级大模型训练网络，本项目打造可复用的仿真加速引擎，融合包/流多粒度建模与时空无损切分并行，实现快速、可复现且可解释的网络性能评估，并显著降低仿真时间与内存开销。</p>
+            <h3 class="portal-detail-item-title" style="font-size: 32px; font-weight: 800; width: 100%; text-align: left;">图驱动的集合通信流量</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">基于DAG构建算子级大模型训练流量，驱动智算网络仿真引擎。</p>
           </div>
         </div>
         <div class="portal-detail-item">
@@ -1601,8 +1605,8 @@
             </svg>
           </div>
           <div class="portal-detail-text">
-            <h3 class="portal-detail-item-title">多粒度仿真（Packet + Flow）</h3>
-            <p class="portal-detail-item-desc" style="color: #000000 !important;">在拥塞/阶段切换等非稳态区间保留包级高保真，在稳态区间自动切换为流级可计算推进，实现显著提速且关键指标依然可解释、可复现。</p>
+            <h3 class="portal-detail-item-title" style="font-size: 32px; font-weight: 800; width: 100%; text-align: left;">混合粒度仿真</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">自动切换仿真粒度，同时满足仿真精度和速度的需求。</p>
           </div>
         </div>
         <div class="portal-detail-item">
@@ -1614,9 +1618,18 @@
             </svg>
           </div>
           <div class="portal-detail-text">
-            <h3 class="portal-detail-item-title">时空切分并行（Spatiotemporal Decomposition）</h3>
-            <p class="portal-detail-item-desc" style="color: #000000 !important;">基于通信依赖与链路占用将大规模仿真无损拆分为多个最小仿真单元并行执行，并对拓扑子图按需实例化，在加速的同时有效降低状态规模与内存峰值。</p>
+            <h3 class="portal-detail-item-title" style="font-size: 32px; font-weight: 800; width: 100%; text-align: left;">时空切分并行仿真</h3>
+            <p class="portal-detail-item-desc" style="color: #000000 !important;">基于大模型训练流量的时空特性，实现仿真多进程加速。</p>
           </div>
+        </div>
+      </div>
+      <div style="margin-top: 50px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 15px;">平台开发人员</div>
+        <div style="font-size: 18px; line-height: 2.5; color: #666;">
+          <div style="text-align: center;">系统策划：肖甫，吴争</div>
+          <div style="text-align: center;">算法设计：刘力凯，王文怿</div>
+          <div style="text-align: center;">前端设计：郑雨涵，杨帆</div>
+          <div style="text-align: center;">后端开发：陈柯宇，毛昊霖，孟令轩，陈越，刘力凯，王文怿</div>
         </div>
       </div>
     </div>
@@ -1896,7 +1909,7 @@
 
         <!-- 2. 负载设置 -->
         <div class="section">
-          <h3 class="section-title">第二步：拓扑设置<span v-if="loadCompleted" style="color: #52c41a; margin-left: 10px; font-weight: normal;">√已完成</span></h3>
+          <h3 class="section-title">第二步：负载设置<span v-if="loadCompleted" style="color: #52c41a; margin-left: 10px; font-weight: normal;">√已完成</span></h3>
           <div class="input-group">
             <label>节点数量：</label>
             <input v-model.number="load.host_num" type="number" min="1" placeholder="例如: 64">
@@ -2251,6 +2264,48 @@
                 </div>
                 <p v-else style="color: #999;">
                   {{ analysisResult.results.performance_analysis.error || '无数据' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.baseline_analysis" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">包粒度基线结果</h4>
+                <div v-if="analysisResult.results.baseline_analysis.fct_analysis?.file_found">
+                  <p>
+                    <strong>基线平均FCT:</strong> {{ analysisResult.results.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs
+                  </p>
+                </div>
+                <p v-else style="color: #999;">
+                  {{ analysisResult.results.baseline_analysis.fct_analysis?.error || '未获取基线结果' }}
+                </p>
+              </div>
+              
+              <div v-if="analysisResult.results.comparison" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                <h4 style="margin-top: 0; color: #667eea;">对比指标（实验 vs 包粒度）</h4>
+                
+                <!-- FCT对比折线图 -->
+                <div v-if="analysisResult.results.fct_analysis && analysisResult.results.baseline_analysis && 
+                           analysisResult.results.fct_analysis.average_fct_us && 
+                           analysisResult.results.baseline_analysis.fct_analysis?.average_fct_us" 
+                     style="margin-bottom: 20px;">
+                  <h5 style="margin-bottom: 10px; color: #333;">FCT对比（实验 vs 基线）</h5>
+                  <div id="fct-comparison-chart" style="width: 100%; height: 300px; margin-bottom: 10px;"></div>
+                  <p style="text-align: center; color: #666; font-size: 12px;">
+                    FCT保真度: {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}
+                  </p>
+                </div>
+                
+                <p>
+                  <strong>FCT保真度:</strong> {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间加速比（基线/实验）:</strong> {{ analysisResult.results.comparison.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
+                  <strong>运行时间差值（基线-实验）:</strong> {{ analysisResult.results.comparison.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>实验总时间:</strong> {{ analysisResult.results.comparison.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
+                  <strong>基线总时间:</strong> {{ analysisResult.results.comparison.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
+                </p>
+                <p v-if="analysisResult.results.comparison.runtime_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.runtime_note }}
+                </p>
+                <p v-if="analysisResult.results.comparison.memory_note" style="color: #999;">
+                  {{ analysisResult.results.comparison.memory_note }}
                 </p>
               </div>
             </div>
@@ -6237,6 +6292,10 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
               this.analysisResult = result
               if (result.results) {
                 this.applySteadyEventsFromAnalysis(result.results, 'analysis')
+                // 绘制 FCT 对比柱状图
+                this.$nextTick(() => {
+                  this.drawFctComparisonChart(result.results)
+                })
               }
               const fctFlows = result.results && result.results.fct_analysis && Number(result.results.fct_analysis.total_flows)
               const hasFctData = Number.isFinite(fctFlows) && fctFlows > 0
@@ -6277,6 +6336,237 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
             title: '分析详情',
             type: 'analysis',
             data: this.analysisResult.results
+          }
+        },
+
+        // 绘制 FCT 对比折线图（实验 vs 基线）
+        drawFctComparisonChart(results) {
+          if (!results || !results.fct_analysis || !results.baseline_analysis) {
+            return
+          }
+
+          const expFctValues = results.fct_analysis.sampled_fct_values || []
+          const baseFctValues = results.baseline_analysis.fct_analysis?.sampled_fct_values || []
+
+          if (expFctValues.length === 0 && baseFctValues.length === 0) {
+            return
+          }
+
+          // 查找图表容器
+          const container = document.getElementById('fct-comparison-chart')
+          if (!container) {
+            return
+          }
+
+          // 清除之前的内容
+          container.innerHTML = ''
+
+          const margin = { top: 20, right: 50, bottom: 50, left: 80 }
+          const width = container.clientWidth - margin.left - margin.right
+          const height = 300 - margin.top - margin.bottom
+
+          if (width <= 0 || height <= 0) {
+            return
+          }
+
+          const svg = d3.select(container)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+
+          const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`)
+
+          // 准备折线数据：将FCT值按索引排序，用于绘制分布曲线
+          const prepareLineData = (values) => {
+            if (values.length === 0) return []
+            const sorted = [...values].sort((a, b) => a - b)
+            return sorted.map((value, index) => ({
+              index: index,
+              value: value,
+              percentile: (index / (sorted.length - 1)) * 100
+            }))
+          }
+
+          const expLineData = prepareLineData(expFctValues)
+          const baseLineData = prepareLineData(baseFctValues)
+
+          // 计算Y轴范围（FCT值）
+          const allValues = [...expFctValues, ...baseFctValues]
+          const maxValue = allValues.length > 0 ? Math.max(...allValues) * 1.05 : 1000
+          const minValue = allValues.length > 0 ? Math.min(...allValues) * 0.95 : 0
+
+          // 计算X轴范围（百分位数）
+          const maxPercentile = 100
+
+          // 创建比例尺
+          const xScale = d3.scaleLinear()
+            .domain([0, maxPercentile])
+            .range([0, width])
+
+          const yScale = d3.scaleLinear()
+            .domain([minValue, maxValue])
+            .range([height, 0])
+
+          // 创建折线生成器
+          const line = d3.line()
+            .x(d => xScale(d.percentile))
+            .y(d => yScale(d.value))
+            .curve(d3.curveMonotoneX)  // 使用平滑曲线
+
+          // 添加Y轴
+          const yAxis = d3.axisLeft(yScale)
+            .ticks(8)
+            .tickFormat(d => {
+              if (d >= 1000000) return (d / 1000000).toFixed(1) + 'M'
+              if (d >= 1000) return (d / 1000).toFixed(1) + 'K'
+              return d.toFixed(0)
+            })
+
+          g.append('g')
+            .attr('class', 'y-axis')
+            .call(yAxis)
+            .append('text')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -60)
+            .attr('x', -height / 2)
+            .attr('dy', '0.71em')
+            .style('text-anchor', 'middle')
+            .style('fill', '#333')
+            .style('font-size', '13px')
+            .style('font-weight', 'bold')
+            .text('FCT (μs)')
+
+          // 添加X轴
+          const xAxis = d3.axisBottom(xScale)
+            .ticks(10)
+            .tickFormat(d => d.toFixed(0) + '%')
+
+          g.append('g')
+            .attr('class', 'x-axis')
+            .attr('transform', `translate(0,${height})`)
+            .call(xAxis)
+            .append('text')
+            .attr('x', width / 2)
+            .attr('y', 40)
+            .attr('dy', '0.71em')
+            .style('text-anchor', 'middle')
+            .style('fill', '#333')
+            .style('font-size', '13px')
+            .style('font-weight', 'bold')
+            .text('百分位数 (%)')
+
+          // 绘制基线折线
+          if (baseLineData.length > 0) {
+            g.append('path')
+              .datum(baseLineData)
+              .attr('class', 'line baseline-line')
+              .attr('d', line)
+              .attr('fill', 'none')
+              .attr('stroke', '#f093fb')
+              .attr('stroke-width', 2.5)
+              .attr('opacity', 0.8)
+          }
+
+          // 绘制实验折线
+          if (expLineData.length > 0) {
+            g.append('path')
+              .datum(expLineData)
+              .attr('class', 'line experiment-line')
+              .attr('d', line)
+              .attr('fill', 'none')
+              .attr('stroke', '#667eea')
+              .attr('stroke-width', 2.5)
+              .attr('opacity', 0.8)
+          }
+
+          // 添加数据点（可选，如果数据点不太多的话）
+          if (expLineData.length <= 200) {
+            g.selectAll('.exp-dot')
+              .data(expLineData)
+              .enter()
+              .append('circle')
+              .attr('class', 'exp-dot')
+              .attr('cx', d => xScale(d.percentile))
+              .attr('cy', d => yScale(d.value))
+              .attr('r', 2)
+              .attr('fill', '#667eea')
+              .attr('opacity', 0.6)
+          }
+
+          if (baseLineData.length <= 200) {
+            g.selectAll('.base-dot')
+              .data(baseLineData)
+              .enter()
+              .append('circle')
+              .attr('class', 'base-dot')
+              .attr('cx', d => xScale(d.percentile))
+              .attr('cy', d => yScale(d.value))
+              .attr('r', 2)
+              .attr('fill', '#f093fb')
+              .attr('opacity', 0.6)
+          }
+
+          // 添加图例
+          const legend = g.append('g')
+            .attr('class', 'legend')
+            .attr('transform', `translate(${width - 120}, 10)`)
+
+          const legendData = [
+            { label: '实验', color: '#667eea' },
+            { label: '基线', color: '#f093fb' }
+          ]
+
+          legend.selectAll('.legend-item')
+            .data(legendData)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(0, ${i * 20})`)
+            .each(function(d) {
+              const item = d3.select(this)
+              item.append('line')
+                .attr('x1', 0)
+                .attr('x2', 15)
+                .attr('y1', 7.5)
+                .attr('y2', 7.5)
+                .attr('stroke', d.color)
+                .attr('stroke-width', 2.5)
+                .attr('opacity', 0.8)
+              item.append('text')
+                .attr('x', 20)
+                .attr('y', 12)
+                .style('fill', '#333')
+                .style('font-size', '12px')
+                .text(d.label)
+            })
+
+          // 添加平均值参考线
+          if (results.fct_analysis.average_fct_us && results.baseline_analysis.fct_analysis?.average_fct_us) {
+            const expAvg = results.fct_analysis.average_fct_us
+            const baseAvg = results.baseline_analysis.fct_analysis.average_fct_us
+
+            // 实验平均值线
+            g.append('line')
+              .attr('x1', 0)
+              .attr('x2', width)
+              .attr('y1', yScale(expAvg))
+              .attr('y2', yScale(expAvg))
+              .attr('stroke', '#667eea')
+              .attr('stroke-width', 1.5)
+              .attr('stroke-dasharray', '5,5')
+              .attr('opacity', 0.5)
+
+            // 基线平均值线
+            g.append('line')
+              .attr('x1', 0)
+              .attr('x2', width)
+              .attr('y1', yScale(baseAvg))
+              .attr('y2', yScale(baseAvg))
+              .attr('stroke', '#f093fb')
+              .attr('stroke-width', 1.5)
+              .attr('stroke-dasharray', '5,5')
+              .attr('opacity', 0.5)
           }
         },
 
