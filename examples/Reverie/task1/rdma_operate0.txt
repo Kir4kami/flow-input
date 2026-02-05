@@ -1,29 +1,2376 @@
-#stat rdma operate:
-#phase:3000
-# 主机对: H8 -> H9
-# 流数量: 7
-# 注意：每条流使用不同的端口号以避免队列对冲突
-
-#Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1041 dst_node 9 dst_port 1041 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1042 dst_node 9 dst_port 1042 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1043 dst_node 9 dst_port 1043 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1045 dst_node 9 dst_port 1045 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1046 dst_node 9 dst_port 1046 priority 0 msg_len 33554432
-
-
 stat rdma operate:
 phase:3000
-# 主机对: H12 -> H4
-# 流数量: 3
-# 注意：每条流使用不同的端口号以避免队列对冲突
-
-Type rdma_send src_node 12 src_port 1041 dst_node 4 dst_port 1041 priority 0 msg_len 33554432
-Type rdma_send src_node 12 src_port 1042 dst_node 4 dst_port 1042 priority 0 msg_len 33554432
-Type rdma_send src_node 12 src_port 1044 dst_node 4 dst_port 1044 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1043 dst_node 9 dst_port 1043 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1045 dst_node 9 dst_port 1045 priority 0 msg_len 33554432
-#Type rdma_send src_node 8 src_port 1046 dst_node 9 dst_port 1046 priority 0 msg_len 33554432
-
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1000 dst_node 1 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1000 dst_node 2 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1000 dst_node 3 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1000 dst_node 4 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1000 dst_node 5 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1000 dst_node 6 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1000 dst_node 7 dst_port 1000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1000 dst_node 0 dst_port 1000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1004 dst_node 1 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1004 dst_node 2 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1004 dst_node 3 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1004 dst_node 4 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1004 dst_node 5 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1004 dst_node 6 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1004 dst_node 7 dst_port 1004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1004 dst_node 0 dst_port 1004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1008 dst_node 8 dst_port 1008 priority 0 msg_len 8192
+Type rdma_send src_node 1 src_port 1008 dst_node 9 dst_port 1008 priority 0 msg_len 8192
+Type rdma_send src_node 2 src_port 1008 dst_node 10 dst_port 1008 priority 0 msg_len 8192
+Type rdma_send src_node 3 src_port 1008 dst_node 11 dst_port 1008 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 32 src_port 1012 dst_node 40 dst_port 1012 priority 0 msg_len 8192
+Type rdma_send src_node 33 src_port 1012 dst_node 41 dst_port 1012 priority 0 msg_len 8192
+Type rdma_send src_node 34 src_port 1012 dst_node 42 dst_port 1012 priority 0 msg_len 8192
+Type rdma_send src_node 35 src_port 1012 dst_node 43 dst_port 1012 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1016 dst_node 1 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1016 dst_node 2 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1016 dst_node 3 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1016 dst_node 4 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1016 dst_node 5 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1016 dst_node 6 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1016 dst_node 7 dst_port 1016 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1016 dst_node 0 dst_port 1016 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1020 dst_node 9 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1020 dst_node 10 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1020 dst_node 11 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1020 dst_node 12 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1020 dst_node 13 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1020 dst_node 14 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1020 dst_node 15 dst_port 1020 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1020 dst_node 8 dst_port 1020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1024 dst_node 1 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 1024 dst_node 2 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1024 dst_node 3 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1024 dst_node 4 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1024 dst_node 5 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1024 dst_node 6 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1024 dst_node 7 dst_port 1024 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1024 dst_node 0 dst_port 1024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1028 dst_node 9 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1028 dst_node 10 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1028 dst_node 11 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1028 dst_node 12 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1028 dst_node 13 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1028 dst_node 14 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1028 dst_node 15 dst_port 1028 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1028 dst_node 8 dst_port 1028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1032 dst_node 8 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 1 src_port 1032 dst_node 9 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 2 src_port 1032 dst_node 10 dst_port 1032 priority 0 msg_len 8192
+Type rdma_send src_node 3 src_port 1032 dst_node 11 dst_port 1032 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 32 src_port 1036 dst_node 40 dst_port 1036 priority 0 msg_len 8192
+Type rdma_send src_node 33 src_port 1036 dst_node 41 dst_port 1036 priority 0 msg_len 8192
+Type rdma_send src_node 34 src_port 1036 dst_node 42 dst_port 1036 priority 0 msg_len 8192
+Type rdma_send src_node 35 src_port 1036 dst_node 43 dst_port 1036 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1040 dst_node 9 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1040 dst_node 10 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1040 dst_node 11 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1040 dst_node 12 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1040 dst_node 13 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1040 dst_node 14 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1040 dst_node 15 dst_port 1040 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1040 dst_node 8 dst_port 1040 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1044 dst_node 9 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 1044 dst_node 10 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1044 dst_node 11 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1044 dst_node 12 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1044 dst_node 13 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1044 dst_node 14 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1044 dst_node 15 dst_port 1044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1044 dst_node 8 dst_port 1044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1048 dst_node 8 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1048 dst_node 9 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1048 dst_node 10 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1048 dst_node 11 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1048 dst_node 12 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1048 dst_node 13 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1048 dst_node 14 dst_port 1048 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1048 dst_node 15 dst_port 1048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1052 dst_node 8 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1052 dst_node 9 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1052 dst_node 10 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1052 dst_node 11 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1052 dst_node 12 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1052 dst_node 13 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1052 dst_node 14 dst_port 1052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1052 dst_node 15 dst_port 1052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1056 dst_node 0 dst_port 1056 priority 0 msg_len 8192
+Type rdma_send src_node 9 src_port 1056 dst_node 1 dst_port 1056 priority 0 msg_len 8192
+Type rdma_send src_node 10 src_port 1056 dst_node 2 dst_port 1056 priority 0 msg_len 8192
+Type rdma_send src_node 11 src_port 1056 dst_node 3 dst_port 1056 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 40 src_port 1060 dst_node 32 dst_port 1060 priority 0 msg_len 8192
+Type rdma_send src_node 41 src_port 1060 dst_node 33 dst_port 1060 priority 0 msg_len 8192
+Type rdma_send src_node 42 src_port 1060 dst_node 34 dst_port 1060 priority 0 msg_len 8192
+Type rdma_send src_node 43 src_port 1060 dst_node 35 dst_port 1060 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1064 dst_node 0 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1064 dst_node 1 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1064 dst_node 2 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1064 dst_node 3 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1064 dst_node 4 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1064 dst_node 5 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1064 dst_node 6 dst_port 1064 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1064 dst_node 7 dst_port 1064 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1068 dst_node 8 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1068 dst_node 9 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1068 dst_node 10 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1068 dst_node 11 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1068 dst_node 12 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1068 dst_node 13 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1068 dst_node 14 dst_port 1068 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1068 dst_node 15 dst_port 1068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1072 dst_node 0 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1072 dst_node 1 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1072 dst_node 2 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1072 dst_node 3 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1072 dst_node 4 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1072 dst_node 5 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1072 dst_node 6 dst_port 1072 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1072 dst_node 7 dst_port 1072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 1076 dst_node 8 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 1076 dst_node 9 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 1076 dst_node 10 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 1076 dst_node 11 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 1076 dst_node 12 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 1076 dst_node 13 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 1076 dst_node 14 dst_port 1076 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 1076 dst_node 15 dst_port 1076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 1080 dst_node 0 dst_port 1080 priority 0 msg_len 8192
+Type rdma_send src_node 9 src_port 1080 dst_node 1 dst_port 1080 priority 0 msg_len 8192
+Type rdma_send src_node 10 src_port 1080 dst_node 2 dst_port 1080 priority 0 msg_len 8192
+Type rdma_send src_node 11 src_port 1080 dst_node 3 dst_port 1080 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 40 src_port 1084 dst_node 32 dst_port 1084 priority 0 msg_len 8192
+Type rdma_send src_node 41 src_port 1084 dst_node 33 dst_port 1084 priority 0 msg_len 8192
+Type rdma_send src_node 42 src_port 1084 dst_node 34 dst_port 1084 priority 0 msg_len 8192
+Type rdma_send src_node 43 src_port 1084 dst_node 35 dst_port 1084 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1088 dst_node 0 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1088 dst_node 1 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1088 dst_node 2 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1088 dst_node 3 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1088 dst_node 4 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1088 dst_node 5 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1088 dst_node 6 dst_port 1088 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1088 dst_node 7 dst_port 1088 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 1092 dst_node 0 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 1092 dst_node 1 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 1092 dst_node 2 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 1092 dst_node 3 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 1092 dst_node 4 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 1092 dst_node 5 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 1092 dst_node 6 dst_port 1092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 1092 dst_node 7 dst_port 1092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 8 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 16 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 24 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 32 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 40 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 48 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 56 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 8 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 16 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 24 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 32 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 40 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 48 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 56 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 8 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 16 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 24 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 32 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 40 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 48 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 56 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 8 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 16 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 24 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 32 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 40 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 48 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 2048
+Type rdma_send src_node 56 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 8 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 16 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 24 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 32 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 40 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 48 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 4096
+Type rdma_send src_node 56 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 0 src_port 1096 dst_node 8 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 8 src_port 1096 dst_node 0 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 16 src_port 1096 dst_node 24 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 24 src_port 1096 dst_node 16 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 32 src_port 1096 dst_node 40 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 40 src_port 1096 dst_node 32 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 48 src_port 1096 dst_node 56 dst_port 1096 priority 0 msg_len 8192
+Type rdma_send src_node 56 src_port 1096 dst_node 48 dst_port 1096 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 12 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 20 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 28 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 36 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 44 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 52 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 60 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 12 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 20 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 28 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 36 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 44 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 52 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 60 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 12 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 20 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 28 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 36 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 44 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 52 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 60 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 12 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 20 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 28 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 36 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 44 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 52 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 2048
+Type rdma_send src_node 60 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 12 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 20 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 28 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 36 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 44 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 52 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 4096
+Type rdma_send src_node 60 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 4 src_port 1100 dst_node 12 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 12 src_port 1100 dst_node 4 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 20 src_port 1100 dst_node 28 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 28 src_port 1100 dst_node 20 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 36 src_port 1100 dst_node 44 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 44 src_port 1100 dst_node 36 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 52 src_port 1100 dst_node 60 dst_port 1100 priority 0 msg_len 8192
+Type rdma_send src_node 60 src_port 1100 dst_node 52 dst_port 1100 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2000 dst_node 1 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2000 dst_node 2 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2000 dst_node 3 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2000 dst_node 4 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2000 dst_node 5 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2000 dst_node 6 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2000 dst_node 7 dst_port 2000 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2000 dst_node 0 dst_port 2000 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2008 dst_node 1 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2008 dst_node 2 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2008 dst_node 3 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2008 dst_node 4 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2008 dst_node 5 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2008 dst_node 6 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2008 dst_node 7 dst_port 2008 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2008 dst_node 0 dst_port 2008 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2012 dst_node 8 dst_port 2012 priority 0 msg_len 8192
+Type rdma_send src_node 1 src_port 2012 dst_node 9 dst_port 2012 priority 0 msg_len 8192
+Type rdma_send src_node 2 src_port 2012 dst_node 10 dst_port 2012 priority 0 msg_len 8192
+Type rdma_send src_node 3 src_port 2012 dst_node 11 dst_port 2012 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 32 src_port 2016 dst_node 40 dst_port 2016 priority 0 msg_len 8192
+Type rdma_send src_node 33 src_port 2016 dst_node 41 dst_port 2016 priority 0 msg_len 8192
+Type rdma_send src_node 34 src_port 2016 dst_node 42 dst_port 2016 priority 0 msg_len 8192
+Type rdma_send src_node 35 src_port 2016 dst_node 43 dst_port 2016 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2020 dst_node 1 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2020 dst_node 2 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2020 dst_node 3 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2020 dst_node 4 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2020 dst_node 5 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2020 dst_node 6 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2020 dst_node 7 dst_port 2020 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2020 dst_node 0 dst_port 2020 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2024 dst_node 9 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2024 dst_node 10 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2024 dst_node 11 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2024 dst_node 12 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2024 dst_node 13 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2024 dst_node 14 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2024 dst_node 15 dst_port 2024 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2024 dst_node 8 dst_port 2024 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2028 dst_node 1 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2028 dst_node 2 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2028 dst_node 3 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2028 dst_node 4 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2028 dst_node 5 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2028 dst_node 6 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2028 dst_node 7 dst_port 2028 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2028 dst_node 0 dst_port 2028 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2032 dst_node 9 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2032 dst_node 10 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2032 dst_node 11 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2032 dst_node 12 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2032 dst_node 13 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2032 dst_node 14 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2032 dst_node 15 dst_port 2032 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2032 dst_node 8 dst_port 2032 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2036 dst_node 8 dst_port 2036 priority 0 msg_len 8192
+Type rdma_send src_node 1 src_port 2036 dst_node 9 dst_port 2036 priority 0 msg_len 8192
+Type rdma_send src_node 2 src_port 2036 dst_node 10 dst_port 2036 priority 0 msg_len 8192
+Type rdma_send src_node 3 src_port 2036 dst_node 11 dst_port 2036 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 32 src_port 2040 dst_node 40 dst_port 2040 priority 0 msg_len 8192
+Type rdma_send src_node 33 src_port 2040 dst_node 41 dst_port 2040 priority 0 msg_len 8192
+Type rdma_send src_node 34 src_port 2040 dst_node 42 dst_port 2040 priority 0 msg_len 8192
+Type rdma_send src_node 35 src_port 2040 dst_node 43 dst_port 2040 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2044 dst_node 9 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2044 dst_node 10 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2044 dst_node 11 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2044 dst_node 12 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2044 dst_node 13 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2044 dst_node 14 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2044 dst_node 15 dst_port 2044 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2044 dst_node 8 dst_port 2044 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2048 dst_node 9 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 9 src_port 2048 dst_node 10 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2048 dst_node 11 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2048 dst_node 12 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2048 dst_node 13 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2048 dst_node 14 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2048 dst_node 15 dst_port 2048 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2048 dst_node 8 dst_port 2048 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2052 dst_node 8 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2052 dst_node 9 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2052 dst_node 10 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2052 dst_node 11 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2052 dst_node 12 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2052 dst_node 13 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2052 dst_node 14 dst_port 2052 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2052 dst_node 15 dst_port 2052 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2056 dst_node 8 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2056 dst_node 9 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2056 dst_node 10 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2056 dst_node 11 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2056 dst_node 12 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2056 dst_node 13 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2056 dst_node 14 dst_port 2056 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2056 dst_node 15 dst_port 2056 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2060 dst_node 0 dst_port 2060 priority 0 msg_len 8192
+Type rdma_send src_node 9 src_port 2060 dst_node 1 dst_port 2060 priority 0 msg_len 8192
+Type rdma_send src_node 10 src_port 2060 dst_node 2 dst_port 2060 priority 0 msg_len 8192
+Type rdma_send src_node 11 src_port 2060 dst_node 3 dst_port 2060 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 40 src_port 2064 dst_node 32 dst_port 2064 priority 0 msg_len 8192
+Type rdma_send src_node 41 src_port 2064 dst_node 33 dst_port 2064 priority 0 msg_len 8192
+Type rdma_send src_node 42 src_port 2064 dst_node 34 dst_port 2064 priority 0 msg_len 8192
+Type rdma_send src_node 43 src_port 2064 dst_node 35 dst_port 2064 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2068 dst_node 0 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2068 dst_node 1 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2068 dst_node 2 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2068 dst_node 3 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2068 dst_node 4 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2068 dst_node 5 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2068 dst_node 6 dst_port 2068 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2068 dst_node 7 dst_port 2068 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2072 dst_node 8 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2072 dst_node 9 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2072 dst_node 10 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2072 dst_node 11 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2072 dst_node 12 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2072 dst_node 13 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2072 dst_node 14 dst_port 2072 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2072 dst_node 15 dst_port 2072 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2076 dst_node 0 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2076 dst_node 1 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2076 dst_node 2 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2076 dst_node 3 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2076 dst_node 4 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2076 dst_node 5 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2076 dst_node 6 dst_port 2076 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2076 dst_node 7 dst_port 2076 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 9 src_port 2080 dst_node 8 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 10 src_port 2080 dst_node 9 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 11 src_port 2080 dst_node 10 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 12 src_port 2080 dst_node 11 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 13 src_port 2080 dst_node 12 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 14 src_port 2080 dst_node 13 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 15 src_port 2080 dst_node 14 dst_port 2080 priority 0 msg_len 32768
+Type rdma_send src_node 8 src_port 2080 dst_node 15 dst_port 2080 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 8 src_port 2084 dst_node 0 dst_port 2084 priority 0 msg_len 8192
+Type rdma_send src_node 9 src_port 2084 dst_node 1 dst_port 2084 priority 0 msg_len 8192
+Type rdma_send src_node 10 src_port 2084 dst_node 2 dst_port 2084 priority 0 msg_len 8192
+Type rdma_send src_node 11 src_port 2084 dst_node 3 dst_port 2084 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 40 src_port 2088 dst_node 32 dst_port 2088 priority 0 msg_len 8192
+Type rdma_send src_node 41 src_port 2088 dst_node 33 dst_port 2088 priority 0 msg_len 8192
+Type rdma_send src_node 42 src_port 2088 dst_node 34 dst_port 2088 priority 0 msg_len 8192
+Type rdma_send src_node 43 src_port 2088 dst_node 35 dst_port 2088 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2092 dst_node 0 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2092 dst_node 1 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2092 dst_node 2 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2092 dst_node 3 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2092 dst_node 4 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2092 dst_node 5 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2092 dst_node 6 dst_port 2092 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2092 dst_node 7 dst_port 2092 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 1 src_port 2096 dst_node 0 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2096 dst_node 1 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2096 dst_node 2 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2096 dst_node 3 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2096 dst_node 4 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2096 dst_node 5 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2096 dst_node 6 dst_port 2096 priority 0 msg_len 32768
+Type rdma_send src_node 0 src_port 2096 dst_node 7 dst_port 2096 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 8 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 16 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 24 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 32 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 40 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 48 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 56 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 8 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 16 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 24 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 32 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 40 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 48 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 56 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 8 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 16 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 24 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 32 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 40 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 48 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 56 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 8 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 16 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 24 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 32 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 40 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 48 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 2048
+Type rdma_send src_node 56 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 8 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 16 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 24 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 32 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 40 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 48 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 4096
+Type rdma_send src_node 56 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 0 src_port 2100 dst_node 8 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 8 src_port 2100 dst_node 0 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 16 src_port 2100 dst_node 24 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 24 src_port 2100 dst_node 16 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 32 src_port 2100 dst_node 40 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 40 src_port 2100 dst_node 32 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 48 src_port 2100 dst_node 56 dst_port 2100 priority 0 msg_len 8192
+Type rdma_send src_node 56 src_port 2100 dst_node 48 dst_port 2100 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 12 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 20 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 28 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 36 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 44 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 52 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 60 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 12 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 20 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 28 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 36 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 44 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 52 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 60 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 12 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 20 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 28 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 36 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 44 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 52 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 60 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 12 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 20 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 28 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 36 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 44 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 52 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 2048
+Type rdma_send src_node 60 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 2048
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 12 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 20 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 28 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 36 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 44 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 52 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 4096
+Type rdma_send src_node 60 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 4096
+phase:3000
+Type rdma_send src_node 4 src_port 2104 dst_node 12 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 12 src_port 2104 dst_node 4 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 20 src_port 2104 dst_node 28 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 28 src_port 2104 dst_node 20 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 36 src_port 2104 dst_node 44 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 44 src_port 2104 dst_node 36 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 52 src_port 2104 dst_node 60 dst_port 2104 priority 0 msg_len 8192
+Type rdma_send src_node 60 src_port 2104 dst_node 52 dst_port 2104 priority 0 msg_len 8192
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
+phase:3000
+Type rdma_send src_node 0 src_port 2004 dst_node 1 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 1 src_port 2004 dst_node 2 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 2 src_port 2004 dst_node 3 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 3 src_port 2004 dst_node 4 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 4 src_port 2004 dst_node 5 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 5 src_port 2004 dst_node 6 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 6 src_port 2004 dst_node 7 dst_port 2004 priority 0 msg_len 32768
+Type rdma_send src_node 7 src_port 2004 dst_node 0 dst_port 2004 priority 0 msg_len 32768
