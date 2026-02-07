@@ -7836,7 +7836,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
 
           const width = streamgraphDiv.clientWidth || 900
           const height = 500
-          const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+          const margin = { top: 50, right: 30, bottom: 40, left: 60 }
           const chartWidth = width - margin.left - margin.right
           const chartHeight = height - margin.top - margin.bottom
           
@@ -8168,6 +8168,38 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
             .style("stroke", "#e2e8f0")
             .style("stroke-width", 1)
           
+          // 为每一段有图的地方添加"包粒度"标注（在每段图的上方，居中对齐，字体放大）
+          const segmentFlowGranularityLabels = []
+          segmentStackedData.forEach((segmentData, segIdx) => {
+            const segment = segmentData.segment
+            if (segment.timeline.length > 0) {
+              const segmentStartTime = segment.timeline[0]
+              const segmentEndTime = segment.timeline[segment.timeline.length - 1]
+              const segmentMidTime = (segmentStartTime + segmentEndTime) / 2
+              const segmentMidX = x(segmentMidTime)
+              
+              const segmentLabel = gAxes.append("text")
+                .attr("x", segmentMidX)
+                .attr("y", -8)
+                .attr("text-anchor", "middle")
+                .style("fill", "#3b82f6")
+                .style("font-size", "20px")
+                .style("font-weight", "bold")
+                .text("包粒度")
+                .attr("opacity", 0)  // 初始隐藏，在动画播放到对应段时显示
+              
+              segmentFlowGranularityLabels.push({
+                label: segmentLabel,
+                segmentIndex: segIdx,
+                startIdx: segment.startIdx,
+                endIdx: segment.endIdx
+              })
+            }
+          })
+          
+          // 保存段标注到动画对象
+          this.streamgraphAnimation.segmentFlowGranularityLabels = segmentFlowGranularityLabels
+          
           // 添加稳态标记线
           const steadyStateLines = []
           steadyStateEnters.forEach((steadyTime, idx) => {
@@ -8189,9 +8221,12 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
                 .attr("class", `steady-state-annotation-${idx}`)
                 .attr("opacity", 0)
               
+              // 计算与"带宽 (Gbps)"对齐的y坐标（"带宽 (Gbps)"在svg中y=12，gAxes的transform是translate(60,50)，所以gAxes中y=12-50=-38）
+              const alignY = 12 - margin.top  // -38
+              
               const textBg = annotationGroup.append("rect")
                 .attr("x", xPos - 40)
-                .attr("y", -20)
+                .attr("y", alignY - 9)
                 .attr("width", 80)
                 .attr("height", 18)
                 .attr("fill", "rgba(16,185,129,0.2)")
@@ -8201,7 +8236,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
               
               const textLine1 = annotationGroup.append("text")
                 .attr("x", xPos)
-                .attr("y", -8)
+                .attr("y", alignY)
                 .attr("text-anchor", "middle")
                 .style("fill", "#10b981")
                 .style("font-size", "10px")
@@ -8210,7 +8245,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
               
               const textLine2 = annotationGroup.append("text")
                 .attr("x", xPos)
-                .attr("y", 3)
+                .attr("y", alignY + 11)
                 .attr("text-anchor", "middle")
                 .style("fill", "#10b981")
                 .style("font-size", "10px")
@@ -8224,6 +8259,128 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
               })
             }
           })
+          
+          // 添加跃迁标注（在稳态之间的空白区域）
+          const transitionAnnotations = []
+          for (let i = 0; i < steadyStateEnters.length - 1; i++) {
+            const currentSteadyTime = steadyStateEnters[i]
+            const nextSteadyTime = steadyStateEnters[i + 1]
+            
+            // 找到当前稳态和下一个稳态所在的segment
+            let currentSegmentEnd = null
+            let nextSegmentStart = null
+            
+            for (let segIdx = 0; segIdx < timelineSegments.length; segIdx++) {
+              const segment = timelineSegments[segIdx]
+              const segmentStartTime = segment.timeline[0]
+              const segmentEndTime = segment.timeline[segment.timeline.length - 1]
+              
+              // 检查当前稳态是否在这个segment中
+              if (Math.abs(segmentEndTime - currentSteadyTime) < 1e-9 || 
+                  (segmentStartTime <= currentSteadyTime && currentSteadyTime <= segmentEndTime)) {
+                currentSegmentEnd = segmentEndTime
+              }
+              
+              // 检查下一个稳态是否在这个segment中
+              if (Math.abs(segmentStartTime - nextSteadyTime) < 1e-9 || 
+                  (segmentStartTime <= nextSteadyTime && nextSteadyTime <= segmentEndTime)) {
+                nextSegmentStart = segmentStartTime
+              }
+            }
+            
+            // 如果找到了两个segment之间的gap，计算空白区域的中间位置
+            if (currentSegmentEnd !== null && nextSegmentStart !== null && 
+                nextSegmentStart > currentSegmentEnd + 1e-9) {
+              // 空白区域在 currentSegmentEnd 和 nextSegmentStart 之间
+              const gapStartTime = currentSegmentEnd
+              const gapEndTime = nextSegmentStart
+              const gapMidTime = (gapStartTime + gapEndTime) / 2
+              const gapMidX = x(gapMidTime)
+              const gapMidY = chartHeight / 2
+              
+              // 创建跃迁标注组（初始隐藏，在对应的稳态标注显示后才显示）
+              const transitionGroup = gAxes.append("g")
+                .attr("class", `transition-annotation-${i}`)
+                .attr("opacity", 0)
+              
+              // 去除边框，只添加文本
+              // 添加"正在跃迁"文本（字体调大一倍：从12px改为24px）
+              const transitionText1 = transitionGroup.append("text")
+                .attr("x", gapMidX)
+                .attr("y", gapMidY - 5)
+                .attr("text-anchor", "middle")
+                .style("fill", "#e2e8f0")
+                .style("font-size", "24px")
+                .style("font-weight", "bold")
+                .text("正在跃迁")
+              
+              // 添加"（流粒度）"文本（字体调大一倍：从10px改为20px）
+              const transitionText2 = transitionGroup.append("text")
+                .attr("x", gapMidX)
+                .attr("y", gapMidY + 20)
+                .attr("text-anchor", "middle")
+                .style("fill", "#94a3b8")
+                .style("font-size", "20px")
+                .text("（流粒度）")
+              
+              transitionAnnotations.push({
+                group: transitionGroup,
+                startTime: gapStartTime,
+                endTime: gapEndTime,
+                steadyStateIndex: i  // 记录对应的稳态索引
+              })
+            } else {
+              // 如果没有找到明显的gap，使用两个稳态之间的中间位置
+              const gapMidTime = (currentSteadyTime + nextSteadyTime) / 2
+              const gapMidX = x(gapMidTime)
+              const gapMidY = chartHeight / 2
+              
+              // 检查这个位置是否在空白区域（没有数据）
+              const hasDataAtMid = Array.from(seriesMap.values()).some(flowData => {
+                return flowData.some(p => {
+                  const timeDiff = Math.abs(p.t - gapMidTime)
+                  return timeDiff < (nextSteadyTime - currentSteadyTime) * 0.1 && p.rate > 0.001
+                })
+              })
+              
+              // 如果中间位置没有数据，添加标注（初始隐藏，在对应的稳态标注显示后才显示）
+              if (!hasDataAtMid) {
+                const transitionGroup = gAxes.append("g")
+                  .attr("class", `transition-annotation-${i}`)
+                  .attr("opacity", 0)
+                
+                // 去除边框，只添加文本
+                // 添加"正在跃迁"文本（字体调大一倍：从12px改为24px）
+                const transitionText1 = transitionGroup.append("text")
+                  .attr("x", gapMidX)
+                  .attr("y", gapMidY - 5)
+                  .attr("text-anchor", "middle")
+                  .style("fill", "#e2e8f0")
+                  .style("font-size", "24px")
+                  .style("font-weight", "bold")
+                  .text("正在跃迁")
+                
+                // 添加"（流粒度）"文本（字体调大一倍：从10px改为20px）
+                const transitionText2 = transitionGroup.append("text")
+                  .attr("x", gapMidX)
+                  .attr("y", gapMidY + 20)
+                  .attr("text-anchor", "middle")
+                  .style("fill", "#94a3b8")
+                  .style("font-size", "20px")
+                  .text("（流粒度）")
+                
+                transitionAnnotations.push({
+                  group: transitionGroup,
+                  startTime: currentSteadyTime,
+                  endTime: nextSteadyTime,
+                  steadyStateIndex: i  // 记录对应的稳态索引
+                })
+              }
+            }
+          }
+          
+          // 保存跃迁标注到动画对象
+          this.streamgraphAnimation.transitionAnnotations = transitionAnnotations
           
           this.streamgraphAnimation.segmentStackedData = segmentStackedData
           this.streamgraphAnimation.timelineSegments = timelineSegments
@@ -8256,7 +8413,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
           
           const width = streamgraphDiv.clientWidth || 900
           const height = 500
-          const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+          const margin = { top: 50, right: 30, bottom: 40, left: 60 }
           const chartWidth = width - margin.left - margin.right
           const chartHeight = height - margin.top - margin.bottom
           
@@ -8338,7 +8495,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
           
           // 更新稳态标记线
           if (this.streamgraphAnimation.steadyStateLines) {
-            this.streamgraphAnimation.steadyStateLines.forEach((steadyLine) => {
+            this.streamgraphAnimation.steadyStateLines.forEach((steadyLine, idx) => {
               if (frameIndex >= steadyLine.timeIndex) {
                 steadyLine.line.attr("opacity", 0.6)
                 if (steadyLine.annotationGroup) {
@@ -8349,6 +8506,37 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
                 if (steadyLine.annotationGroup) {
                   steadyLine.annotationGroup.attr("opacity", 0)
                 }
+              }
+            })
+          }
+          
+          // 更新跃迁标注（在对应的稳态标注显示后才显示）
+          if (this.streamgraphAnimation.transitionAnnotations) {
+            this.streamgraphAnimation.transitionAnnotations.forEach((transitionAnn) => {
+              // 找到对应的稳态标注
+              const steadyStateIdx = transitionAnn.steadyStateIndex
+              if (steadyStateIdx !== undefined && this.streamgraphAnimation.steadyStateLines) {
+                const correspondingSteadyLine = this.streamgraphAnimation.steadyStateLines[steadyStateIdx]
+                if (correspondingSteadyLine && frameIndex >= correspondingSteadyLine.timeIndex) {
+                  // 对应的稳态标注已显示，显示跃迁标注
+                  transitionAnn.group.attr("opacity", 1)
+                } else {
+                  // 对应的稳态标注未显示，隐藏跃迁标注
+                  transitionAnn.group.attr("opacity", 0)
+                }
+              }
+            })
+          }
+          
+          // 更新段"包粒度"标注（在动画播放到对应段时显示）
+          if (this.streamgraphAnimation.segmentFlowGranularityLabels) {
+            this.streamgraphAnimation.segmentFlowGranularityLabels.forEach((segmentLabel) => {
+              if (frameIndex >= segmentLabel.startIdx) {
+                // 动画已播放到该段，显示标注
+                segmentLabel.label.attr("opacity", 1)
+              } else {
+                // 动画未播放到该段，隐藏标注
+                segmentLabel.label.attr("opacity", 0)
               }
             })
           }
