@@ -1939,11 +1939,15 @@
           <button class="btn btn-secondary" @click="viewLoadFiles">
             查看负载文件
           </button>
-          <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!(loadResult || customTrafficResult)">
+          <div class="input-group" style="margin-top: 10px;">
+            <label>可视化模式：</label>
+            <select v-model="heatmapViewMode">
+              <option value="detailed">详细模式</option>
+              <option value="simple">简洁模式（全屏）</option>
+            </select>
+          </div>
+          <button class="btn btn-info" @click="showHeatmapAndFlowByMode" :disabled="!(loadResult || customTrafficResult)">
             热力图与负载流量可视化
-          </button>
-          <button class="btn btn-info" @click="showHeatmapAndFlowSimple" :disabled="!(loadResult || customTrafficResult)">
-            全屏查看
           </button>
           <div class="input-group" style="margin-top: 10px;">
             <label>自定义流量文件：</label>
@@ -1951,6 +1955,14 @@
             <p class="info-text">
               支持 rdma_operate 格式，或每行 "src dst [msg_len]" 的文本格式
             </p>
+            <p class="info-text" style="margin-top: 6px;">
+              可直接下载示例文件并按同格式编辑后上传
+            </p>
+            <div style="margin-top: 8px;">
+              <button class="btn btn-secondary" type="button" @click="downloadCustomTrafficExample">
+                下载示例文件
+              </button>
+            </div>
           </div>
           <div class="button-row">
             <button class="btn btn-success" @click="uploadCustomTraffic" :disabled="!customTrafficFile || isUploadingCustomTraffic">
@@ -1965,6 +1977,14 @@
             <p class="info-text">文件: {{ customTrafficResult.filename }}</p>
             <p class="info-text">节点数量: {{ load.host_num }}</p>
             <p class="info-text">{{ customTrafficResult.message }}</p>
+            <div class="button-row" style="margin-top: 10px;">
+              <button class="btn btn-secondary" @click="viewLoadFiles">
+                查看负载文件
+              </button>
+              <button class="btn btn-info" @click="showHeatmapAndFlowByMode">
+                热力图与负载流量可视化
+              </button>
+            </div>
           </div>
           <div v-if="loadResult" class="result-box">
             <p><strong>负载已生成</strong></p>
@@ -2739,6 +2759,7 @@
           loadSource: 'generated',
           customTrafficFile: null,
           customTrafficResult: null,
+          customLoadDirectory: null,
           isUploadingCustomTraffic: false,
 
           // 通信树生成与切分
@@ -2859,6 +2880,7 @@
           heatmapMatrix: null,
           heatmapTypeMatrix: null,
           heatmapMaxValue: 0,
+          heatmapViewMode: 'detailed',
           fullscreenSimpleMode: false,
           fullscreenHeatmap: {
             show: false
@@ -3459,6 +3481,7 @@
         clearCustomTraffic() {
           this.customTrafficFile = null
           this.customTrafficResult = null
+          this.customLoadDirectory = null
           if (this.$refs.customTrafficFileInput) {
             this.$refs.customTrafficFileInput.value = ''
           }
@@ -3489,6 +3512,7 @@
             }
 
             this.customTrafficResult = result
+            this.customLoadDirectory = result.load_directory || 'rdma_result'
             this.loadResult = null
             if (result.host_num) {
               this.load.host_num = result.host_num
@@ -3514,7 +3538,10 @@
         // 查看负载文件
         async viewLoadFiles() {
           try {
-            const response = await fetch(`${this.apiUrl}/list-files?directory=rdma_result&t=${Date.now()}`)
+            const directory = (this.loadSource === 'custom' && this.customLoadDirectory)
+              ? this.customLoadDirectory
+              : 'rdma_result'
+            const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(directory)}&t=${Date.now()}`)
             const result = await response.json()
             
             if (result.success) {
@@ -3526,7 +3553,7 @@
                 title: '负载文件列表',
                 type: 'files',
                 files: result.files,
-                currentPath: 'rdma_result'
+                currentPath: directory
               }
             }
           } catch (error) {
@@ -3535,6 +3562,14 @@
         },
 
         // 显示热力图和负载流量（直接全屏）
+        async showHeatmapAndFlowByMode() {
+          if (this.heatmapViewMode === 'simple') {
+            await this.showHeatmapAndFlowSimple()
+            return
+          }
+          await this.showHeatmapAndFlow()
+        },
+
         async showHeatmapAndFlow() {
           try {
             this.fullscreenSimpleMode = false
@@ -3676,6 +3711,21 @@
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
             console.error('显示热力图和负载流量失败:', error)
+          }
+        },
+
+        async downloadCustomTrafficExample() {
+          try {
+            const url = `${this.apiUrl}/custom-traffic-example.txt`
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'custom_traffic_example.txt'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            this.showToast('已开始下载示例文件', 'success')
+          } catch (error) {
+            this.showToast('下载失败，请检查API服务是否可用', 'error')
           }
         },
 
@@ -4256,9 +4306,14 @@
             
             // 根据数据来源选择解析目录
             const useLatestWorkflow = this.loadSource === 'workflow'
+            const customDirectory = (this.loadSource === 'custom' && this.customLoadDirectory)
+              ? this.customLoadDirectory
+              : null
             const url = useLatestWorkflow
               ? `${this.apiUrl}/parse-load-files?use_latest_workflow=true`
-              : `${this.apiUrl}/parse-load-files`
+              : customDirectory
+                ? `${this.apiUrl}/parse-load-files?directory=${encodeURIComponent(customDirectory)}`
+                : `${this.apiUrl}/parse-load-files`
             
             const response = await fetch(url)
             const result = await response.json()
@@ -5657,8 +5712,15 @@
             const response = await fetch(`${this.apiUrl}/visualize-full-tree`, {
               method: 'POST'
             })
-            
-            const result = await response.json()
+            let result = {}
+            try {
+              result = await response.json()
+            } catch (e) {
+              result = {}
+            }
+            if (!response.ok) {
+              throw new Error(result.detail || '完整通信树可视化失败')
+            }
             
             if (result.success) {
               this.modal = {
@@ -5672,7 +5734,7 @@
               
               this.showToast(`完整通信树可视化成功！${result.nodes_count}个节点`, 'success')
             } else {
-              this.showToast('可视化失败', 'error')
+              throw new Error(result.message || '可视化失败')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')

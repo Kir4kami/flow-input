@@ -1,12 +1,11 @@
 {
   "nodes": [
     {
-      "name": "1_TP1",
-      "type": "TP",
-      "layer": 1,
+      "name": "2_EP2",
+      "type": "EP",
+      "layer": 2,
       "nodes_passed": [
-        "D",
-        "D"
+        "B"
       ],
       "children": [],
       "isBurr": false
@@ -18,7 +17,7 @@
   "edges": [
     {
       "from_node": "Root",
-      "to_node": "1_TP1"
+      "to_node": "2_EP2"
     }
   ]
 }

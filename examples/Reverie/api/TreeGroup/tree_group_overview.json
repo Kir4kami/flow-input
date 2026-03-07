@@ -1,24 +1,31 @@
 {
-  "total_groups": 3,
+  "total_groups": 4,
   "groups": [
     {
       "group_id": 1,
       "filename": "tree_group_1.json",
       "filepath": "/root/flow-input/examples/Reverie/api/TreeGroup/tree_group_1.json",
-      "node_count": 20,
-      "edge_count": 21
+      "node_count": 2,
+      "edge_count": 1
     },
     {
       "group_id": 2,
       "filename": "tree_group_2.json",
       "filepath": "/root/flow-input/examples/Reverie/api/TreeGroup/tree_group_2.json",
-      "node_count": 2,
-      "edge_count": 1
+      "node_count": 19,
+      "edge_count": 20
     },
     {
       "group_id": 3,
       "filename": "tree_group_3.json",
       "filepath": "/root/flow-input/examples/Reverie/api/TreeGroup/tree_group_3.json",
+      "node_count": 2,
+      "edge_count": 1
+    },
+    {
+      "group_id": 4,
+      "filename": "tree_group_4.json",
+      "filepath": "/root/flow-input/examples/Reverie/api/TreeGroup/tree_group_4.json",
       "node_count": 2,
       "edge_count": 1
     }

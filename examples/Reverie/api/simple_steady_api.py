@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import os
 import re
 from pathlib import Path
 
@@ -6,7 +7,17 @@ app = FastAPI()
 
 @app.get("/steady-state")
 def check_steady():
-    flow_stats = Path("/home/chanel/flow-input-local/flow_stats.txt")
+    env_flow_stats = os.getenv("FLOW_STATS_FILE")
+    if env_flow_stats:
+        flow_stats = Path(env_flow_stats).expanduser().resolve()
+    else:
+        reverie_root = Path(__file__).resolve().parent.parent
+        flow_stats = reverie_root / "flow_stats.txt"
+
+    # 兼容部分部署形态：flow-input 根目录
+    if not flow_stats.exists():
+        flow_stats = Path(__file__).resolve().parent.parent.parent / "flow_stats.txt"
+
     if not flow_stats.exists():
         return {"error": "文件不存在"}
     

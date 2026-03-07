@@ -60,8 +60,9 @@ class MonitorConfig:
     # 默认使用中频询问
     DEFAULT_POLL_INTERVAL = POLL_INTERVAL_MEDIUM_FREQ
     
-    # 日志文件路径
-    DUMP_DIR = Path("examples/Reverie/dump")
+    # 日志文件路径（基于当前文件自动定位，避免依赖运行时 cwd）
+    REVERIE_ROOT = Path(__file__).resolve().parent.parent
+    DUMP_DIR = REVERIE_ROOT / "dump"
     EVALUATION_OUT = DUMP_DIR / "evaluation.out"
     FLOW_STATS_FILE = DUMP_DIR / "flow_stats1.txt"
 

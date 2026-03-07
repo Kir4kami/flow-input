@@ -21,14 +21,33 @@ import asyncio
 from datetime import datetime
 import hashlib
 
-# 添加父目录到路径，以便导入TreeCut
-try:
-    parent_dir = str(Path(__file__).resolve().parent.parent)
-except Exception:
-    # 如果 __file__ 不可用，使用当前工作目录
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
+# 路径解析：优先使用环境变量，其次基于当前文件自动定位
+def _detect_reverie_root() -> Path:
+    env_reverie_root = os.getenv("REVERIE_ROOT")
+    if env_reverie_root:
+        candidate = Path(env_reverie_root).expanduser().resolve()
+        if (candidate / "api").exists():
+            return candidate
+        print(f"[WARN] REVERIE_ROOT 无效，未找到 api 目录: {candidate}")
+
+    try:
+        return Path(__file__).resolve().parent.parent
+    except Exception:
+        cwd = Path.cwd().resolve()
+        if (cwd / "api").exists() and (cwd / "sim.sh").exists():
+            return cwd
+        if (cwd / "examples" / "Reverie").exists():
+            return (cwd / "examples" / "Reverie").resolve()
+        raise RuntimeError("无法定位 Reverie 根目录，请设置环境变量 REVERIE_ROOT")
+
+
+REVERIE_ROOT = _detect_reverie_root()
+API_DIR = REVERIE_ROOT / "api"
+PROJECT_ROOT = REVERIE_ROOT.parent.parent
+SRC_ROOT = PROJECT_ROOT / "src"
+
+if str(REVERIE_ROOT) not in sys.path:
+    sys.path.insert(0, str(REVERIE_ROOT))
 from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -36,7 +55,7 @@ import copy
 from collections import defaultdict
 
 # 添加TreeCut下ECMP脚本路径
-ECMP_MODULE_ROOT = Path(__file__).parent.parent / "Generator" / "Generator" / "TreeCut"
+ECMP_MODULE_ROOT = REVERIE_ROOT / "Generator" / "Generator" / "TreeCut"
 if ECMP_MODULE_ROOT.exists():
     sys.path.append(str(ECMP_MODULE_ROOT))
 
@@ -47,7 +66,7 @@ except Exception:
     ecmp_load_file = None
     ecmp_find_paths = None
 
-ECMP_CACHE_FILE = Path(__file__).parent / "ecmp_paths_cache.json"
+ECMP_CACHE_FILE = API_DIR / "ecmp_paths_cache.json"
 ECMP_CACHE_LOCK = threading.Lock()
 
 app = FastAPI(
@@ -909,6 +928,35 @@ class GenerateTreeResponse(BaseModel):
     nodes_count: int = 0
     edges_count: int = 0
 
+
+def _resolve_latest_tree_json(traffic_gen_dir: Path) -> Path:
+    """定位可用于可视化的通信树 JSON，优先最新迭代文件。"""
+    rdma_result_dir = traffic_gen_dir / "rdma_result"
+    preferred = rdma_result_dir / "communication_tree_iter0.json"
+    if preferred.exists():
+        return preferred
+
+    iter_files = sorted(
+        rdma_result_dir.glob("communication_tree_iter*.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+    if iter_files:
+        return iter_files[0]
+
+    generic_tree_files = sorted(
+        rdma_result_dir.glob("communication_tree*.json"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+    if generic_tree_files:
+        return generic_tree_files[0]
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"未找到通信树 JSON 文件，请先执行生成通信树。目录: {rdma_result_dir}"
+    )
+
 @app.post("/generate-communication-tree", response_model=GenerateTreeResponse)
 async def generate_communication_tree(request: GenerateTreeRequest):
     """生成通信树"""
@@ -957,16 +1005,9 @@ async def generate_communication_tree(request: GenerateTreeRequest):
             print(f"[ERROR] {error_msg}")
             raise HTTPException(status_code=500, detail=error_msg)
         
-        json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
+        json_file = _resolve_latest_tree_json(traffic_gen_dir)
         print(f"[DEBUG] 检查JSON文件: {json_file}")
         print(f"[DEBUG] JSON文件是否存在: {os.path.exists(json_file)}")
-        if not os.path.exists(json_file):
-            # 列出 rdma_result 目录内容以便调试
-            rdma_result_dir = traffic_gen_dir / "rdma_result"
-            if rdma_result_dir.exists():
-                json_files = list(rdma_result_dir.glob("*.json"))
-                print(f"[DEBUG] rdma_result 目录中的 JSON 文件: {[str(f) for f in json_files]}")
-            raise HTTPException(status_code=500, detail=f"未找到生成的通信树JSON文件: {json_file}")
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -998,11 +1039,8 @@ async def visualize_full_tree():
         import matplotlib.pyplot as plt
         import networkx as nx
         
-        traffic_gen_dir = Path(__file__).parent.parent / "TrafficGenerator"
-        json_file = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
-        
-        if not json_file.exists():
-            raise HTTPException(status_code=404, detail="通信树文件不存在，请先生成")
+        traffic_gen_dir = REVERIE_ROOT / "TrafficGenerator"
+        json_file = _resolve_latest_tree_json(traffic_gen_dir)
         
         with open(json_file, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
@@ -1051,7 +1089,7 @@ async def visualize_full_tree():
         plt.axis('off')
         plt.tight_layout(pad=0.5)
         
-        output_file = Path(__file__).parent / 'full_communication_tree.png'
+        output_file = API_DIR / 'full_communication_tree.png'
         plt.savefig(output_file, dpi=200, bbox_inches='tight', facecolor='white')
         plt.close()
         
@@ -1062,7 +1100,7 @@ async def visualize_full_tree():
 @app.get("/get-full-tree-image")
 async def get_full_tree_image():
     """获取完整通信树图片"""
-    image_path = Path(__file__).parent / 'full_communication_tree.png'
+    image_path = API_DIR / 'full_communication_tree.png'
     if not image_path.exists():
         raise HTTPException(status_code=404, detail="图片不存在")
     return FileResponse(str(image_path), media_type='image/png')
@@ -1428,7 +1466,7 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
                 if entry.is_dir() and re.match(r"\d+_(TP|EP|PP|DP)\d*", entry.name, re.IGNORECASE):
                     has_tagged_dirs = True
                     break
-
+        
         # 2. 解析负载流量数据
         flows = []
         host_flow_set = set()  # 只统计主机之间的流量
@@ -2160,6 +2198,7 @@ class LoadResponse(BaseModel):
     task_summary: List[Dict[str, Any]] = []
     ecmp_preview: Optional[Dict[str, Any]] = None
     host_num: Optional[int] = None
+    load_directory: Optional[str] = None
 
 
 def _parse_msg_len_expr(msg_len_expr: str) -> int:
@@ -3040,7 +3079,7 @@ async def generate_load(request: LoadRequest):
 
         msg_len_bytes = _parse_msg_len_expr(request.msg_len)
 
-        base_dir = Path(__file__).absolute().parent.parent
+        base_dir = REVERIE_ROOT
         model_key = (request.model_name or "").lower()
 
         if model_key in {"deepseek", "qwen"}:
@@ -3141,7 +3180,8 @@ async def generate_load(request: LoadRequest):
             message=f"成功生成负载配置（模式: {load_mode_text}）：{request.host_num}个节点，流量大小{request.msg_len}，任务数 {len(task_summaries)}。{task_info_text}",
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
-            host_num=request.host_num
+            host_num=request.host_num,
+            load_directory="rdma_result"
         )
         
     except HTTPException:
@@ -3169,7 +3209,7 @@ async def generate_load_from_file(
         default_msg_len_bytes = _parse_msg_len_expr(msg_len_expr)
         flows, host_num = _parse_custom_traffic_content(content, default_msg_len_bytes)
 
-        base_dir = Path(__file__).parent.parent
+        base_dir = REVERIE_ROOT
         task_summaries = _write_custom_task_inputs(base_dir, flows, task_num)
 
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
@@ -3190,7 +3230,8 @@ async def generate_load_from_file(
             message=f"自定义流量解析完成，共 {len(flows)} 条流量，任务数 {task_num}",
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
-            host_num=host_num
+            host_num=host_num,
+            load_directory="rdma_result"
         )
     except HTTPException:
         raise
@@ -3521,7 +3562,7 @@ class SimulationResponse(BaseModel):
 
 def modify_sim_script(task_num: int, llm_model: str):
     """修改sim.sh脚本中的参数"""
-    sim_script_path = Path(__file__).parent.parent / "sim.sh"
+    sim_script_path = REVERIE_ROOT / "sim.sh"
     
     if not sim_script_path.exists():
         raise FileNotFoundError(f"sim.sh文件不存在: {sim_script_path}")
@@ -3541,9 +3582,7 @@ def modify_sim_script(task_num: int, llm_model: str):
 
 def modify_qbb_device(enable_mixed_granularity: bool):
     """修改qbb-net-device.cc中的混合粒度设置"""
-    # 从 complete_api.py 向上4层到 flow-input 根目录
-    # complete_api.py -> api -> Reverie -> examples -> flow-input(根目录)
-    qbb_file_path = Path(__file__).absolute().parent.parent.parent.parent / "src" / "point-to-point" / "model" / "qbb-net-device.cc"
+    qbb_file_path = SRC_ROOT / "point-to-point" / "model" / "qbb-net-device.cc"
     
     print(f"[DEBUG] modify_qbb_device: qbb_file_path={qbb_file_path}, exists={qbb_file_path.exists()}")
     
@@ -3577,7 +3616,7 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
                   use_custom_config: bool):
     """运行仿真（后台任务）"""
     # 创建日志目录
-    api_dir = Path(__file__).absolute().parent
+    api_dir = API_DIR
     logs_dir = api_dir / "logs"
     logs_dir.mkdir(exist_ok=True)
     
@@ -3591,7 +3630,7 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         modify_qbb_device(enable_mixed_granularity)
         
         # 切换到Reverie目录
-        reverie_dir = Path(__file__).absolute().parent.parent
+        reverie_dir = REVERIE_ROOT
         
         # 写入日志文件头部
         with open(log_file_path, 'w', encoding='utf-8') as log_file:
@@ -4193,13 +4232,12 @@ async def get_steady_state_status():
     获取稳态状态（通过分析flow_stats.txt中的流速率数据来判断稳态）
     不再依赖C++代码输出,而是Python自己分析
     """
-    # 使用相对路径查找 flow_stats.txt
-    base_dir = Path(__file__).parent.parent
-    flow_stats_file = base_dir / "flow_stats.txt"
+    # 使用项目根目录查找 flow_stats.txt
+    flow_stats_file = REVERIE_ROOT / "flow_stats.txt"
     
     if not flow_stats_file.exists():
-        # 尝试其他可能的路径
-        flow_stats_file = Path(__file__).parent.parent.parent / "flow_stats.txt"
+        # 兼容部分部署形态：flow-input 根目录
+        flow_stats_file = PROJECT_ROOT / "flow_stats.txt"
     
     if not flow_stats_file.exists():
         return {
@@ -4507,7 +4545,7 @@ def analyze_performance(content):
     
     total_time_ms = None
     simulation_time_ms = None
-
+    
     for line in lines:
         # 提取网络拓扑信息
         if 'SERVER_COUNT' in line:
@@ -4636,7 +4674,7 @@ def generate_analysis_summary(results):
 @app.get("/complete_frontend.html")
 async def get_frontend():
     """提供前端HTML页面"""
-    html_file = Path(__file__).parent / "complete_frontend.html"
+    html_file = API_DIR / "complete_frontend.html"
     if html_file.exists():
         return FileResponse(html_file, media_type="text/html")
     else:
@@ -4645,7 +4683,7 @@ async def get_frontend():
 @app.get("/vue.global.js")
 async def get_vuejs():
     """提供Vue.js文件"""
-    js_file = Path(__file__).parent / "vue.global.js"
+    js_file = API_DIR / "vue.global.js"
     if js_file.exists():
         return FileResponse(js_file, media_type="application/javascript")
     else:
@@ -4654,11 +4692,23 @@ async def get_vuejs():
 @app.get("/d3.v7.min.js")
 async def get_d3js():
     """提供D3.js文件"""
-    js_file = Path(__file__).parent / "d3.v7.min.js"
+    js_file = API_DIR / "d3.v7.min.js"
     if js_file.exists():
         return FileResponse(js_file, media_type="application/javascript")
     else:
         raise HTTPException(status_code=404, detail="D3.js文件未找到")
+
+@app.get("/custom-traffic-example.txt")
+async def get_custom_traffic_example():
+    """提供自定义流量示例文件下载"""
+    sample_file = API_DIR / "examples" / "custom_traffic_example.txt"
+    if sample_file.exists():
+        return FileResponse(
+            sample_file,
+            media_type="text/plain; charset=utf-8",
+            filename="custom_traffic_example.txt"
+        )
+    raise HTTPException(status_code=404, detail="示例文件不存在")
 
 @app.get("/")
 async def root():
@@ -4701,7 +4751,7 @@ async def health_check():
 @app.get("/baseline-status")
 async def baseline_status_check():
     """检查包粒度基线结果是否存在"""
-    base_dir = Path(__file__).absolute().parent.parent
+    base_dir = REVERIE_ROOT
     baseline_dump = base_dir / "dump_baseline"
     current_signature = _compute_load_signature(base_dir)
     baseline_meta = _read_baseline_meta(baseline_dump / "metadata.json")
@@ -4724,7 +4774,7 @@ async def read_file(file_path: str):
     """读取文件内容"""
     try:
         # 安全检查：确保文件路径在项目目录内
-        base_dir = Path(__file__).parent.parent
+        base_dir = REVERIE_ROOT
         
         # 清理路径（去除前导/后导斜杠，处理各种格式）
         file_path = file_path.strip().strip('/').strip('\\')
@@ -4795,8 +4845,8 @@ async def read_file(file_path: str):
 async def list_files(directory: str = "."):
     """列出目录中的文件"""
     try:
-        base_dir = Path(__file__).absolute().parent.parent.resolve()
-        api_dir = Path(__file__).absolute().parent.resolve()
+        base_dir = REVERIE_ROOT.resolve()
+        api_dir = API_DIR.resolve()
         
         # 处理路径，统一使用正斜杠，去除前导斜杠
         directory = directory.replace('\\', '/').strip('/')
@@ -4892,7 +4942,7 @@ async def visualize_topology(background_tasks: BackgroundTasks):
             raise HTTPException(status_code=404, detail="拓扑文件不存在，请先生成拓扑")
         
         # 生成图片
-        output_file = Path(__file__).parent / "topology_latest.png"
+        output_file = API_DIR / "topology_latest.png"
         draw_improved_topology(topology_file, output_file)
         
         return {
@@ -4907,7 +4957,7 @@ async def visualize_topology(background_tasks: BackgroundTasks):
 async def get_topology_image():
     """获取拓扑可视化图片"""
     try:
-        image_file = Path(__file__).parent / "topology_latest.png"
+        image_file = API_DIR / "topology_latest.png"
         
         if not image_file.exists():
             raise HTTPException(status_code=404, detail="拓扑图片不存在，请先生成")
