@@ -1,0 +1,6 @@
+# 通信树依赖（对应图中结构）
+# Root 有两个子节点: operate0(DP AR L#n), operate1(PP Snd/Rcv L#n+1)
+# operate1 -> operate2 -> operate3 -> operate4 为顺序链
+2-2:1-1
+3-3:2-2
+4-4:3-3

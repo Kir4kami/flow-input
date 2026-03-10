@@ -2,9 +2,9 @@
 # 完整的六功能汇总API接口文件
 # 包含：拓扑切分、负载设置、拓扑设置、仿真控制、混合粒度控制、结果分析
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
 from pydantic import BaseModel
 import os
 import sys
@@ -20,6 +20,8 @@ import threading
 import asyncio
 from datetime import datetime
 import hashlib
+import zipfile
+import tempfile
 
 # 路径解析：优先使用环境变量，其次基于当前文件自动定位
 def _detect_reverie_root() -> Path:
@@ -48,9 +50,14 @@ SRC_ROOT = PROJECT_ROOT / "src"
 
 if str(REVERIE_ROOT) not in sys.path:
     sys.path.insert(0, str(REVERIE_ROOT))
+# 若 venv 无 matplotlib，添加系统路径（TreeCut 依赖）
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    sys.path.insert(0, '/usr/lib/python3/dist-packages')
+    import matplotlib.pyplot as plt
 from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
-import matplotlib.pyplot as plt
 import copy
 from collections import defaultdict
 
@@ -247,7 +254,7 @@ def cutBurrNode(Tree, node):
     out_dependence_list.append((node, parents))
     Tree.remove_node(node)
     cut_tree = nx.DiGraph()
-    cut_tree.add_node(root_node, name='root')
+    cut_tree.add_node(root_node, name='Root')
     cut_tree.add_edge(root_node, node)
     Tree_list.append(cut_tree)
 
@@ -574,9 +581,11 @@ def graphToDict(graph):
     """将NetworkX图转换为字典格式"""
     nodes = []
     for node, data in graph.nodes(data=True):
-        node_dict = {"name": node}
-        # 只保留可序列化的数据
+        node_dict = {"name": node}  # 使用节点id作为name，保证Root等显示一致
+        # 只保留可序列化的数据（不覆盖name，避免data中的name覆盖节点id）
         for key, value in data.items():
+            if key == "name":
+                continue
             if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
                 node_dict[key] = value
         nodes.append(node_dict)
@@ -826,7 +835,7 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
     
     # 将output_dir转换为绝对路径（相对于API目录）
     if not os.path.isabs(output_dir):
-        api_dir = Path(__file__).parent
+        api_dir = API_DIR
         output_dir = str((api_dir / output_dir).resolve())
     
     # 重置全局变量
@@ -885,7 +894,7 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         visualize3DSplitTreeHTML(original_tree_for_viz, Tree_list, viz_output_file)
         print(f"[INFO] 3D树组可视化HTML已生成: {viz_output_file}")
         
-        api_dir_for_viz = Path(__file__).parent
+        api_dir_for_viz = API_DIR
         try:
             viz_path_relative = str(Path(viz_output_file).relative_to(api_dir_for_viz))
         except ValueError:
@@ -895,7 +904,7 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
         viz_path_relative = None
     
     # 返回结果（output_directory使用相对路径，相对于api目录）
-    api_dir = Path(__file__).parent
+    api_dir = API_DIR
     try:
         output_dir_relative = str(Path(output_dir).relative_to(api_dir))
     except ValueError:
@@ -914,11 +923,12 @@ def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0,
     
     return result
 
-# ==================== 通信树生成接口 ====================
+# ==================== 通信树解析接口 ====================
+# 从模块二（负载）输出中解析通信树，不再重新运行 trafficGen
 
 class GenerateTreeRequest(BaseModel):
-    model: str = "qwen"
-    input_file: Optional[str] = None
+    model: Optional[str] = None  # 保留兼容，不再使用
+    load_source: Optional[str] = None  # "custom" 或 "generated"(trafficGen)，用于选择解析来源
 
 class GenerateTreeResponse(BaseModel):
     success: bool
@@ -927,123 +937,194 @@ class GenerateTreeResponse(BaseModel):
     tree_data: Optional[Dict[str, Any]] = None
     nodes_count: int = 0
     edges_count: int = 0
+    rdma_root: Optional[str] = None  # rdma_result 绝对路径，用于 tree-cut 时计算真实 nodes_passed
+
+def _find_communication_tree_json() -> tuple:
+    """
+    从模块二输出中查找 communication_tree_iter0.json。
+    返回 (json_path, rdma_root_path)，未找到则 (None, None)。
+    """
+    base_dir = REVERIE_ROOT
+    # 1. TrafficGenerator/rdma_result（模块二 qwen/deepseek 模式输出）
+    traffic_gen_paths = [
+        REVERIE_ROOT / "TrafficGenerator",
+        REVERIE_ROOT.parent / "Generator" / "Generator" / "TrafficGenerator",
+        REVERIE_ROOT / "Generator" / "Generator" / "TrafficGenerator",
+    ]
+    for tg in traffic_gen_paths:
+        json_path = tg / "rdma_result" / "communication_tree_iter0.json"
+        if json_path.exists():
+            rdma_root = tg / "rdma_result"
+            return json_path, rdma_root if rdma_root.exists() else None
+
+    # 2. workflow_output 最新目录
+    wf_output = REVERIE_ROOT / "Generator" / "Generator" / "workflow_output"
+    if wf_output.exists():
+        dirs = sorted([d for d in wf_output.iterdir() if d.is_dir()], key=lambda x: x.stat().st_mtime, reverse=True)
+        for d in dirs[:5]:
+            json_path = d / "2_traffic" / "rdma_result" / "communication_tree_iter0.json"
+            if json_path.exists():
+                rdma_root = d / "2_traffic" / "rdma_result"
+                return json_path, rdma_root if rdma_root.exists() else None
+
+    return None, None
 
 
-def _resolve_latest_tree_json(traffic_gen_dir: Path) -> Path:
-    """定位可用于可视化的通信树 JSON，优先最新迭代文件。"""
-    rdma_result_dir = traffic_gen_dir / "rdma_result"
-    preferred = rdma_result_dir / "communication_tree_iter0.json"
-    if preferred.exists():
-        return preferred
-
-    iter_files = sorted(
-        rdma_result_dir.glob("communication_tree_iter*.json"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True
+def _build_communication_tree_from_custom_load(base_dir: Path) -> Tuple[Dict[str, Any], Path]:
+    """
+    从自定义负载（rdma_operate*.txt + dependence.txt）构建通信树。
+    返回 (tree_data, rdma_root_path)。
+    """
+    rdma_root = base_dir / "rdma_result"
+    if not rdma_root.exists():
+        return None, None
+    operate_dir = rdma_root / "task1"
+    if not operate_dir.exists():
+        operate_dir = rdma_root / "all_rdma_files"
+    if not operate_dir.exists():
+        return None, None
+    operate_files = sorted(
+        operate_dir.glob("rdma_operate*.txt"),
+        key=lambda p: (int(re.search(r"(\d+)", p.name).group(1)) if re.search(r"(\d+)", p.name) else 0, p.name)
     )
-    if iter_files:
-        return iter_files[0]
+    if not operate_files:
+        return None, None
+    dep_file = operate_dir / "dependence.txt"
+    if not dep_file.exists():
+        dep_file = base_dir / "dependence.txt"
+    if not dep_file.exists():
+        dep_file = base_dir / "task1" / "dependence.txt"
+    deps: List[Tuple[int, int, int, int]] = []
+    if dep_file.exists():
+        with open(dep_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                m = re.match(r"(\d+)-(\d+):(\d+)-(\d+)", line)
+                if m:
+                    deps.append((int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))))
+    nodes = [{"name": "Root", "type": "Root", "layer": 0, "nodes_passed": [], "children": [], "isBurr": False}]
+    edges = []
+    parent_of: Dict[int, int] = {}
+    for start, end, p_start, p_end in deps:
+        for i in range(start, end + 1):
+            parent_of[i] = p_start
+    for i in range(len(operate_files)):
+        node_name = f"operate{i}"
+        parent_name = "Root" if i not in parent_of else f"operate{parent_of[i]}"
+        nodes.append({
+            "name": node_name,
+            "type": "OP",
+            "layer": 0,  # 稍后按树深度计算
+            "nodes_passed": [],
+            "children": [],
+            "isBurr": False
+        })
+        edges.append({"from_node": parent_name, "to_node": node_name})
+    # 按树深度设置 layer，使可视化正确显示分支（同层节点并排）
+    child_of: Dict[str, List[str]] = defaultdict(list)
+    for e in edges:
+        child_of[e["from_node"]].append(e["to_node"])
+    depth_of: Dict[str, int] = {"Root": 0}
+    queue = ["Root"]
+    while queue:
+        u = queue.pop(0)
+        for v in child_of[u]:
+            depth_of[v] = depth_of[u] + 1
+            queue.append(v)
+    for n in nodes:
+        if n["name"] in depth_of:
+            n["layer"] = depth_of[n["name"]]
+    for n in nodes[1:]:
+        children = [e["to_node"] for e in edges if e["from_node"] == n["name"]]
+        n["children"] = children
+    root_children = [e["to_node"] for e in edges if e["from_node"] == "Root"]
+    nodes[0]["children"] = root_children
+    tree_data = {"nodes": nodes, "edges": edges}
+    return tree_data, rdma_root
 
-    generic_tree_files = sorted(
-        rdma_result_dir.glob("communication_tree*.json"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True
-    )
-    if generic_tree_files:
-        return generic_tree_files[0]
-
-    raise HTTPException(
-        status_code=404,
-        detail=f"未找到通信树 JSON 文件，请先执行生成通信树。目录: {rdma_result_dir}"
-    )
 
 @app.post("/generate-communication-tree", response_model=GenerateTreeResponse)
 async def generate_communication_tree(request: GenerateTreeRequest):
-    """生成通信树"""
+    """
+    从模块二（负载）输出中解析通信树。
+    - load_source=custom: 从自定义负载（rdma_operate + dependence）构建
+    - 否则: 从 trafficGen 的 communication_tree_iter0.json 读取
+    """
     try:
-        # 使用 resolve() 确保路径正确
-        try:
-            api_dir = Path(__file__).resolve().parent
-            base_dir = api_dir.parent / "TrafficGenerator"
-        except Exception:
-            # os 已在文件顶部导入，不需要重新导入
-            api_dir = Path(os.path.abspath(os.path.dirname(__file__)))
-            base_dir = api_dir.parent / "TrafficGenerator"
-        
-        if request.input_file:
-            input_file = request.input_file
-        else:
-            if request.model.lower() == "qwen":
-                input_file = str(base_dir / "qwen.txt")
-            elif request.model.lower() == "deepseek":
-                input_file = str(base_dir / "deepseek.txt")
-            else:
-                raise HTTPException(status_code=400, detail=f"不支持的模型: {request.model}")
-        
-        if not os.path.exists(input_file):
-            raise HTTPException(status_code=404, detail=f"输入文件不存在: {input_file}")
-        
-        traffic_gen_script = base_dir / "trafficGen.py"
-        if not os.path.exists(traffic_gen_script):
-            raise HTTPException(status_code=500, detail=f"TrafficGenerator脚本不存在: {traffic_gen_script}")
-        
-        traffic_gen_dir = base_dir
-        print(f"[DEBUG] 执行命令: python3 trafficGen.py --input_file {input_file}")
-        print(f"[DEBUG] 工作目录: {traffic_gen_dir}")
-        print(f"[DEBUG] 输入文件路径: {input_file}")
-        print(f"[DEBUG] 脚本路径: {traffic_gen_script}")
-        result = subprocess.run(
-            ["python3", "trafficGen.py", "--input_file", input_file],
-            cwd=str(traffic_gen_dir),
-            capture_output=True,
-            text=True,
-            timeout=600  # 增加到 10 分钟
-        )
-        
-        if result.returncode != 0:
-            error_msg = f"生成失败 (返回码: {result.returncode})\nSTDOUT: {result.stdout[-1000:] if result.stdout else '(无输出)'}\nSTDERR: {result.stderr[-1000:] if result.stderr else '(无错误)'}"
-            print(f"[ERROR] {error_msg}")
-            raise HTTPException(status_code=500, detail=error_msg)
-        
-        json_file = _resolve_latest_tree_json(traffic_gen_dir)
-        print(f"[DEBUG] 检查JSON文件: {json_file}")
-        print(f"[DEBUG] JSON文件是否存在: {os.path.exists(json_file)}")
-        
-        with open(json_file, 'r', encoding='utf-8') as f:
+        base_dir = REVERIE_ROOT
+        load_source = (request.load_source or "").lower()
+
+        if load_source == "custom":
+            tree_data, rdma_root_path = _build_communication_tree_from_custom_load(REVERIE_ROOT)
+            if tree_data is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="未找到自定义负载。请先在第二步上传 ZIP 并解析生成负载。"
+                )
+            rdma_root = str(rdma_root_path.resolve()) if rdma_root_path else None
+            return GenerateTreeResponse(
+                success=True,
+                message="通信树解析成功（来自自定义负载）",
+                tree_file="",
+                tree_data=tree_data,
+                nodes_count=len(tree_data.get("nodes", [])),
+                edges_count=len(tree_data.get("edges", [])),
+                rdma_root=rdma_root
+            )
+
+        json_path, rdma_root_path = _find_communication_tree_json()
+        if json_path is None:
+            raise HTTPException(
+                status_code=404,
+                detail="未找到通信树文件。请先在第二步使用 qwen/deepseek 模式生成负载。"
+            )
+        with open(json_path, 'r', encoding='utf-8') as f:
             tree_data = json.load(f)
-        
+        rdma_root = str(rdma_root_path.resolve()) if rdma_root_path else None
         return GenerateTreeResponse(
             success=True,
-            message=f"通信树生成成功（模型: {request.model}）",
-            tree_file=str(json_file),
+            message="通信树解析成功（来自模块二负载输出）",
+            tree_file=str(json_path),
             tree_data=tree_data,
             nodes_count=len(tree_data.get("nodes", [])),
-            edges_count=len(tree_data.get("edges", []))
+            edges_count=len(tree_data.get("edges", [])),
+            rdma_root=rdma_root
         )
     except HTTPException:
         raise
-    except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=504, detail="生成超时")
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
-        print(f"[ERROR] 生成通信树时发生异常: {str(e)}\n{error_trace}")
-        raise HTTPException(status_code=500, detail=f"生成失败: {str(e)}")
+        print(f"[ERROR] 解析通信树时发生异常: {str(e)}\n{error_trace}")
+        raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
+
+class VisualizeTreeRequest(BaseModel):
+    load_source: Optional[str] = None  # "custom" 或 "generated"
 
 @app.post("/visualize-full-tree")
-async def visualize_full_tree():
-    """可视化完整通信树"""
+async def visualize_full_tree(request: Optional[VisualizeTreeRequest] = Body(default=None)):
+    """可视化完整通信树（从模块二负载输出解析，或自定义负载构建）"""
     try:
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         import networkx as nx
-        
-        traffic_gen_dir = REVERIE_ROOT / "TrafficGenerator"
-        json_file = _resolve_latest_tree_json(traffic_gen_dir)
-        
-        with open(json_file, 'r', encoding='utf-8') as f:
-            tree_data = json.load(f)
+
+        load_source = (request.load_source if request else None) or ""
+        load_source = load_source.lower()
+        tree_data = None
+
+        if load_source == "custom":
+            tree_data, _ = _build_communication_tree_from_custom_load(REVERIE_ROOT)
+
+        if tree_data is None:
+            json_path, _ = _find_communication_tree_json()
+            if json_path is None:
+                raise HTTPException(status_code=404, detail="未找到通信树文件，请先在第二步生成负载")
+            with open(json_path, 'r', encoding='utf-8') as f:
+                tree_data = json.load(f)
         
         G = nx.DiGraph()
         node_types = {}
@@ -1052,7 +1133,10 @@ async def visualize_full_tree():
             node_types[node['name']] = node['type']
         
         for edge in tree_data['edges']:
-            G.add_edge(edge['from_node'], edge['to_node'])
+            u = edge.get('from_node') or edge.get('from')
+            v = edge.get('to_node') or edge.get('to')
+            if u and v:
+                G.add_edge(u, v)
         
         layers = {}
         for node in tree_data['nodes']:
@@ -1074,7 +1158,7 @@ async def visualize_full_tree():
                     x = (i - (len(nodes) - 1) / 2) * 6
                     pos[node] = (x, y)
         
-        color_map = {'Root': '#FFD700', 'TP': '#90EE90', 'EP': '#87CEEB', 'PP': '#FFA500', 'DP': '#FF6B6B'}
+        color_map = {'Root': '#FFD700', 'TP': '#90EE90', 'EP': '#87CEEB', 'PP': '#FFA500', 'DP': '#FF6B6B', 'OP': '#90EE90'}
         node_colors = [color_map.get(node_types.get(node, 'Root'), '#CCCCCC') for node in G.nodes()]
         
         nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=8000, alpha=0.95, edgecolors='black', linewidths=4)
@@ -1116,7 +1200,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
         import glob
         
         # 删除旧的树组可视化图片
-        api_dir = Path(__file__).parent
+        api_dir = API_DIR
         old_images = glob.glob(str(api_dir / "tree_group_*.png"))
         for old_img in old_images:
             try:
@@ -1125,12 +1209,22 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             except Exception as e:
                 print(f"[WARNING] 删除旧图片失败: {old_img}, 错误: {e}")
         
-        base_dir = Path(__file__).parent.parent
-        tree_dir = (Path(__file__).parent / output_dir).resolve()
-        if not tree_dir.exists():
-            tree_dir = (base_dir / output_dir).resolve()
-        if not tree_dir.exists():
-            raise HTTPException(status_code=404, detail=f"树组目录不存在: {output_dir}")
+        api_dir = API_DIR
+        base_dir = REVERIE_ROOT
+        # 尝试多个可能路径（兼容不同项目结构）
+        candidates = [
+            (api_dir / output_dir).resolve(),
+            (base_dir / output_dir).resolve(),
+        ]
+        if output_dir and os.path.isabs(output_dir):
+            candidates.insert(0, Path(output_dir))
+        tree_dir = None
+        for cand in candidates:
+            if cand and cand.exists() and (cand / "tree_group_overview.json").exists():
+                tree_dir = cand
+                break
+        if tree_dir is None:
+            raise HTTPException(status_code=404, detail=f"树组目录不存在或未找到 tree_group_overview.json。尝试路径: {[str(c) for c in candidates if c]}")
         
         overview_file = tree_dir / "tree_group_overview.json"
         if not overview_file.exists():
@@ -1154,15 +1248,24 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             for node in tree_data.get('nodes', []):
                 G.add_node(node.get('name', 'Unknown'))
             for edge in tree_data.get('edges', []):
-                if edge.get('from_node') and edge.get('to_node'):
-                    G.add_edge(edge['from_node'], edge['to_node'])
+                u = edge.get('from_node') or edge.get('from')
+                v = edge.get('to_node') or edge.get('to')
+                if u and v:
+                    G.add_edge(u, v)
             
+            # 从图结构计算 layer（树深度），兼容无 layer 的节点
             layers = {}
+            root_candidates = [n for n in G.nodes() if G.in_degree(n) == 0]
+            root_name = root_candidates[0] if root_candidates else list(G.nodes())[0]
+            depth_map = {root_name: 0}
+            for u, v in nx.bfs_edges(G, root_name):
+                depth_map[v] = depth_map[u] + 1
             for node in tree_data.get('nodes', []):
-                layer = node.get('layer', 0)
+                name = node.get('name', 'Unknown')
+                layer = node.get('layer') if node.get('layer') is not None else depth_map.get(name, 0)
                 if layer not in layers:
                     layers[layer] = []
-                layers[layer].append(node['name'])
+                layers[layer].append(name)
             
             num_layers = len(layers) if layers else 1
             plt.figure(figsize=(16, max(num_layers * 2.5, 12)), facecolor='white')
@@ -1181,6 +1284,18 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
                         for idx, node in enumerate(layer_nodes):
                             x = (idx - (len(layer_nodes) - 1) / 2) * 6
                             pos[node] = (x, y)
+            else:
+                # 无 layer 时使用简单环形布局
+                node_list = list(G.nodes())
+                for idx, node in enumerate(node_list):
+                    angle = 2 * math.pi * idx / max(len(node_list), 1)
+                    pos[node] = (10 * math.cos(angle), 10 * math.sin(angle))
+            # 确保 G 中每个节点都有位置（避免 "Node 'Root' has no position"）
+            max_layer = max(depth_map.values()) if depth_map else 0
+            for n in G.nodes():
+                if n not in pos:
+                    d = depth_map.get(n, 0)
+                    pos[n] = (0, (max_layer - d) * 6)
             
             node_colors = []
             for node in G.nodes():
@@ -1208,7 +1323,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
             plt.axis('off')
             plt.tight_layout(pad=0.5)
             
-            output_file = Path(__file__).parent / f"tree_group_{i}.png"
+            output_file = API_DIR / f"tree_group_{i}.png"
             plt.savefig(output_file, dpi=200, bbox_inches='tight', facecolor='white')
             plt.close()
             
@@ -1231,8 +1346,8 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
 @app.get("/get-tree-groups-3d")
 async def get_tree_groups_3d(output_dir: str = "TreeGroup"):
     """获取树组3D切分可视化HTML"""
-    api_dir = Path(__file__).parent
-    base_dir = Path(__file__).parent.parent
+    api_dir = API_DIR
+    base_dir = REVERIE_ROOT
     
     tree_dir = (api_dir / output_dir).resolve()
     if not tree_dir.exists():
@@ -1244,12 +1359,17 @@ async def get_tree_groups_3d(output_dir: str = "TreeGroup"):
     if not html_file.exists():
         raise HTTPException(status_code=404, detail="3D树组可视化HTML不存在，请先执行通信树切分")
     
-    return FileResponse(str(html_file), media_type='text/html')
+    # 读取并修复模板转义问题：旧版 TreeCut 可能生成 {{ 和 }}，需转为 { 和 }
+    html_content = html_file.read_text(encoding="utf-8")
+    if "}}" in html_content or "{{" in html_content:
+        html_content = html_content.replace("}}", "}").replace("{{", "{")
+    
+    return HTMLResponse(content=html_content)
 
 @app.get("/get-tree-image/{group_id}")
 async def get_tree_image(group_id: int):
     """获取树组图片"""
-    image_file = Path(__file__).parent / f"tree_group_{group_id}.png"
+    image_file = API_DIR / f"tree_group_{group_id}.png"
     if not image_file.exists():
         raise HTTPException(status_code=404, detail="图片不存在")
     return FileResponse(str(image_file), media_type='image/png')
@@ -1357,7 +1477,7 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
         import re
         from collections import defaultdict
         
-        base_dir = Path(__file__).absolute().parent.parent.resolve()
+        base_dir = REVERIE_ROOT.resolve()
         
         if use_latest_workflow:
             # 从最新的 workflow 输出目录读取
@@ -1466,7 +1586,7 @@ async def parse_load_files(directory: str = "rdma_result", use_latest_workflow: 
                 if entry.is_dir() and re.match(r"\d+_(TP|EP|PP|DP)\d*", entry.name, re.IGNORECASE):
                     has_tagged_dirs = True
                     break
-        
+
         # 2. 解析负载流量数据
         flows = []
         host_flow_set = set()  # 只统计主机之间的流量
@@ -1808,7 +1928,7 @@ async def extract_link_competition_flows(use_latest_workflow: bool = True):
         包含提取结果的响应
     """
     try:
-        base_dir = Path(__file__).parent.parent
+        base_dir = REVERIE_ROOT
         
         # 1. 获取流量数据和路径信息
         parse_result = await parse_load_files(directory="rdma_result", use_latest_workflow=use_latest_workflow)
@@ -2088,11 +2208,121 @@ async def extract_link_competition_flows(use_latest_workflow: bool = True):
 
 # ==================== 拓扑切分接口相关 ====================
 
+def _generate_ecmp_paths_and_update_nodes_passed(rdma_root: Path, tree_data: dict, base_dir: Path) -> dict:
+    """
+    从真实流量生成 ECMP 路径，并更新 tree_data 中各节点的 nodes_passed。
+    返回更新后的 tree_data（深拷贝）。
+    """
+    if not is_ecmp_module_ready():
+        print("[tree-cut] ECMP 模块不可用，跳过真实路径更新")
+        return tree_data
+    tree_data = copy.deepcopy(tree_data)
+    config_file = None
+    router_file = None
+    # 1. 优先从 workflow_output 最新目录获取拓扑
+    wf_output = base_dir / "Generator" / "Generator" / "workflow_output"
+    if wf_output.exists():
+        dirs = sorted([d for d in wf_output.iterdir() if d.is_dir()], key=lambda x: x.stat().st_mtime, reverse=True)
+        for d in dirs[:5]:
+            topo = d / "1_topology"
+            if topo.exists():
+                cfg, rtr = topo / "dcn2.0_config.xml", topo / "router_mine.xml"
+                if cfg.exists() and rtr.exists():
+                    config_file, router_file = cfg, rtr
+                    break
+        if config_file:
+            print(f"[tree-cut] 使用拓扑: {config_file.parent}")
+    # 2. 若无，尝试 auto_output
+    if not config_file:
+        auto_out = base_dir / "Generator" / "Generator" / "auto_output"
+        if auto_out.exists():
+            dirs = sorted([d for d in auto_out.iterdir() if d.is_dir()], key=lambda x: x.stat().st_mtime, reverse=True)
+            for d in dirs[:3]:
+                cfg, rtr = d / "dcn2.0_config.xml", d / "router_mine.xml"
+                if cfg.exists() and rtr.exists():
+                    config_file, router_file = cfg, rtr
+                    break
+    # 3. 若无，运行 auto_gen_topo 生成
+    if not config_file or not config_file.exists():
+        try:
+            topo_gen_dir = base_dir / "Generator" / "Generator" / "TopoGenerator" / "clos"
+            auto_script = topo_gen_dir / "auto_gen_topo.py"
+            if auto_script.exists():
+                host_num, leaf_num, spine_num = 64, 8, 4
+                leaf_spine = base_dir / "leaf-spine.txt"
+                if leaf_spine.exists():
+                    with open(leaf_spine, 'r') as f:
+                        parts = f.readline().strip().split()
+                        if len(parts) >= 3:
+                            host_num, leaf_num, spine_num = int(parts[0]), int(parts[1]), int(parts[2])
+                out_dir = base_dir / "Generator" / "Generator" / "auto_output" / "treecut_topo"
+                out_dir.mkdir(parents=True, exist_ok=True)
+                subprocess.run(
+                    [sys.executable, str(auto_script), "--hosts", str(host_num),
+                     "--leafs", str(leaf_num), "--spines", str(spine_num),
+                     "--output-dir", str(out_dir)],
+                    cwd=str(topo_gen_dir), capture_output=True, text=True, timeout=60
+                )
+                config_file = out_dir / "dcn2.0_config.xml"
+                router_file = out_dir / "router_mine.xml"
+                if config_file.exists():
+                    print(f"[tree-cut] 已生成拓扑: {out_dir}")
+        except Exception as e:
+            print(f"[tree-cut] 拓扑生成失败: {e}")
+    if not config_file or not config_file.exists() or not router_file or not router_file.exists():
+        print("[tree-cut] 未找到拓扑文件，使用原始 nodes_passed")
+        return tree_data
+    for subdir in rdma_root.iterdir():
+        if subdir.is_dir() and subdir.name not in ("all_rdma_files",):
+            shutil.copy2(config_file, subdir / "dcn2.0_config.xml")
+            shutil.copy2(router_file, subdir / "router_mine.xml")
+    ecmp_output_dir = base_dir / "Generator" / "Generator" / "TreeCut" / "ecmp_outputs_treecut"
+    ecmp_output_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        from TreeCut.DocProcess import process_file as doc_process_file
+    except ImportError:
+        sys.path.insert(0, str(ECMP_MODULE_ROOT))
+        from DocProcess import process_file as doc_process_file
+    updated = 0
+    for subdir in rdma_root.iterdir():
+        if not subdir.is_dir() or subdir.name in ("all_rdma_files",):
+            continue
+        try:
+            file_list = ecmp_get_rdma_files(str(subdir))
+            if not file_list:
+                continue
+            flow_info, link_info, route_table, link_map, rev_map, *_ = ecmp_load_file(str(subdir), file_list)
+            _, flow_paths_port = ecmp_find_paths(flow_info, link_info, route_table, link_map, rev_map)
+            out_file = ecmp_output_dir / f"{subdir.name}.txt"
+            with open(out_file, 'w') as f:
+                for tup in flow_paths_port:
+                    if len(tup) > 1 and isinstance(tup[1], list):
+                        for item in tup[1]:
+                            f.write(f"{item}\n")
+        except Exception as e:
+            print(f"[tree-cut] ECMP 路径生成失败 {subdir.name}: {e}")
+            continue
+    for node in tree_data.get("nodes", []):
+        name = node.get("name")
+        if not name or name == "Root":
+            continue
+        ecmp_file = ecmp_output_dir / f"{name}.txt"
+        if ecmp_file.exists():
+            try:
+                node["nodes_passed"] = doc_process_file(str(ecmp_file))
+                updated += 1
+            except Exception as e:
+                print(f"[tree-cut] 解析 {name} 失败: {e}")
+    print(f"[tree-cut] 已用真实流量更新 {updated} 个节点的 nodes_passed")
+    return tree_data
+
+
 class TreeCutRequest(BaseModel):
     tree_data: Dict[str, Any]
     output_dir: str = "TreeGroup"
     num_groups: int = 0  # 保留参数（兼容性），实际只支持0（自动切分）
     show_graphs: bool = False
+    rdma_root: Optional[str] = None  # rdma_result 路径，提供则用真实流量计算 nodes_passed
 
 class TreeCutResponse(BaseModel):
     success: bool
@@ -2113,11 +2343,22 @@ async def tree_cut(request: TreeCutRequest):
     - 递归切割：基于最长路径和依赖分析进行切分
     - 冲突检测：确保切分不破坏节点间的依赖关系
     
-    注意：不再支持手动指定切分数量，避免破坏依赖关系
+    若提供 rdma_root，则从真实流量计算 ECMP 路径，用实际流经的网络节点更新 nodes_passed。
     """
     try:
-        # 转换edge格式
+        api_dir = API_DIR
+        base_dir = REVERIE_ROOT
         tree_data = request.tree_data.copy()
+        # 若提供 rdma_root，用真实流量更新 nodes_passed
+        if request.rdma_root:
+            rdma_path = Path(request.rdma_root)
+            if not rdma_path.is_absolute():
+                rdma_path = (base_dir / request.rdma_root.replace("\\", "/")).resolve()
+            if rdma_path.exists() and rdma_path.is_dir():
+                tree_data = _generate_ecmp_paths_and_update_nodes_passed(rdma_path, tree_data, base_dir)
+            else:
+                print(f"[tree-cut] rdma_root 不存在: {rdma_path}，使用原始 nodes_passed")
+        # 转换edge格式
         if "edges" in tree_data:
             converted_edges = []
             for edge in tree_data["edges"]:
@@ -2140,8 +2381,8 @@ async def tree_cut(request: TreeCutRequest):
         
         result_files = []
         # 尝试多个可能的路径查找结果文件
-        api_dir = Path(__file__).parent
-        base_dir = Path(__file__).parent.parent
+        api_dir = API_DIR
+        base_dir = REVERIE_ROOT
         possible_output_dirs = [
             api_dir / request.output_dir,  # examples/Reverie/api/TreeGroup
             base_dir / request.output_dir,  # examples/Reverie/TreeGroup
@@ -2198,7 +2439,7 @@ class LoadResponse(BaseModel):
     task_summary: List[Dict[str, Any]] = []
     ecmp_preview: Optional[Dict[str, Any]] = None
     host_num: Optional[int] = None
-    load_directory: Optional[str] = None
+    load_directory: Optional[str] = None  # 查看负载文件时使用的目录（trafficGen 用 Generator/.../task1）
 
 
 def _parse_msg_len_expr(msg_len_expr: str) -> int:
@@ -2261,8 +2502,31 @@ def _build_trafficgen_config(template_path: Path,
     return "\n".join(output_lines).rstrip() + "\n"
 
 
+def _sync_task_to_reverie_exec_dir(task_sources: List[Path], task_num: int) -> None:
+    """将模块二生成的流量复制到仿真执行目录（当后端运行在 repo 外时）"""
+    reverie_dir = REVERIE_ROOT
+    if not (reverie_dir / "sim.sh").exists():
+        return
+    for task_index in range(1, task_num + 1):
+        src_task = None
+        for src_base in task_sources:
+            cand = src_base / f"task{task_index}"
+            if cand.exists() and (cand / "rdma_operate0.txt").exists():
+                src_task = cand
+                break
+        if src_task is not None:
+            dst_task = reverie_dir / f"task{task_index}"
+            if src_task.resolve() == dst_task.resolve():
+                continue  # 已在 Reverie 内，无需复制
+            if dst_task.exists():
+                shutil.rmtree(dst_task)
+            shutil.copytree(src_task, dst_task)
+            print(f"[generate-load] 流量已同步到执行目录: {src_task} -> {dst_task}")
+
+
 def _write_task_inputs_from_all_rdma_files(base_dir: Path,
                                            task_num: int) -> List[Dict[str, Any]]:
+    """从 all_rdma_files 生成 task 目录，保留多个 rdma_operate 文件（不合并）"""
     task_num = max(1, task_num)
     all_files_dir = base_dir / "rdma_result" / "all_rdma_files"
     if not all_files_dir.exists():
@@ -2288,24 +2552,31 @@ def _write_task_inputs_from_all_rdma_files(base_dir: Path,
         task_dir.mkdir(parents=True, exist_ok=True)
         (task_dir / "logs").mkdir(parents=True, exist_ok=True)
 
-        operate_path = task_dir / "rdma_operate0.txt"
-        with open(operate_path, 'w', encoding='utf-8') as out:
-            out.write("stat rdma operate:\n")
-            for file_path in task_files:
-                with open(file_path, 'r', encoding='utf-8') as src:
-                    for line in src:
-                        if line.startswith("stat rdma operate"):
-                            continue
-                        out.write(line)
+        # 保留多个 rdma_operate 文件，不合并
+        flow_files_written: List[str] = []
+        for local_idx, file_path in enumerate(task_files):
+            operate_path = task_dir / f"rdma_operate{local_idx}.txt"
+            shutil.copy2(file_path, operate_path)
+            flow_files_written.append(str(operate_path.relative_to(base_dir)))
 
+        # dependence.txt：trafficGen 的 merge_dependency.py 已生成，直接复用；否则写入默认
         dependence_path = task_dir / "dependence.txt"
-        write_dependence_file(dependence_path)
+        src_dependence = base_dir / "dependence.txt"
+        if task_num == 1 and src_dependence.exists():
+            shutil.copy2(src_dependence, dependence_path)
+        else:
+            write_dependence_file(dependence_path)
+
+        flow_count = 0
+        for fp in task_files:
+            with open(fp, 'r', encoding='utf-8') as f:
+                flow_count += sum(1 for ln in f if 'Type rdma' in ln)
 
         task_summaries.append({
             "task": task_index,
             "host_range": "trafficGen",
-            "flow_files": [str(operate_path.relative_to(base_dir))],
-            "flow_count": len(task_files)
+            "flow_files": flow_files_written,
+            "flow_count": flow_count
         })
     return task_summaries
 
@@ -2579,6 +2850,69 @@ def _parse_custom_traffic_content(content: str, default_msg_len_bytes: int) -> T
         raise HTTPException(status_code=400, detail="未识别到任何流量记录，请检查文件格式")
     host_num = max_node_id + 1 if max_node_id >= 0 else 1
     return flows, host_num
+
+
+def _process_full_format_zip(zip_path: Path, base_dir: Path, task_num: int) -> Tuple[List[Dict[str, Any]], int, str]:
+    """
+    处理完整格式 ZIP（多 rdma_operate*.txt + dependence.txt）。
+    返回 (task_summaries, host_num, load_directory)。
+    task_num=4 时暂不支持，会报错。
+    """
+    if task_num != 1:
+        raise HTTPException(
+            status_code=400,
+            detail="完整格式（ZIP）暂不支持切分，请先关闭「启用通信树分割」或使用简单格式（单 txt）"
+        )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            zf.extractall(tmp)
+        operate_files = sorted(tmp.glob("rdma_operate*.txt"), key=lambda p: (int(re.search(r"(\d+)", p.name).group(1)) if re.search(r"(\d+)", p.name) else 0, p.name))
+        dep_file = tmp / "dependence.txt"
+        if not operate_files:
+            raise HTTPException(status_code=400, detail="ZIP 中未找到 rdma_operate*.txt 文件")
+        if not dep_file.exists():
+            raise HTTPException(status_code=400, detail="ZIP 中缺少 dependence.txt")
+        task_dir = base_dir / "task1"
+        if task_dir.exists():
+            shutil.rmtree(task_dir)
+        task_dir.mkdir(parents=True, exist_ok=True)
+        (task_dir / "logs").mkdir(parents=True, exist_ok=True)
+        for i, src in enumerate(operate_files):
+            shutil.copy2(src, task_dir / f"rdma_operate{i}.txt")
+        shutil.copy2(dep_file, task_dir / "dependence.txt")
+        rdma_dir = base_dir / "rdma_result"
+        if rdma_dir.exists():
+            shutil.rmtree(rdma_dir)
+        rdma_dir.mkdir(parents=True, exist_ok=True)
+        all_files_dir = rdma_dir / "all_rdma_files"
+        all_files_dir.mkdir(parents=True, exist_ok=True)
+        for i, src in enumerate(operate_files):
+            shutil.copy2(src, all_files_dir / f"rdma_operate{i}.txt")
+        rdma_task_dir = rdma_dir / "task1"
+        rdma_task_dir.mkdir(parents=True, exist_ok=True)
+        for i, src in enumerate(operate_files):
+            shutil.copy2(src, rdma_task_dir / f"rdma_operate{i}.txt")
+        shutil.copy2(dep_file, base_dir / "dependence.txt")
+        flow_count = 0
+        for fp in operate_files:
+            with open(fp, 'r', encoding='utf-8') as f:
+                flow_count += sum(1 for ln in f if 'Type rdma' in ln)
+        host_num = 64
+        for fp in operate_files:
+            with open(fp, 'r', encoding='utf-8') as f:
+                for line in f:
+                    m = re.search(r"src_node\s+(\d+).*?dst_node\s+(\d+)", line)
+                    if m:
+                        host_num = max(host_num, int(m.group(1)) + 1, int(m.group(2)) + 1)
+        task_summaries = [{
+            "task": 1,
+            "host_range": "custom",
+            "flow_files": [str((task_dir / f.name).relative_to(base_dir)) for f in operate_files],
+            "flow_count": flow_count
+        }]
+        load_directory = "rdma_result/task1"
+        return task_summaries, host_num, load_directory
 
 
 def _write_custom_task_inputs(base_dir: Path,
@@ -2893,8 +3227,24 @@ def _compute_ecmp_for_directory(rdma_stage_dir: Path, mode: str = "expected") ->
     if mode == "actual":
         # 实际路径：从仿真日志文件中解析
         # 查找 dump 目录（通常在 examples/Reverie/dump/）
-        base_dir = Path(__file__).parent.parent
-        dump_dir = base_dir / "dump"
+        # 尝试多个可能的路径找到Reverie目录
+        possible_reverie_paths = [
+            REVERIE_ROOT,
+            REVERIE_ROOT / "examples" / "Reverie",
+            REVERIE_ROOT,
+        ]
+        
+        reverie_dir = None
+        for path in possible_reverie_paths:
+            if path.exists():
+                reverie_dir = path
+                break
+        
+        if reverie_dir is None:
+            reverie_dir = REVERIE_ROOT  # 默认路径
+        
+        base_dir = reverie_dir
+        dump_dir = reverie_dir / "dump"
         
         # 如果当前目录是 workflow 输出目录，尝试从 workflow 输出中查找 dump
         if "workflow_output" in str(rdma_stage_dir):
@@ -2969,12 +3319,12 @@ def compute_and_cache_ecmp(mode: str, rdma_root: Optional[Path] = None) -> Dict[
     
     # 对于 actual 模式，不需要 ecmp_module，直接从日志解析
     if mode == "actual":
-        rdma_root = rdma_root or (Path(__file__).parent.parent / "rdma_result")
+        rdma_root = rdma_root or (REVERIE_ROOT / "rdma_result")
     else:
         # expected 模式需要 ecmp_module
         if not is_ecmp_module_ready():
             return {}
-        rdma_root = rdma_root or (Path(__file__).parent.parent / "rdma_result")
+        rdma_root = rdma_root or (REVERIE_ROOT / "rdma_result")
 
     with ECMP_CACHE_LOCK:
         cache = _read_ecmp_cache()
@@ -3005,7 +3355,7 @@ async def compute_ecmp_endpoint(mode: str = "expected", directory: str = "rdma_r
     try:
         if use_latest_workflow:
             # 从最新的 workflow 输出目录读取
-            generator_dir = Path(__file__).parent.parent / "Generator" / "Generator"
+            generator_dir = REVERIE_ROOT / "Generator" / "Generator"
             output_base = generator_dir / "workflow_output"
             if not output_base.exists():
                 raise HTTPException(status_code=404, detail=f"Workflow输出目录不存在: {output_base}")
@@ -3025,7 +3375,7 @@ async def compute_ecmp_endpoint(mode: str = "expected", directory: str = "rdma_r
                 raise HTTPException(status_code=404, detail=f"Workflow RDMA目录不存在: {rdma_root}")
         else:
             # 使用指定的目录
-            rdma_root = (Path(__file__).parent.parent / directory).resolve()
+            rdma_root = (REVERIE_ROOT / directory).resolve()
             if not rdma_root.exists():
                 raise HTTPException(status_code=404, detail=f"RDMA目录不存在: {rdma_root}")
         
@@ -3081,26 +3431,50 @@ async def generate_load(request: LoadRequest):
 
         base_dir = REVERIE_ROOT
         model_key = (request.model_name or "").lower()
+        
+        # 优先使用 Generator/Generator/TrafficGenerator（与 workflow 一致，有 merge_dependency.py）
+        # Reverie/TrafficGenerator 作为备选
+        possible_base_paths = [
+            REVERIE_ROOT / "Generator" / "Generator" / "TrafficGenerator",
+            REVERIE_ROOT / "TrafficGenerator",
+        ]
+        rel_paths_map = {
+            0: "Generator/Generator/TrafficGenerator/task1",
+            1: "TrafficGenerator/task1",
+        }
+        
+        traffic_gen_dir = None
+        load_directory_candidate = None
+        for i, path in enumerate(possible_base_paths):
+            if path.exists() and (path / "trafficGen.py").exists():
+                traffic_gen_dir = path
+                load_directory_candidate = rel_paths_map.get(i, rel_paths_map[0])
+                break
+        
+        # 如果找不到 TrafficGenerator，只在需要时（qwen/deepseek模型）才报错
+        # 对于 custom 模型，不需要 TrafficGenerator
+        if traffic_gen_dir is None and model_key in {"deepseek", "qwen"}:
+            raise HTTPException(status_code=500, detail=f"未找到 TrafficGenerator 目录，尝试的路径: {[str(p) for p in possible_base_paths]}")
 
         if model_key in {"deepseek", "qwen"}:
-            template_path = base_dir / "TrafficGenerator" / f"{model_key}.txt"
+            template_path = traffic_gen_dir / f"{model_key}.txt"
             trafficgen_config = _build_trafficgen_config(
                 template_path=template_path,
                 host_num=request.host_num,
                 msg_len_expr=request.msg_len,
                 dp=request.dp
             )
-            input_path = base_dir / "TrafficGenerator" / f"{model_key}_input_autogen.txt"
+            input_path = traffic_gen_dir / f"{model_key}_input_autogen.txt"
             with open(input_path, 'w', encoding='utf-8') as f:
                 f.write(trafficgen_config)
 
-            traffic_gen_script = base_dir / "TrafficGenerator" / "trafficGen.py"
+            traffic_gen_script = traffic_gen_dir / "trafficGen.py"
             if not traffic_gen_script.exists():
                 raise FileNotFoundError(f"trafficGen.py 不存在: {traffic_gen_script}")
 
             traffic_run = subprocess.run(
                 [sys.executable, str(traffic_gen_script), "--input_file", str(input_path)],
-                cwd=str(base_dir),
+                cwd=str(traffic_gen_dir),
                 capture_output=True,
                 text=True
             )
@@ -3111,11 +3485,11 @@ async def generate_load(request: LoadRequest):
                     f"stderr: {traffic_run.stderr}"
                 )
 
-            merge_script = base_dir / "TrafficGenerator" / "merge_rdma.sh"
+            merge_script = traffic_gen_dir / "merge_rdma.sh"
             if merge_script.exists():
                 merge_run = subprocess.run(
                     ["bash", str(merge_script)],
-                    cwd=str(base_dir),
+                    cwd=str(traffic_gen_dir),
                     capture_output=True,
                     text=True
                 )
@@ -3126,8 +3500,23 @@ async def generate_load(request: LoadRequest):
                         f"stderr: {merge_run.stderr}"
                     )
 
+            # 用实际配置生成 dependence.txt（64 节点等），与 trafficGen 输出 operate 数量一致
+            merge_dep_script = traffic_gen_dir / "merge_dependency.py"
+            autogen_input = traffic_gen_dir / f"{model_key}_input_autogen.txt"
+            if merge_dep_script.exists() and autogen_input.exists():
+                merge_dep_run = subprocess.run(
+                    [sys.executable, str(merge_dep_script), str(autogen_input)],
+                    cwd=str(traffic_gen_dir),
+                    capture_output=True,
+                    text=True
+                )
+                if merge_dep_run.returncode != 0:
+                    print(f"[WARNING] merge_dependency 失败，将使用默认无依赖: {merge_dep_run.stderr}")
+
+            # _write_task_inputs_from_all_rdma_files 需要包含 rdma_result 的 base_dir
+            # rdma_result 在 traffic_gen_dir 下，所以使用 traffic_gen_dir 作为 base_dir
             task_summaries = _write_task_inputs_from_all_rdma_files(
-                base_dir=base_dir,
+                base_dir=traffic_gen_dir,
                 task_num=request.task_num
             )
             load_content = trafficgen_config
@@ -3168,11 +3557,19 @@ async def generate_load(request: LoadRequest):
         if not task_summaries:
             raise HTTPException(status_code=500, detail="未能生成任何任务流量，请检查输入参数")
 
+        # 将流量复制到仿真执行目录 flow-input-repo/examples/Reverie/task1/
+        task_sources = [base_dir]
+        if traffic_gen_dir is not None:
+            task_sources.insert(0, traffic_gen_dir)
+        _sync_task_to_reverie_exec_dir(task_sources, request.task_num)
+
         task_info_text = "; ".join(
             f"任务{item['task']} 主机范围 {item['host_range']} 流量文件 {len(item['flow_files'])} 个"
             for item in task_summaries
         )
         
+        load_directory = load_directory_candidate if (model_key in {"deepseek", "qwen"} and traffic_gen_dir is not None) else None
+
         return LoadResponse(
             success=True,
             content=load_content,
@@ -3181,37 +3578,47 @@ async def generate_load(request: LoadRequest):
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
             host_num=request.host_num,
-            load_directory="rdma_result"
+            load_directory=load_directory
         )
         
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 生成负载配置时发生异常: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"生成负载配置时出错: {str(e)}")
 
 
 @app.post("/generate-load-from-file", response_model=LoadResponse)
 async def generate_load_from_file(
     traffic_file: UploadFile = File(...),
-    task_num: int = Form(1),
-    msg_len_expr: str = Form("32*(1024)")
+    task_num: int = Form(1)
 ):
     """
-    通过上传自定义流量文件生成负载配置。
-    支持 rdma_operate.txt 格式或简单的 "src dst [msg_len]" 文本格式。
+    通过上传自定义流量 ZIP 包生成负载配置。
+    ZIP 需包含：多 rdma_operate*.txt + dependence.txt，仅支持 task_num=1。
     """
     try:
         if task_num <= 0:
             raise HTTPException(status_code=400, detail="task_num必须大于0")
 
-        raw_bytes = await traffic_file.read()
-        content = raw_bytes.decode("utf-8", errors="replace")
-        default_msg_len_bytes = _parse_msg_len_expr(msg_len_expr)
-        flows, host_num = _parse_custom_traffic_content(content, default_msg_len_bytes)
-
         base_dir = REVERIE_ROOT
-        task_summaries = _write_custom_task_inputs(base_dir, flows, task_num)
+        raw_bytes = await traffic_file.read()
+        filename = traffic_file.filename or "custom_traffic.zip"
 
+        if not filename.lower().endswith(".zip"):
+            raise HTTPException(status_code=400, detail="请上传 ZIP 包（多 rdma_operate*.txt + dependence.txt）")
+
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+            tmp.write(raw_bytes)
+            tmp_path = Path(tmp.name)
+        try:
+            task_summaries, host_num, load_directory = _process_full_format_zip(tmp_path, base_dir, task_num)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+        _sync_task_to_reverie_exec_dir([base_dir], task_num)
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
         if is_ecmp_module_ready():
             try:
@@ -3221,17 +3628,16 @@ async def generate_load_from_file(
                 )
             except Exception as exc:
                 print(f"[WARNING] 自定义流量ECMP预览失败: {exc}")
-
-        filename = traffic_file.filename or "custom_traffic.txt"
+        total_flows = sum(s.get("flow_count", 0) for s in task_summaries)
         return LoadResponse(
             success=True,
-            content=content,
+            content="",
             filename=filename,
-            message=f"自定义流量解析完成，共 {len(flows)} 条流量，任务数 {task_num}",
+            message=f"自定义流量解析完成，共 {total_flows} 条流量，任务数 1",
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
             host_num=host_num,
-            load_directory="rdma_result"
+            load_directory=load_directory
         )
     except HTTPException:
         raise
@@ -3353,7 +3759,7 @@ async def generate_topology(request: TopologyRequest):
         )
         
         # 保存到文件
-        topology_file = Path(__file__).parent.parent / "leaf-spine.txt"
+        topology_file = REVERIE_ROOT / "leaf-spine.txt"
         with open(topology_file, 'w', encoding='utf-8') as f:
             f.write(topology_content)
         
@@ -3412,7 +3818,7 @@ async def run_workflow(request: WorkflowRequest, background_tasks: BackgroundTas
         workflow_id = f"workflow_{int(time.time())}"
         
         # 构建 run_all.py 的命令
-        generator_dir = Path(__file__).absolute().parent.parent / "Generator" / "Generator"
+        generator_dir = REVERIE_ROOT / "Generator" / "Generator"
         run_all_script = generator_dir / "run_all.py"
         
         print(f"[DEBUG] run-workflow: generator_dir={generator_dir}, run_all_script={run_all_script}, exists={run_all_script.exists()}")
@@ -3485,7 +3891,7 @@ async def get_workflow_status(workflow_id: str):
     通过检查 workflow_output 目录下的最新输出目录来判断状态
     """
     try:
-        generator_dir = Path(__file__).parent.parent / "Generator" / "Generator"
+        generator_dir = REVERIE_ROOT / "Generator" / "Generator"
         output_base = generator_dir / "workflow_output"
         
         if not output_base.exists():
@@ -3552,6 +3958,7 @@ class SimulationRequest(BaseModel):
     enable_mixed_granularity: bool = True  # 是否启用混合粒度
     simulation_time: float = 10.0  # 仿真时间（秒）
     use_custom_config: bool = False  # 是否使用前端生成的自定义拓扑/负载输入
+    load_source: Optional[str] = None  # "custom"=自定义ZIP, "generated"/"workflow"=trafficGen(qwen/deepseek)
 
 class SimulationResponse(BaseModel):
     success: bool
@@ -3582,12 +3989,23 @@ def modify_sim_script(task_num: int, llm_model: str):
 
 def modify_qbb_device(enable_mixed_granularity: bool):
     """修改qbb-net-device.cc中的混合粒度设置"""
-    qbb_file_path = SRC_ROOT / "point-to-point" / "model" / "qbb-net-device.cc"
+    # qbb-net-device.cc 在 flow-input-repo 中
+    # 尝试多个可能的路径
+    possible_qbb_paths = [
+        SRC_ROOT / "point-to-point" / "model" / "qbb-net-device.cc",
+        REVERIE_ROOT.parent.parent / "src" / "point-to-point" / "model" / "qbb-net-device.cc",
+    ]
     
-    print(f"[DEBUG] modify_qbb_device: qbb_file_path={qbb_file_path}, exists={qbb_file_path.exists()}")
+    qbb_file_path = None
+    for path in possible_qbb_paths:
+        if path.exists():
+            qbb_file_path = path
+            break
     
-    if not qbb_file_path.exists():
-        raise FileNotFoundError(f"qbb-net-device.cc文件不存在: {qbb_file_path}")
+    print(f"[DEBUG] modify_qbb_device: qbb_file_path={qbb_file_path}, exists={qbb_file_path.exists() if qbb_file_path else False}")
+    
+    if qbb_file_path is None or not qbb_file_path.exists():
+        raise FileNotFoundError(f"qbb-net-device.cc文件不存在，尝试的路径: {[str(p) for p in possible_qbb_paths]}")
     
     # 读取原文件
     with open(qbb_file_path, 'r', encoding='utf-8') as f:
@@ -3613,7 +4031,7 @@ def modify_qbb_device(enable_mixed_granularity: bool):
 
 def run_simulation(simulation_id: str, task_num: int, llm_model: str, 
                   enable_mixed_granularity: bool, simulation_time: float,
-                  use_custom_config: bool):
+                  use_custom_config: bool, load_source: Optional[str] = None):
     """运行仿真（后台任务）"""
     # 创建日志目录
     api_dir = API_DIR
@@ -3629,8 +4047,22 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         # 修改配置文件
         modify_qbb_device(enable_mixed_granularity)
         
-        # 切换到Reverie目录
-        reverie_dir = REVERIE_ROOT
+        # 切换到Reverie目录（NS3代码在flow-input-repo中）
+        # 尝试多个可能的路径
+        possible_reverie_paths = [
+            REVERIE_ROOT,
+            REVERIE_ROOT / "examples" / "Reverie",
+            REVERIE_ROOT,
+        ]
+        
+        reverie_dir = None
+        for path in possible_reverie_paths:
+            if path.exists() and (path / "sim.sh").exists():
+                reverie_dir = path
+                break
+        
+        if reverie_dir is None:
+            raise RuntimeError(f"未找到Reverie目录，尝试的路径: {[str(p) for p in possible_reverie_paths]}")
         
         # 写入日志文件头部
         with open(log_file_path, 'w', encoding='utf-8') as log_file:
@@ -3649,6 +4081,48 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         
         print(f"[仿真启动] {simulation_id}, 日志文件: {log_file_path}")
         if use_custom_config:
+            # 同步：将模块1/2生成的数据复制到 flow-input-repo
+            # load_source=custom 时自定义流量在 api_base/task1，必须优先用 api_base，否则会误用 tg_dir 的 deepseek
+            api_base = REVERIE_ROOT
+            tg_dir = api_base / "Generator" / "Generator" / "TrafficGenerator"
+            tg_parent = api_base.parent / "Generator" / "Generator" / "TrafficGenerator"
+            if (load_source or "").lower() == "custom":
+                possible_task_sources = [api_base, tg_dir, tg_parent]
+            else:
+                possible_task_sources = [tg_dir, tg_parent, api_base]
+            # 1. 同步拓扑 leaf-spine.txt（若 src 与 dst 相同则跳过，避免 SameFileError）
+            src_topology = api_base / "leaf-spine.txt"
+            dst_topology = reverie_dir / "leaf-spine.txt"
+            if src_topology.exists():
+                if src_topology.resolve() != dst_topology.resolve():
+                    shutil.copy2(src_topology, dst_topology)
+                    with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                        log_file.write(f"[同步] 拓扑已复制: {src_topology} -> {dst_topology}\n")
+                else:
+                    with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                        log_file.write(f"[同步] 拓扑已在 Reverie 内，无需复制\n")
+            else:
+                with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                    log_file.write(f"[警告] 源拓扑文件不存在: {src_topology}，使用 reverie 目录现有文件\n")
+            # 2. 同步 task1, task2, ...
+            for task_index in range(1, task_num + 1):
+                src_task = None
+                for src_base in possible_task_sources:
+                    cand = src_base / f"task{task_index}"
+                    if cand.exists() and (cand / "rdma_operate0.txt").exists():
+                        src_task = cand
+                        break
+                if src_task is not None:
+                    dst_task = reverie_dir / f"task{task_index}"
+                    if src_task.resolve() == dst_task.resolve():
+                        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                            log_file.write(f"[同步] 任务{task_index}已在 Reverie 内，无需复制\n")
+                    else:
+                        if dst_task.exists():
+                            shutil.rmtree(dst_task)
+                        shutil.copytree(src_task, dst_task)
+                        with open(log_file_path, 'a', encoding='utf-8') as log_file:
+                            log_file.write(f"[同步] 任务{task_index}已复制: {src_task} -> {dst_task}\n")
             for task_index in range(1, task_num + 1):
                 task_dir = reverie_dir / f"task{task_index}"
                 if not task_dir.exists():
@@ -3696,18 +4170,18 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         except (TypeError, ValueError):
             sim_time_seconds = 10.0
         sim_time_seconds = max(sim_time_seconds, 0.1)
-        end_time_ns = int(sim_time_seconds * 1e9)
-        flow_launch_end_ns = int(max(sim_time_seconds * 0.1, 0.001) * 1e9)
-        env["SIM_END_TIME_NS_OVERRIDE"] = str(end_time_ns)
-        env["SIM_FLOW_LAUNCH_END_NS_OVERRIDE"] = str(flow_launch_end_ns)
+        flow_launch_seconds = max(sim_time_seconds * 0.1, 0.001)
+        # sim.cc 期望 END_TIME 单位为秒，直接传秒
+        env["SIM_END_TIME_SEC_OVERRIDE"] = str(sim_time_seconds)
+        env["SIM_FLOW_LAUNCH_END_SEC_OVERRIDE"] = str(flow_launch_seconds)
         
         with open(log_file_path, 'a', encoding='utf-8') as log_file:
             log_file.write(f"环境变量:\n")
             log_file.write(f"  LLM_OVERRIDE={env.get('LLM_OVERRIDE')}\n")
             log_file.write(f"  TASKNUM_OVERRIDE={env.get('TASKNUM_OVERRIDE')}\n")
             log_file.write(f"  USE_CUSTOM_LOAD={env.get('USE_CUSTOM_LOAD', '0')}\n")
-            log_file.write(f"  SIM_END_TIME_NS_OVERRIDE={env.get('SIM_END_TIME_NS_OVERRIDE')}\n")
-            log_file.write(f"  SIM_FLOW_LAUNCH_END_NS_OVERRIDE={env.get('SIM_FLOW_LAUNCH_END_NS_OVERRIDE')}\n\n")
+            log_file.write(f"  SIM_END_TIME_SEC_OVERRIDE={env.get('SIM_END_TIME_SEC_OVERRIDE')}\n")
+            log_file.write(f"  SIM_FLOW_LAUNCH_END_SEC_OVERRIDE={env.get('SIM_FLOW_LAUNCH_END_SEC_OVERRIDE')}\n\n")
             log_file.write(f"开始执行仿真脚本...\n")
         
         process = subprocess.Popen(
@@ -3784,7 +4258,7 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             if is_ecmp_module_ready():
                 compute_and_cache_ecmp(
                     mode="actual",
-                    rdma_root=Path(__file__).parent.parent / "rdma_result"
+                    rdma_root=REVERIE_ROOT / "rdma_result"
                 )
         except Exception as ecmp_exc:
             print(f"[WARNING] ECMP实际路径计算失败: {ecmp_exc}")
@@ -3908,14 +4382,14 @@ def analyze_simulation_results():
     
     try:
         # 分析FCT结果
-        fct_file = Path(__file__).parent.parent / "dump" / "evaluation.fct1"
+        fct_file = REVERIE_ROOT / "dump" / "evaluation.fct1"
         if fct_file.exists():
             with open(fct_file, 'r') as f:
                 fct_content = f.read()
             results["fct_results"] = parse_fct_results(fct_content)
         
         # 分析系统日志
-        log_file = Path(__file__).parent.parent / "dump" / "system1.log"
+        log_file = REVERIE_ROOT / "dump" / "system1.log"
         if log_file.exists():
             with open(log_file, 'r') as f:
                 log_content = f.read()
@@ -3923,7 +4397,7 @@ def analyze_simulation_results():
             results["performance_metrics"] = parse_performance_metrics(log_content)
         
         # 分析流统计
-        flow_stats_file = Path(__file__).parent.parent / "flow_stats.txt"
+        flow_stats_file = REVERIE_ROOT / "flow_stats.txt"
         if flow_stats_file.exists():
             with open(flow_stats_file, 'r') as f:
                 flow_content = f.read()
@@ -3975,7 +4449,21 @@ def parse_flow_statistics(content):
 @app.get("/check-task-dirs")
 async def check_task_dirs(task_num: int = 4):
     """检查 task 目录是否存在且包含必要文件"""
-    reverie_dir = Path(__file__).parent.parent
+    # 尝试多个可能的路径找到Reverie目录
+    possible_reverie_paths = [
+        REVERIE_ROOT,
+        REVERIE_ROOT / "examples" / "Reverie",
+        REVERIE_ROOT,
+    ]
+    
+    reverie_dir = None
+    for path in possible_reverie_paths:
+        if path.exists():
+            reverie_dir = path
+            break
+    
+    if reverie_dir is None:
+        reverie_dir = REVERIE_ROOT  # 默认路径
     missing_dirs = []
     missing_files = []
     
@@ -4023,7 +4511,8 @@ async def run_simulation_endpoint(request: SimulationRequest, background_tasks: 
         request.llm_model,
         request.enable_mixed_granularity,
         request.simulation_time,
-        request.use_custom_config
+        request.use_custom_config,
+        request.load_source
     )
     
     return SimulationResponse(
@@ -4207,7 +4696,7 @@ async def stop_steady_state_monitor():
     steady_state_monitor.is_monitoring = False
     
     # 保存历史记录
-    dump_dir = Path(__file__).parent.parent / "dump"
+    dump_dir = REVERIE_ROOT / "dump"
     dump_dir.mkdir(parents=True, exist_ok=True)
     history_file = dump_dir / "steady_state_history.json"
     
@@ -4232,12 +4721,13 @@ async def get_steady_state_status():
     获取稳态状态（通过分析flow_stats.txt中的流速率数据来判断稳态）
     不再依赖C++代码输出,而是Python自己分析
     """
-    # 使用项目根目录查找 flow_stats.txt
-    flow_stats_file = REVERIE_ROOT / "flow_stats.txt"
+    # 使用相对路径查找 flow_stats.txt
+    base_dir = REVERIE_ROOT
+    flow_stats_file = base_dir / "flow_stats.txt"
     
     if not flow_stats_file.exists():
-        # 兼容部分部署形态：flow-input 根目录
-        flow_stats_file = PROJECT_ROOT / "flow_stats.txt"
+        # 尝试其他可能的路径
+        flow_stats_file = REVERIE_ROOT.parent / "flow_stats.txt"
     
     if not flow_stats_file.exists():
         return {
@@ -4293,7 +4783,7 @@ class LoadFileModifyResponse(BaseModel):
 async def modify_load_file(request: LoadFileModifyRequest):
     """修改负载文件中的参数"""
     try:
-        file_path = Path(__file__).parent.parent / "TrafficGenerator" / request.filename
+        file_path = REVERIE_ROOT / "TrafficGenerator" / request.filename
         
         if not file_path.exists():
             raise HTTPException(status_code=404, detail=f"文件不存在: {request.filename}")
@@ -4342,10 +4832,26 @@ class AnalysisResponse(BaseModel):
 async def analyze_results(request: AnalysisRequest):
     """分析仿真结果"""
     try:
-        base_dir = Path(__file__).absolute().parent.parent
-        exp_dump = base_dir / "dump"
-        baseline_dump = base_dir / "dump_baseline"
-        exp_backup = base_dir / "dump_experiment"
+        # 尝试多个可能的路径找到Reverie目录
+        possible_reverie_paths = [
+            REVERIE_ROOT,
+            REVERIE_ROOT / "examples" / "Reverie",
+            REVERIE_ROOT,
+        ]
+        
+        reverie_dir = None
+        for path in possible_reverie_paths:
+            if path.exists():
+                reverie_dir = path
+                break
+        
+        if reverie_dir is None:
+            reverie_dir = REVERIE_ROOT  # 默认路径
+        
+        base_dir = reverie_dir
+        exp_dump = reverie_dir / "dump"
+        baseline_dump = reverie_dir / "dump_baseline"
+        exp_backup = reverie_dir / "dump_experiment"
         baseline_meta_path = baseline_dump / "metadata.json"
 
         current_signature = _compute_load_signature(base_dir)
@@ -4408,7 +4914,12 @@ async def analyze_results(request: AnalysisRequest):
             summary=summary
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 分析结果时发生异常: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"分析结果时出错: {str(e)}")
 
 def analyze_fct_metrics(content):
@@ -4545,7 +5056,7 @@ def analyze_performance(content):
     
     total_time_ms = None
     simulation_time_ms = None
-    
+
     for line in lines:
         # 提取网络拓扑信息
         if 'SERVER_COUNT' in line:
@@ -4698,17 +5209,43 @@ async def get_d3js():
     else:
         raise HTTPException(status_code=404, detail="D3.js文件未找到")
 
-@app.get("/custom-traffic-example.txt")
-async def get_custom_traffic_example():
-    """提供自定义流量示例文件下载"""
-    sample_file = API_DIR / "examples" / "custom_traffic_example.txt"
-    if sample_file.exists():
-        return FileResponse(
-            sample_file,
-            media_type="text/plain; charset=utf-8",
-            filename="custom_traffic_example.txt"
-        )
-    raise HTTPException(status_code=404, detail="示例文件不存在")
+@app.get("/three.min.js")
+async def get_threejs():
+    """提供Three.js文件（离线可用）"""
+    js_file = API_DIR / "three.min.js"
+    if js_file.exists():
+        return FileResponse(js_file, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Three.js文件未找到，请下载到api目录")
+
+@app.get("/OrbitControls.js")
+async def get_orbit_controls():
+    """提供OrbitControls.js文件（离线可用）"""
+    js_file = API_DIR / "OrbitControls.js"
+    if js_file.exists():
+        return FileResponse(js_file, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="OrbitControls.js文件未找到，请下载到api目录")
+
+@app.get("/custom-traffic-example.zip")
+async def get_custom_traffic_example_zip():
+    """提供自定义流量完整格式示例（多 operate + dependence，ZIP 包）"""
+    full_dir = API_DIR / "examples" / "custom_traffic_full"
+    zip_path = full_dir / "custom_traffic_full.zip"
+    if zip_path.exists():
+        return FileResponse(zip_path, media_type="application/zip", filename="custom_traffic_full.zip")
+    # 从目录动态打包
+    operate_files = sorted(full_dir.glob("rdma_operate*.txt"), key=lambda p: (int(re.search(r"(\d+)", p.name).group(1)) if re.search(r"(\d+)", p.name) else 0, p.name))
+    dep_file = full_dir / "dependence.txt"
+    if not operate_files:
+        raise HTTPException(status_code=404, detail="完整格式示例不存在，请检查 examples/custom_traffic_full 目录")
+    from io import BytesIO
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for f in operate_files:
+            zf.write(f, f.name)
+        if dep_file.exists():
+            zf.write(dep_file, dep_file.name)
+    buf.seek(0)
+    return Response(content=buf.getvalue(), media_type="application/zip", headers={"Content-Disposition": "attachment; filename=custom_traffic_full.zip"})
 
 @app.get("/")
 async def root():
@@ -4932,17 +5469,49 @@ async def list_files(directory: str = "."):
 async def visualize_topology(background_tasks: BackgroundTasks):
     """生成拓扑可视化图片"""
     try:
-        # 导入拓扑可视化模块
+        # 尝试多个可能的路径找到Reverie目录
+        possible_reverie_paths = [
+            REVERIE_ROOT,
+            REVERIE_ROOT / "examples" / "Reverie",
+            REVERIE_ROOT,
+        ]
+        
+        reverie_dir = None
+        for path in possible_reverie_paths:
+            if path.exists():
+                reverie_dir = path
+                break
+        
+        if reverie_dir is None:
+            reverie_dir = REVERIE_ROOT  # 默认路径
+        
+        # 导入拓扑可视化模块 - 需要添加到sys.path
+        api_dir = reverie_dir / "api"
+        if str(api_dir) not in sys.path:
+            sys.path.insert(0, str(api_dir))
+        
         from topology_visualization import draw_improved_topology
         
-        # 拓扑文件路径
-        topology_file = Path(__file__).parent.parent / "leaf-spine.txt"
+        # 拓扑文件路径 - 优先使用 generate-topology 写入的路径（与生成拓扑接口一致）
+        api_base = REVERIE_ROOT
+        possible_topology_files = [
+            api_base / "leaf-spine.txt",  # generate-topology 写入的位置，优先使用
+            reverie_dir / "leaf-spine.txt",
+            reverie_dir / "api" / "leaf-spine.txt",
+            REVERIE_ROOT / "leaf-spine.txt",
+        ]
         
-        if not topology_file.exists():
+        topology_file = None
+        for path in possible_topology_files:
+            if path.exists():
+                topology_file = path
+                break
+        
+        if topology_file is None:
             raise HTTPException(status_code=404, detail="拓扑文件不存在，请先生成拓扑")
         
-        # 生成图片
-        output_file = API_DIR / "topology_latest.png"
+        # 生成图片 - 保存到api目录
+        output_file = api_dir / "topology_latest.png"
         draw_improved_topology(topology_file, output_file)
         
         return {
@@ -4950,20 +5519,56 @@ async def visualize_topology(background_tasks: BackgroundTasks):
             "message": "拓扑可视化生成成功",
             "image_path": "api/topology_latest.png"
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 生成拓扑可视化时发生异常: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"生成拓扑可视化时出错: {str(e)}")
 
 @app.get("/get-topology-image")
 async def get_topology_image():
     """获取拓扑可视化图片"""
     try:
-        image_file = API_DIR / "topology_latest.png"
+        # 尝试多个可能的路径找到Reverie目录
+        possible_reverie_paths = [
+            REVERIE_ROOT,
+            REVERIE_ROOT / "examples" / "Reverie",
+            REVERIE_ROOT,
+        ]
         
-        if not image_file.exists():
+        reverie_dir = None
+        for path in possible_reverie_paths:
+            if path.exists():
+                reverie_dir = path
+                break
+        
+        if reverie_dir is None:
+            reverie_dir = REVERIE_ROOT  # 默认路径
+        
+        # 尝试多个可能的位置
+        possible_image_files = [
+            reverie_dir / "api" / "topology_latest.png",
+            API_DIR / "topology_latest.png",
+        ]
+        
+        image_file = None
+        for path in possible_image_files:
+            if path.exists():
+                image_file = path
+                break
+        
+        if image_file is None:
             raise HTTPException(status_code=404, detail="拓扑图片不存在，请先生成")
         
         return FileResponse(image_file, media_type="image/png")
+    except HTTPException:
+        raise
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[ERROR] 获取拓扑图片时发生异常: {str(e)}\n{error_trace}")
         raise HTTPException(status_code=500, detail=f"获取图片时出错: {str(e)}")
 
 # ==================== 仿真停止接口 ====================

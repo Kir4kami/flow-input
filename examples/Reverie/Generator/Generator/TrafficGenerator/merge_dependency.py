@@ -3,7 +3,6 @@
 import sys
 import os
 import re
-import subprocess
 from typing import Dict, List, Tuple, Any
 
 INPUT_FILE = "deepseek.txt"
@@ -34,12 +33,8 @@ def parse_params(args_str: str) -> Dict[str, Any]:
 
             if key == "msg_len":
                 try:
-                    # Evaluate expression like "32*1024"
-                    result = subprocess.run(
-                        ["bc"], input=value + "\n", text=True, capture_output=True)
-                    if result.returncode != 0:
-                        raise ValueError(f"Failed to evaluate msg_len: {value}")
-                    params[key] = int(result.stdout.strip())
+                    # 用 Python eval 解析表达式，支持 // 等（bc 不支持 //）
+                    params[key] = int(eval(value))
                 except Exception as e:
                     raise ValueError(f"Failed to evaluate msg_len expression: {value}") from e
             else:
@@ -68,21 +63,15 @@ def get_file_count(mode: str, host_num: int, dp: int, num_nodes: int, max_device
         return 0
 
 def main():
-    if not os.path.isfile(INPUT_FILE):
-        print(f"Error: Input file {INPUT_FILE} does not exist.", file=sys.stderr)
+    input_file = sys.argv[1] if len(sys.argv) > 1 else INPUT_FILE
+    if not os.path.isfile(input_file):
+        print(f"Error: Input file {input_file} does not exist.", file=sys.stderr)
         sys.exit(1)
-    if os.path.getsize(INPUT_FILE) == 0:
-        print(f"Error: Input file {INPUT_FILE} is empty.", file=sys.stderr)
-        sys.exit(1)
-
-    # Check bc is available
-    try:
-        subprocess.run(["bc", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-    except FileNotFoundError:
-        print("Error: bc command not found. Please install bc.", file=sys.stderr)
+    if os.path.getsize(input_file) == 0:
+        print(f"Error: Input file {input_file} is empty.", file=sys.stderr)
         sys.exit(1)
 
-    with open(INPUT_FILE, 'r') as f:
+    with open(input_file, 'r') as f:
         lines = [line.strip() for line in f.readlines()]
 
     if not lines or not lines[0]:
