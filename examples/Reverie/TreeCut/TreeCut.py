@@ -151,7 +151,7 @@ def cutBurrNode(Tree, node):
     out_dependence_list.append((node, parents))
     Tree.remove_node(node)
     cut_tree = nx.DiGraph()
-    cut_tree.add_node(root_node, name='root')
+    cut_tree.add_node(root_node, name='Root')
     cut_tree.add_edge(root_node, node)
     Tree_list.append(cut_tree)
 
@@ -514,16 +514,20 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
         subtree_data["index"] = idx + 1
         subtrees_data.append(subtree_data)
     
-    # 生成HTML内容 - 所有树都在同一个SVG中
-    html_content = f"""<!DOCTYPE html>
+    # 生成HTML内容 - 使用 application/json 注入数据，避免 {} 转义问题
+    _orig = json.dumps(original_data, ensure_ascii=False).replace("</", "<\\/")
+    _subt = json.dumps(subtrees_data, ensure_ascii=False).replace("</", "<\\/")
+    html_content = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D分层切分可视化</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="/d3.v7.min.js"></script>
+    <script type="application/json" id="orig-data">""" + _orig + """</script>
+    <script type="application/json" id="subt-data">""" + _subt + """</script>
     <style>
-        html, body {{
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -531,8 +535,8 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: white;
-        }}
-        body {{
+        }
+        body {
             width: 100%;
             height: 100vh;
             margin: 0;
@@ -540,8 +544,8 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             background: white;
             position: relative;
             overflow: hidden;
-        }}
-        h1 {{
+        }
+        h1 {
             position: absolute;
             top: 10px;
             left: 50%;
@@ -552,8 +556,8 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             font-size: 18px;
             z-index: 100;
             pointer-events: none;
-        }}
-        #svg-container {{
+        }
+        #svg-container {
             width: 100%;
             height: 100vh;
             margin: 0;
@@ -563,32 +567,32 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             position: absolute;
             top: 0;
             left: 0;
-        }}
-        .node {{
+        }
+        .node {
             cursor: pointer;
-        }}
-        .node circle {{
+        }
+        .node circle {
             stroke: #333;
             stroke-width: 2px;
-        }}
-        .node text {{
+        }
+        .node text {
             font-size: 12px;
             font-weight: bold;
             fill: white;
             pointer-events: none;
-        }}
-        .link {{
+        }
+        .link {
             fill: none;
             stroke-width: 2px;
-        }}
-        .connection-line {{
+        }
+        .connection-line {
             stroke-dasharray: 5,5;
             stroke-width: 2px;
             fill: none;
             opacity: 0.7;
             pointer-events: none;
-        }}
-        .legend-container {{
+        }
+        .legend-container {
             position: fixed;
             top: 10px;
             right: 10px;
@@ -601,30 +605,30 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             pointer-events: none;
             min-width: 160px;
             max-width: 180px;
-        }}
-        .legend-title {{
+        }
+        .legend-title {
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 10px;
             color: #333;
-        }}
-        .legend-item {{
+        }
+        .legend-item {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
-        }}
-        .legend-color {{
+        }
+        .legend-color {
             width: 16px;
             height: 16px;
             border-radius: 50%;
             margin-right: 10px;
             border: 1px solid #333;
             flex-shrink: 0;
-        }}
-        .legend-text {{
+        }
+        .legend-text {
             font-size: 12px;
             color: #333;
-        }}
+        }
     </style>
 </head>
 <body style="margin: 0; padding: 0; overflow: hidden;">
@@ -633,56 +637,56 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
     <div id="legend-container" class="legend-container"></div>
     
     <script>
-        // 数据
-        const originalData = """ + json.dumps(original_data, ensure_ascii=False) + """;
-        const subtreesData = """ + json.dumps(subtrees_data, ensure_ascii=False) + """;
+        // 数据（从 application/json 读取，避免嵌入 JSON 时的转义问题）
+        const originalData = JSON.parse(document.getElementById('orig-data').textContent);
+        const subtreesData = JSON.parse(document.getElementById('subt-data').textContent);
         
         // 合并所有节点和边到一个数据集中
         const allNodes = [];
         const allEdges = [];
         
         // 添加原始树节点（添加标记）
-        originalData.nodes.forEach(function(node) {{
+        originalData.nodes.forEach(function(node) {
             var newNode = new Object();
-            for (var key in node) {{
+            for (var key in node) {
                 newNode[key] = node[key];
-            }}
+            }
             newNode.treeType = 'original';
             newNode.color = 'black';
             newNode.original_id = node.id;
             allNodes.push(newNode);
-        }});
+        });
         
         // 添加原始树边
-        originalData.edges.forEach(function(edge) {{
+        originalData.edges.forEach(function(edge) {
             allEdges.push(edge);
-        }});
+        });
         
         // 添加子树节点和边（为每个子树创建独立的节点副本）
-        subtreesData.forEach(function(subtreeData, idx) {{
-            subtreeData.nodes.forEach(function(node) {{
+        subtreesData.forEach(function(subtreeData, idx) {
+            subtreeData.nodes.forEach(function(node) {
                 // 为子树节点创建唯一ID（添加子树索引前缀）
                 var uniqueId = 'subtree' + idx + '_' + node.id;
                 var newNode = new Object();
-                for (var key in node) {{
+                for (var key in node) {
                     newNode[key] = node[key];
-                }}
+                }
                 newNode.id = uniqueId;
                 newNode.treeType = 'subtree';
                 newNode.subtreeIndex = idx;
                 newNode.color = subtreeData.color;
                 newNode.original_id = node.id;  // 保存原始ID用于匹配
                 allNodes.push(newNode);
-            }});
+            });
             
             // 添加子树边（更新ID以匹配新的节点ID）
-            subtreeData.edges.forEach(function(edge) {{
+            subtreeData.edges.forEach(function(edge) {
                 var newEdge = new Object();
                 newEdge.source = 'subtree' + idx + '_' + edge.source;
                 newEdge.target = 'subtree' + idx + '_' + edge.target;
                 allEdges.push(newEdge);
-            }});
-        }});
+            });
+        });
         
         // 设置SVG尺寸 - 使用容器实际尺寸，确保自适应
         const svgContainer = d3.select('#svg-container');
@@ -698,7 +702,7 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
         // 布局参数
         const originalTreeY = 50;   // 原始树Y坐标
         const subtreeY = 550;        // 子树Y坐标
-        const subtreeSpacing = 300;   // 子树之间的间距
+        const subtreeSpacing = 300;   // 子树之间的间距（保留变量，布局未使用）
         
         // 创建SVG - 直接使用svg-container（已经是SVG元素了）
         const svg = d3.select('#svg-container')
@@ -714,233 +718,232 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
         // 添加缩放和平移（拖动画布）
         const zoomBehavior = d3.zoom()
             .scaleExtent([0.5, 2.5])
-            .on('start', function(event) {{
-                if (event.sourceEvent) {{
+            .on('start', function(event) {
+                if (event.sourceEvent) {
                     event.sourceEvent.stopPropagation();  // 阻止事件冒泡到主界面
-                }}
+                }
                 svg.style('cursor', 'grabbing');
-            }})
-            .on('end', function(event) {{
-                if (event.sourceEvent) {{
+            })
+            .on('end', function(event) {
+                if (event.sourceEvent) {
                     event.sourceEvent.stopPropagation();  // 阻止事件冒泡到主界面
-                }}
+                }
                 svg.style('cursor', 'grab');
-            }})
-            .on('zoom', function(event) {{
-                if (event.sourceEvent) {{
+            })
+            .on('zoom', function(event) {
+                if (event.sourceEvent) {
                     event.sourceEvent.stopPropagation();  // 阻止事件冒泡到主界面
-                }}
+                }
                 // 保留初始边距，再应用缩放和平移
                 const t = event.transform;
                 const tx = t.x + margin.left * t.k;
                 const ty = t.y + margin.top * t.k;
                 g.attr('transform', 'translate(' + tx + ',' + ty + ') scale(' + t.k + ')');
                 // 图例使用HTML固定定位，不需要在这里更新
-            }});
+            });
         
         svg.call(zoomBehavior);
         
         // 阻止鼠标滚轮事件冒泡到主界面
-        svg.on('wheel', function(event) {{
+        svg.on('wheel', function(event) {
             event.stopPropagation();
-        }});
+        });
         
         // 阻止鼠标拖拽事件冒泡到主界面
-        svg.on('mousedown', function(event) {{
+        svg.on('mousedown', function(event) {
             event.stopPropagation();
-        }});
+        });
         
-        svg.on('mousemove', function(event) {{
-            if (event.buttons === 1) {{
+        svg.on('mousemove', function(event) {
+            if (event.buttons === 1) {
                 event.stopPropagation();
-            }}
-        }});
+            }
+        });
         
-        svg.on('mouseup', function(event) {{
+        svg.on('mouseup', function(event) {
             event.stopPropagation();
-        }});
+        });
         
         // 使用D3树状布局从上到下布局原始树
-        const originalNodesOnly = allNodes.filter(function(n) {{ return n.treeType === 'original'; }});
-        const originalEdgesOnly = allEdges.filter(function(e) {{
+        const originalNodesOnly = allNodes.filter(function(n) { return n.treeType === 'original'; });
+        const originalEdgesOnly = allEdges.filter(function(e) {
             const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
             const targetId = typeof e.target === 'object' ? e.target.id : e.target;
-            const sourceNode = originalNodesOnly.find(function(n) {{ return n.id === sourceId; }});
-            const targetNode = originalNodesOnly.find(function(n) {{ return n.id === targetId; }});
+            const sourceNode = originalNodesOnly.find(function(n) { return n.id === sourceId; });
+            const targetNode = originalNodesOnly.find(function(n) { return n.id === targetId; });
             return sourceNode && targetNode;
-        }});
+        });
         
         // 构建原始树的层次结构
-        function buildHierarchy(nodes, edges, rootId) {{
+        function buildHierarchy(nodes, edges, rootId) {
             const nodeMap = new Object();
-            nodes.forEach(function(node) {{
+            nodes.forEach(function(node) {
                 nodeMap[node.id] = new Object();
                 nodeMap[node.id].data = node;
                 nodeMap[node.id].children = [];
-            }});
+            });
             
-            edges.forEach(function(edge) {{
+            edges.forEach(function(edge) {
                 const sourceId = typeof edge.source === 'object' ? edge.source.id : edge.source;
                 const targetId = typeof edge.target === 'object' ? edge.target.id : edge.target;
-                if (nodeMap[sourceId] && nodeMap[targetId]) {{
+                if (nodeMap[sourceId] && nodeMap[targetId]) {
                     // 避免重复添加
                     let exists = false;
-                    for (let i = 0; i < nodeMap[sourceId].children.length; i++) {{
-                        if (nodeMap[sourceId].children[i].data.id === targetId) {{
+                    for (let i = 0; i < nodeMap[sourceId].children.length; i++) {
+                        if (nodeMap[sourceId].children[i].data.id === targetId) {
                             exists = true;
                             break;
-                        }}
-                    }}
-                    if (!exists) {{
+                        }
+                    }
+                    if (!exists) {
                         nodeMap[sourceId].children.push(nodeMap[targetId]);
-                    }}
-                }}
-            }});
+                    }
+                }
+            });
             
             return nodeMap[rootId] || null;
-        }}
+        }
         
         const rootHierarchy = buildHierarchy(originalNodesOnly, originalEdgesOnly, 'Root');
         const originalPositions = new Object();
         
-        if (!rootHierarchy) {{
+        if (!rootHierarchy) {
             console.error('无法找到根节点');
             console.log('原始节点:', originalNodesOnly);
             console.log('原始边:', originalEdgesOnly);
             // 如果找不到根节点，使用简单的布局
-            originalNodesOnly.forEach(function(node, idx) {{
+            originalNodesOnly.forEach(function(node, idx) {
                 originalPositions[node.id] = new Object();
                 originalPositions[node.id].x = (width - margin.left - margin.right) / 2 + (idx - originalNodesOnly.length / 2) * 100;
                 originalPositions[node.id].y = originalTreeY + idx * 80;
-            }});
-        }} else {{
+            });
+        } else {
             // 转换为D3层次结构
-            const root = d3.hierarchy(rootHierarchy, function(d) {{ 
+            const root = d3.hierarchy(rootHierarchy, function(d) { 
                 return d.children && d.children.length > 0 ? d.children : null; 
-            }});
+            });
             
             // 创建树状布局（从上到下，需要交换x和y）
             const treeLayout = d3.tree()
                 .nodeSize([200, 120])  // [水平间距, 垂直间距] - D3.tree默认x是垂直，y是水平
-                .separation(function(a, b) {{
+                .separation(function(a, b) {
                     return a.parent === b.parent ? 1 : 1.2;
-                }});
+                });
             
             treeLayout(root);
             
             // 计算布局的中心位置（交换x和y，因为D3.tree默认是左右布局）
-            const treeWidth = d3.max(root.descendants(), function(d) {{ return d.y; }}) || 0;
-            const treeHeight = d3.max(root.descendants(), function(d) {{ return d.x; }}) || 0;
+            const treeWidth = d3.max(root.descendants(), function(d) { return d.y; }) || 0;
+            const treeHeight = d3.max(root.descendants(), function(d) { return d.x; }) || 0;
             const treeOffsetX = (width - margin.left - margin.right - treeWidth) / 2;
             const treeOffsetY = originalTreeY;
             
             // 创建节点位置映射（原树节点ID -> 位置）
             // D3.tree的x是垂直方向（从上到下），y是水平方向（从左到右）
             // 我们需要交换：x -> y坐标，y -> x坐标
-            root.descendants().forEach(function(d) {{
+            root.descendants().forEach(function(d) {
                 const nodeData = d.data.data;
-                if (nodeData && nodeData.id) {{
+                if (nodeData && nodeData.id) {
                     originalPositions[nodeData.id] = new Object();
                     originalPositions[nodeData.id].x = d.y + treeOffsetX;  // 交换：y -> x
                     originalPositions[nodeData.id].y = d.x + treeOffsetY;  // 交换：x -> y
-                }}
-            }});
+                }
+            });
             
             // 确保根节点也有位置
-            if (root.data && root.data.data && root.data.data.id) {{
+            if (root.data && root.data.data && root.data.data.id) {
                 originalPositions[root.data.data.id] = new Object();
                 originalPositions[root.data.data.id].x = root.y + treeOffsetX;
                 originalPositions[root.data.data.id].y = root.x + treeOffsetY;
-            }}
-        }}
+            }
+        }
         
         // 初始化所有节点位置
-        allNodes.forEach(function(node, i) {{
-            if (node.treeType === 'original') {{
+        allNodes.forEach(function(node, i) {
+            if (node.treeType === 'original') {
                 // 原始树节点：使用树状布局后的位置
-                if (originalPositions[node.id]) {{
+                if (originalPositions[node.id]) {
                     node.x = originalPositions[node.id].x;
                     node.y = originalPositions[node.id].y;
-                }} else {{
-                    // 如果找不到位置，使用默认位置
+                } else {
                     node.x = (width - margin.left - margin.right) / 2;
                     node.y = originalTreeY;
                     console.warn('节点 ' + node.id + ' 没有找到位置，使用默认位置');
-                }}
-            }} else {{
+                }
+            } else {
                 // 子树节点：使用原树中对应节点的x坐标，y坐标下移
                 const originalId = node.original_id;
-                if (originalPositions[originalId]) {{
+                if (originalPositions[originalId]) {
                     node.x = originalPositions[originalId].x;
                     node.y = subtreeY;
-                }} else {{
+                } else {
                     node.x = (width - margin.left - margin.right) / 2;
                     node.y = subtreeY;
-                }}
-            }}
+                }
+            }
             // 确保节点有有效的位置
-            if (isNaN(node.x) || isNaN(node.y)) {{
+            if (isNaN(node.x) || isNaN(node.y)) {
                 node.x = (width - margin.left - margin.right) / 2;
                 node.y = node.treeType === 'original' ? originalTreeY : subtreeY;
-            }}
+            }
             node.fx = null;
             node.fy = null;
-        }});
+        });
         
         // --- 全局水平压缩：保证所有节点都在画布可见范围内 ---
         let minX = Infinity;
         let maxX = -Infinity;
-        allNodes.forEach(function(node) {{
-            if (typeof node.x === 'number') {{
-                if (node.x < minX) {{ minX = node.x; }}
-                if (node.x > maxX) {{ maxX = node.x; }}
-            }}
-        }});
+        allNodes.forEach(function(node) {
+            if (typeof node.x === 'number') {
+                if (node.x < minX) { minX = node.x; }
+                if (node.x > maxX) { maxX = node.x; }
+            }
+        });
         
-        if (maxX > minX && isFinite(minX) && isFinite(maxX)) {{
+        if (maxX > minX && isFinite(minX) && isFinite(maxX)) {
             const innerWidth = width - margin.left - margin.right - 100;  // 预留左右边距
             const paddingX = 50;
             const scaleX = innerWidth / (maxX - minX);
             
             // 缩放所有节点的x坐标
-            allNodes.forEach(function(node) {{
-                if (typeof node.x === 'number') {{
+            allNodes.forEach(function(node) {
+                if (typeof node.x === 'number') {
                     node.x = (node.x - minX) * scaleX + paddingX;
-                }}
-            }});
+                }
+            });
             
             // 同时缩放原始位置映射，保持力导向布局对齐
-            for (var key in originalPositions) {{
-                if (originalPositions.hasOwnProperty(key)) {{
+            for (var key in originalPositions) {
+                if (originalPositions.hasOwnProperty(key)) {
                     var pos = originalPositions[key];
-                    if (pos && typeof pos.x === 'number') {{
+                    if (pos && typeof pos.x === 'number') {
                         pos.x = (pos.x - minX) * scaleX + paddingX;
-                    }}
-                }}
-            }}
-        }}
+                    }
+                }
+            }
+        }
         
         console.log('原始树节点位置(归一化后):', originalPositions);
         console.log('所有节点数量:', allNodes.length);
         
         // 创建力导向布局（子树节点固定x坐标，保持原树形状）
         const simulation = d3.forceSimulation(allNodes)
-            .force('link', d3.forceLink(allEdges).id(function(d) {{
+            .force('link', d3.forceLink(allEdges).id(function(d) {
                 return typeof d === 'object' ? d.id : d;
-            }}).distance(100))
+            }).distance(100))
             .force('charge', d3.forceManyBody().strength(-300))
-            .force('x', d3.forceX().x(function(d) {{
-                if (d.treeType === 'original') {{
+            .force('x', d3.forceX().x(function(d) {
+                if (d.treeType === 'original') {
                     return originalPositions[d.id] ? originalPositions[d.id].x : (width - margin.left - margin.right) / 2;
-                }} else {{
+                } else {
                     // 子树节点：保持原树的x坐标
                     const originalId = d.original_id;
                     return originalPositions[originalId] ? originalPositions[originalId].x : (width - margin.left - margin.right) / 2;
-                }}
-            }}).strength(1.0))
-            .force('y', d3.forceY().y(function(d) {{
+                }
+            }).strength(1.0))
+            .force('y', d3.forceY().y(function(d) {
                 return d.treeType === 'original' ? originalTreeY : subtreeY;
-            }}).strength(1.0))
+            }).strength(1.0))
             .force('collision', d3.forceCollide().radius(35))
             .alphaDecay(0.02);
         
@@ -949,16 +952,16 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             .attr('class', 'connection-lines');
         
         // 过滤掉连接到子树Root节点的边
-        const visibleEdges = allEdges.filter(function(edge) {{
+        const visibleEdges = allEdges.filter(function(edge) {
             const sourceId = typeof edge.source === 'object' ? edge.source.id : edge.source;
             const targetId = typeof edge.target === 'object' ? edge.target.id : edge.target;
             // 如果边的源或目标是子树中的Root节点，则过滤掉
-            const sourceNode = allNodes.find(function(n) {{ return n.id === sourceId; }});
-            const targetNode = allNodes.find(function(n) {{ return n.id === targetId; }});
+            const sourceNode = allNodes.find(function(n) { return n.id === sourceId; });
+            const targetNode = allNodes.find(function(n) { return n.id === targetId; });
             if (sourceNode && sourceNode.treeType === 'subtree' && sourceNode.original_id === 'Root') return false;
             if (targetNode && targetNode.treeType === 'subtree' && targetNode.original_id === 'Root') return false;
             return true;
-        }});
+        });
         
         // 绘制树内部的边
         const links = g.append('g')
@@ -967,28 +970,28 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             .data(visibleEdges)
             .enter().append('line')
             .attr('class', 'link')
-            .attr('stroke', function(d) {{
-                const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) {{ return n.id === d.source; }});
-                const sourceNode = typeof source === 'object' ? source : allNodes.find(function(n) {{ return n.id === source; }});
+            .attr('stroke', function(d) {
+                const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) { return n.id === d.source; });
+                const sourceNode = typeof source === 'object' ? source : allNodes.find(function(n) { return n.id === source; });
                 return sourceNode ? sourceNode.color : '#999';
-            }})
+            })
             .attr('stroke-width', 2)
-            .attr('marker-end', function(d) {{
-                const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) {{ return n.id === d.source; }});
-                const sourceNode = typeof source === 'object' ? source : allNodes.find(function(n) {{ return n.id === source; }});
+            .attr('marker-end', function(d) {
+                const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) { return n.id === d.source; });
+                const sourceNode = typeof source === 'object' ? source : allNodes.find(function(n) { return n.id === source; });
                 const color = sourceNode ? sourceNode.color : 'black';
                 const markerId = color === 'black' ? 'arrowhead-black' : 'arrowhead-' + (sourceNode.subtreeIndex || '');
                 return 'url(#' + markerId + ')';
-            }});
+            });
         
         // 过滤掉子树中的Root节点
-        const visibleNodes = allNodes.filter(function(node) {{
+        const visibleNodes = allNodes.filter(function(node) {
             // 如果是子树中的Root节点，则不显示
-            if (node.treeType === 'subtree' && node.original_id === 'Root') {{
+            if (node.treeType === 'subtree' && node.original_id === 'Root') {
                 return false;
-            }}
+            }
             return true;
-        }});
+        });
         
         // 绘制节点
         const nodes = g.append('g')
@@ -999,16 +1002,16 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             .attr('class', 'node');
         
         nodes.append('circle')
-            .attr('r', function(d) {{ return d.treeType === 'original' ? 25 : 20; }})
-            .attr('fill', function(d) {{ return d.color; }})
+            .attr('r', function(d) { return d.treeType === 'original' ? 25 : 20; })
+            .attr('fill', function(d) { return d.color; })
             .attr('stroke', '#333')
             .attr('stroke-width', 2);
         
         nodes.append('text')
-            .text(function(d) {{ return d.label; }})
+            .text(function(d) { return d.label; })
             .attr('text-anchor', 'middle')
             .attr('dy', 5)
-            .style('font-size', function(d) {{ return d.treeType === 'original' ? '12px' : '11px'; }});
+            .style('font-size', function(d) { return d.treeType === 'original' ? '12px' : '11px'; });
         
         // 添加箭头标记
         svg.append('defs').append('marker')
@@ -1023,7 +1026,7 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             .attr('d', 'M0,-5L10,0L0,5')
             .attr('fill', 'black');
         
-        subtreesData.forEach(function(subtreeData, idx) {{
+        subtreesData.forEach(function(subtreeData, idx) {
             svg.append('defs').append('marker')
                 .attr('id', 'arrowhead-' + idx)
                 .attr('viewBox', '0 -5 10 10')
@@ -1035,53 +1038,53 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
                 .append('path')
                 .attr('d', 'M0,-5L10,0L0,5')
                 .attr('fill', subtreeData.color);
-        }});
+        });
         
         // 更新函数：在simulation tick时更新所有元素
-        simulation.on('tick', function() {{
+        simulation.on('tick', function() {
             // 更新边的位置
             links
-                .attr('x1', function(d) {{
-                    const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) {{ return n.id === d.source; }});
+                .attr('x1', function(d) {
+                    const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) { return n.id === d.source; });
                     return source ? source.x : 0;
-                }})
-                .attr('y1', function(d) {{
-                    const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) {{ return n.id === d.source; }});
+                })
+                .attr('y1', function(d) {
+                    const source = typeof d.source === 'object' ? d.source : allNodes.find(function(n) { return n.id === d.source; });
                     return source ? source.y : 0;
-                }})
-                .attr('x2', function(d) {{
-                    const target = typeof d.target === 'object' ? d.target : allNodes.find(function(n) {{ return n.id === d.target; }});
+                })
+                .attr('x2', function(d) {
+                    const target = typeof d.target === 'object' ? d.target : allNodes.find(function(n) { return n.id === d.target; });
                     return target ? target.x : 0;
-                }})
-                .attr('y2', function(d) {{
-                    const target = typeof d.target === 'object' ? d.target : allNodes.find(function(n) {{ return n.id === d.target; }});
+                })
+                .attr('y2', function(d) {
+                    const target = typeof d.target === 'object' ? d.target : allNodes.find(function(n) { return n.id === d.target; });
                     return target ? target.y : 0;
-                }});
+                });
             
             // 更新节点位置（只更新可见节点）
-            nodes.attr('transform', function(d) {{ return 'translate(' + d.x + ',' + d.y + ')'; }});
+            nodes.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
             
             // 更新连接线（原始树节点到子树节点的虚线，跳过Root节点）
             drawConnectionLines();
-        }});
+        });
         
         // 绘制连接线函数
-        function drawConnectionLines() {{
+        function drawConnectionLines() {
             // 清除旧的连接线
             connectionLines.selectAll('path').remove();
             
             // 为每个子树绘制连接线
-            subtreesData.forEach(function(subtreeData, idx) {{
-                subtreeData.nodes.forEach(function(subtreeNode) {{
+            subtreesData.forEach(function(subtreeData, idx) {
+                subtreeData.nodes.forEach(function(subtreeNode) {
                     const originalId = subtreeNode.id;
                     // 跳过Root节点（不绘制连接线）
                     if (originalId === 'Root') return;
                     
                     // 找到原始树中的对应节点
-                    const origNode = allNodes.find(function(n) {{ return n.original_id === originalId && n.treeType === 'original'; }});
+                    const origNode = allNodes.find(function(n) { return n.original_id === originalId && n.treeType === 'original'; });
                     // 找到子树中的对应节点（使用唯一ID）
                     const uniqueId = 'subtree' + idx + '_' + originalId;
-                    const subtreeNodeObj = allNodes.find(function(n) {{ return n.id === uniqueId && n.treeType === 'subtree'; }});
+                    const subtreeNodeObj = allNodes.find(function(n) { return n.id === uniqueId && n.treeType === 'subtree'; });
                     
                     // 如果找不到节点或节点位置未定义，跳过
                     if (!origNode || !subtreeNodeObj || !origNode.x || !subtreeNodeObj.x) return;
@@ -1099,12 +1102,12 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
                         .attr('fill', 'none')
                         .attr('opacity', 0.7)
                         .attr('marker-end', 'url(#arrow-connection-' + idx + ')');
-                }});
-            }});
-        }}
+                });
+            });
+        }
         
         // 添加连接线箭头标记
-        subtreesData.forEach(function(subtreeData, idx) {{
+        subtreesData.forEach(function(subtreeData, idx) {
             svg.append('defs').append('marker')
                 .attr('id', 'arrow-connection-' + idx)
                 .attr('viewBox', '0 -5 10 10')
@@ -1116,7 +1119,7 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
                 .append('path')
                 .attr('d', 'M0,-5L10,0L0,5')
                 .attr('fill', subtreeData.color);
-        }});
+        });
         
         // 添加图例（使用HTML元素，固定在viewport右上角，不受SVG缩放影响）
         const legendContainer = d3.select('#legend-container');
@@ -1137,7 +1140,7 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
             .text('原始大树');
         
         // 子树图例
-        subtreesData.forEach(function(subtreeData, idx) {{
+        subtreesData.forEach(function(subtreeData, idx) {
             const item = legendContainer.append('div')
                 .attr('class', 'legend-item');
             item.append('div')
@@ -1147,7 +1150,7 @@ def visualize3DSplitTreeHTML(original_tree, tree_list, output_path="tree_split_3
                 .attr('class', 'legend-text')
                 .style('color', subtreeData.color)
                 .text('子树 ' + (idx + 1));
-        }});
+        });
         
         // 子树标签已移除（根据用户需求）
     </script>
