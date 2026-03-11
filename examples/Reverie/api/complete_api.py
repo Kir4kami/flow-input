@@ -2614,6 +2614,72 @@ def _restore_task_dirs(base_dir: Path, backup_root: Optional[Path]) -> None:
     shutil.rmtree(backup_root)
 
 
+def _prepare_single_baseline_task_from_backup(base_dir: Path, backup_root: Optional[Path]) -> None:
+    """
+    基线仿真需要“未切分”的单任务输入。
+    这里直接从实验任务备份(task1..taskN)聚合所有 rdma_operate*.txt 到 task1，
+    避免依赖 rdma_result/all_rdma_files（该目录在不同模式下可能不是当前实验源）。
+    """
+    if not backup_root or not backup_root.exists():
+        raise FileNotFoundError("任务备份不存在，无法构建基线单任务输入")
+
+    source_task_dirs = sorted(
+        [p for p in backup_root.glob("task[0-9]*") if p.is_dir()],
+        key=lambda p: int(re.search(r"(\d+)", p.name).group(1)) if re.search(r"(\d+)", p.name) else 0
+    )
+    if not source_task_dirs:
+        raise FileNotFoundError(f"未在备份目录中找到任务目录: {backup_root}")
+
+    for task_dir in base_dir.glob("task[0-9]*"):
+        if task_dir.is_dir():
+            shutil.rmtree(task_dir)
+
+    target_task_dir = base_dir / "task1"
+    target_task_dir.mkdir(parents=True, exist_ok=True)
+    (target_task_dir / "logs").mkdir(parents=True, exist_ok=True)
+
+    flow_file_index = 0
+    copied_any = False
+    for src_task in source_task_dirs:
+        operate_files = sorted(
+            src_task.glob("rdma_operate*.txt"),
+            key=lambda p: (
+                int(re.search(r"(\d+)", p.name).group(1)) if re.search(r"(\d+)", p.name) else 0,
+                p.name
+            )
+        )
+        for src_file in operate_files:
+            dst_file = target_task_dir / f"rdma_operate{flow_file_index}.txt"
+            shutil.copy2(src_file, dst_file)
+            flow_file_index += 1
+            copied_any = True
+
+    if not copied_any:
+        raise FileNotFoundError("备份任务中未找到任何 rdma_operate*.txt，无法构建基线输入")
+
+    dep_candidates = [p / "dependence.txt" for p in source_task_dirs]
+    dep_source = next((p for p in dep_candidates if p.exists()), None)
+    if dep_source:
+        shutil.copy2(dep_source, target_task_dir / "dependence.txt")
+    else:
+        write_dependence_file(target_task_dir / "dependence.txt")
+
+
+def _count_task_flow_records(base_dir: Path) -> int:
+    """统计 task*/rdma_operate*.txt 中的流记录总数（按 Type rdma 行计数）。"""
+    total = 0
+    task_dirs = sorted([p for p in base_dir.glob("task[0-9]*") if p.is_dir()])
+    for task_dir in task_dirs:
+        operate_files = sorted(task_dir.glob("rdma_operate*.txt"))
+        for fp in operate_files:
+            try:
+                with open(fp, 'r', encoding='utf-8', errors='ignore') as f:
+                    total += sum(1 for line in f if "Type rdma" in line)
+            except Exception:
+                continue
+    return total
+
+
 def _has_dump_payload(dump_dir: Path) -> bool:
     return any((dump_dir / name).exists() for name in ["evaluation.fct1", "evaluation.out", "system1.log"])
 
@@ -4855,9 +4921,18 @@ async def analyze_results(request: AnalysisRequest):
         baseline_meta_path = baseline_dump / "metadata.json"
 
         current_signature = _compute_load_signature(base_dir)
+        current_task_flow_count = _count_task_flow_records(base_dir)
         baseline_meta = _read_baseline_meta(baseline_meta_path)
         baseline_signature = baseline_meta.get("load_signature")
-        baseline_needs_refresh = not _has_dump_payload(baseline_dump) or (current_signature and current_signature != baseline_signature)
+        baseline_strategy = "task_backup_v2"
+        baseline_strategy_meta = baseline_meta.get("baseline_strategy")
+        baseline_task_flow_count_meta = int(baseline_meta.get("task_flow_count", -1))
+        baseline_needs_refresh = (
+            (not _has_dump_payload(baseline_dump))
+            or (current_signature and current_signature != baseline_signature)
+            or (baseline_strategy_meta != baseline_strategy)
+            or (baseline_task_flow_count_meta != current_task_flow_count)
+        )
 
         if not exp_dump.exists():
             raise HTTPException(status_code=404, detail="实验dump目录不存在，请先运行仿真")
@@ -4871,9 +4946,10 @@ async def analyze_results(request: AnalysisRequest):
             baseline_status.is_running = True
             baseline_status.last_started = time.time()
             try:
-                # 基线应使用"未切分"的完整流量，因此从 all_rdma_files 重新生成 task1
+                # 基线应使用与当前实验完全一致的流量集合（仅关闭切分/混合粒度）。
+                # 直接从实验任务备份聚合到单任务，避免 all_rdma_files 来源不一致导致流数偏差。
                 task_backup_root = _backup_task_dirs(base_dir)
-                _write_task_inputs_from_all_rdma_files(base_dir=base_dir, task_num=1)
+                _prepare_single_baseline_task_from_backup(base_dir=base_dir, backup_root=task_backup_root)
                 run_simulation(
                     simulation_id="baseline_packet",
                     task_num=1,
@@ -4892,7 +4968,9 @@ async def analyze_results(request: AnalysisRequest):
                 baseline_status.last_finished = time.time()
             _write_baseline_meta(baseline_meta_path, {
                 "load_signature": current_signature,
-                "generated_at": time.time()
+                "generated_at": time.time(),
+                "baseline_strategy": baseline_strategy,
+                "task_flow_count": current_task_flow_count
             })
 
         results = _collect_analysis_from_dump(exp_dump, request.analysis_type)

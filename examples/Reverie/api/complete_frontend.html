@@ -909,6 +909,13 @@
       max-height: 90vh;
     }
 
+    .modal-content:has(.analysis-modal) {
+      max-width: 96vw;
+      width: 96vw;
+      height: 90vh;
+      max-height: 90vh;
+    }
+
     .modal-content.draggable {
       position: fixed;
     }
@@ -949,6 +956,62 @@
       border-top: 1px solid #e8e8e8;
       display: flex;
       justify-content: flex-end;
+    }
+
+    .analysis-modal {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .analysis-modal-summary {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .analysis-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 12px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .analysis-modal-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .analysis-modal-card h4 {
+      margin: 0 0 8px 0;
+      color: #334155;
+    }
+
+    .analysis-modal-card pre {
+      margin: 8px 0 0 0;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 8px;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1200px) {
+      .analysis-modal-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .close-button {
@@ -2203,7 +2266,7 @@
             {{ isAnalyzing ? '分析中...' : '分析结果' }}
           </button>
           <button class="btn btn-secondary" @click="viewAnalysisDetails">
-            查看详情
+            放大查看（实验/基线/对比）
           </button>
           <div v-if="analysisResult" class="result-box">
             <p><strong>分析摘要:</strong></p>
@@ -2346,7 +2409,87 @@
               <pre style="max-height: 500px; overflow: auto;">{{ modal.content }}</pre>
             </div>
             <div v-else-if="modal.type === 'analysis'">
-              <pre style="max-height: 500px; overflow: auto;">{{ JSON.stringify(modal.data, null, 2) }}</pre>
+              <div class="analysis-modal">
+                <div class="analysis-modal-summary">
+                  <p style="margin: 0 0 6px 0;"><strong>分析摘要</strong></p>
+                  <pre style="margin: 0; max-height: 120px; overflow: auto;">{{ modal.summary || '暂无摘要' }}</pre>
+                </div>
+                <div class="analysis-modal-grid">
+                  <div class="analysis-modal-card">
+                    <h4>实验数据</h4>
+                    <p v-if="modal.data?.fct_analysis?.file_found && modal.data?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>总流数:</strong> {{ modal.data.fct_analysis.total_flows }}<br>
+                      <strong>平均FCT:</strong> {{ modal.data.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>平均Slowdown:</strong> {{ modal.data.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>最小FCT:</strong> {{ modal.data.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>最大FCT:</strong> {{ modal.data.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
+                    </p>
+                    <p v-else style="margin: 0; color: #999;">{{ modal.data?.fct_analysis?.error || modal.data?.fct_analysis?.parse_error || '暂无实验FCT数据' }}</p>
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 10px 0;">
+                    <p style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>稳态:</strong> {{ modal.data?.steady_state_analysis?.is_system_steady ? '已进入稳态' : '未进入稳态' }}<br>
+                      <strong>稳态次数:</strong> {{ modal.data?.steady_state_analysis?.steady_state_count ?? 'N/A' }}<br>
+                      <strong>稳态时间:</strong> {{ modal.data?.steady_state_analysis?.steady_state_time_ns?.toFixed(0) || 'N/A' }} ns<br>
+                      <strong>服务器数量:</strong> {{ modal.data?.performance_analysis?.network_config?.server_count ?? 'N/A' }}<br>
+                      <strong>总流数(性能统计):</strong> {{ modal.data?.performance_analysis?.flow_statistics?.total_flows ?? 'N/A' }}<br>
+                      <strong>平均流大小:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.average_flow_size_MB?.toFixed(2) || 'N/A' }} MB
+                    </p>
+                  </div>
+                  <div class="analysis-modal-card">
+                    <h4>基线数据</h4>
+                    <p v-if="modal.data?.baseline_analysis?.fct_analysis?.file_found && modal.data?.baseline_analysis?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>总流数:</strong> {{ modal.data.baseline_analysis.fct_analysis.total_flows }}<br>
+                      <strong>平均FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>平均Slowdown:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>最小FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>最大FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
+                    </p>
+                    <p v-else style="margin: 0; color: #999;">{{ modal.data?.baseline_analysis?.fct_analysis?.error || '暂无基线数据' }}</p>
+                    <p v-if="modal.data?.baseline_analysis?.fct_analysis?.parse_error" style="margin: 8px 0 0 0; color: #999;">
+                      {{ modal.data.baseline_analysis.fct_analysis.parse_error }}
+                    </p>
+                  </div>
+                  <div class="analysis-modal-card">
+                    <h4>对比数据</h4>
+                    <p style="margin: 0; color: #475569; line-height: 1.8;">
+                      <strong>FCT保真度:</strong> {{ modal.data?.comparison?.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
+                      <strong>运行时间加速比（基线/实验）:</strong> {{ modal.data?.comparison?.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
+                      <strong>运行时间差值（基线-实验）:</strong> {{ modal.data?.comparison?.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
+                      <strong>实验总时间:</strong> {{ modal.data?.comparison?.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
+                      <strong>基线总时间:</strong> {{ modal.data?.comparison?.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
+                    </p>
+                    <p v-if="modal.data?.comparison?.runtime_note" style="margin: 8px 0 0 0; color: #999;">
+                      {{ modal.data.comparison.runtime_note }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_note" style="margin: 6px 0 0 0; color: #999;">
+                      {{ modal.data.comparison.memory_note }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_speedup !== undefined && modal.data?.comparison?.memory_speedup !== null" style="margin: 6px 0 0 0; color: #475569;">
+                      <strong>内存加速比（基线/实验）:</strong> {{ modal.data.comparison.memory_speedup?.toFixed(6) || 'N/A' }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_overhead_mb !== undefined && modal.data?.comparison?.memory_overhead_mb !== null" style="margin: 4px 0 0 0; color: #475569;">
+                      <strong>内存差值（实验-基线）:</strong> {{ modal.data.comparison.memory_overhead_mb?.toFixed(2) || 'N/A' }} MB
+                    </p>
+                  </div>
+                </div>
+                <div class="analysis-modal-card">
+                  <h4>性能分析</h4>
+                  <p style="margin: 0; color: #475569; line-height: 1.8;">
+                    <strong>服务器数量:</strong> {{ modal.data?.performance_analysis?.network_config?.server_count ?? 'N/A' }}<br>
+                    <strong>总流数:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.total_flows ?? 'N/A' }}<br>
+                    <strong>平均流大小:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.average_flow_size_MB?.toFixed(2) || 'N/A' }} MB<br>
+                    <strong>最大内存(实验):</strong> {{ modal.data?.comparison?.memory_exp_max_mb?.toFixed(2) || 'N/A' }} MB<br>
+                    <strong>最大内存(基线):</strong> {{ modal.data?.comparison?.memory_base_max_mb?.toFixed(2) || 'N/A' }} MB
+                  </p>
+                  <p v-if="modal.data?.performance_analysis?.error" style="margin: 8px 0 0 0; color: #999;">
+                    {{ modal.data.performance_analysis.error }}
+                  </p>
+                </div>
+                <div class="analysis-modal-card">
+                  <h4>FCT对比图（实验 vs 基线）</h4>
+                  <div id="fct-comparison-chart-modal" style="width: 100%; height: 360px; margin-top: 6px;"></div>
+                </div>
+              </div>
             </div>
             <div v-else-if="modal.type === 'tree-visualization'" class="tree-visualization-container" v-html="modal.content">
             </div>
@@ -6418,12 +6561,16 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
             show: true,
             title: '分析详情',
             type: 'analysis',
-            data: this.analysisResult.results
+            data: this.analysisResult.results,
+            summary: this.analysisResult.summary || ''
           }
+          this.$nextTick(() => {
+            this.drawFctComparisonChart(this.analysisResult.results, 'fct-comparison-chart-modal', 360)
+          })
         },
 
         // 绘制 FCT 对比折线图（实验 vs 基线）
-        drawFctComparisonChart(results) {
+        drawFctComparisonChart(results, containerId = 'fct-comparison-chart', chartHeight = 300) {
           if (!results || !results.fct_analysis || !results.baseline_analysis) {
             return
           }
@@ -6436,7 +6583,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
 
           // 查找图表容器
-          const container = document.getElementById('fct-comparison-chart')
+          const container = document.getElementById(containerId)
           if (!container) {
             return
           }
@@ -6446,7 +6593,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
 
           const margin = { top: 20, right: 50, bottom: 50, left: 80 }
           const width = container.clientWidth - margin.left - margin.right
-          const height = 300 - margin.top - margin.bottom
+          const height = chartHeight - margin.top - margin.bottom
 
           if (width <= 0 || height <= 0) {
             return
