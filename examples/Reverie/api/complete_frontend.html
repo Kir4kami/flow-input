@@ -31,33 +31,23 @@
       console.log('[INFO] 本地D3.js已加载');
     }
   </script>
-  <!-- Three.js for 3D globe - 优先使用本地文件，如果不存在则使用CDN -->
+  <!-- Three.js for 3D globe - 优先本地（API提供），离线可用 -->
   <script src="./three.min.js"></script>
   <script>
-    // 如果本地Three.js不存在，尝试从CDN加载
     if (typeof THREE === 'undefined') {
-      console.log('[INFO] 本地Three.js未找到，尝试从CDN加载...')
-      const script1 = document.createElement('script')
-      script1.src = 'https://unpkg.com/three@0.128.0/build/three.min.js'
-      script1.onerror = function() {
-        console.error('[ERROR] 无法加载Three.js，请下载到本地')
-      }
-      document.head.appendChild(script1)
-    } else {
-      console.log('[INFO] 本地Three.js已加载')
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js';
+      s.onerror = function() { console.error('[ERROR] Three.js加载失败，请确保three.min.js在api目录'); };
+      document.head.appendChild(s);
     }
   </script>
   <script src="./OrbitControls.js"></script>
   <script>
-    // 如果本地OrbitControls不存在，尝试从CDN加载
     if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls === 'undefined') {
-      console.log('[INFO] 本地OrbitControls未找到，尝试从CDN加载...')
-      const script2 = document.createElement('script')
-      script2.src = 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js'
-      script2.onerror = function() {
-        console.error('[ERROR] 无法加载OrbitControls，请下载到本地')
-      }
-      document.head.appendChild(script2)
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+      s.onerror = function() { console.error('[ERROR] OrbitControls加载失败，请确保OrbitControls.js在api目录'); };
+      document.head.appendChild(s);
     }
   </script>
   <style>
@@ -919,6 +909,13 @@
       max-height: 90vh;
     }
 
+    .modal-content:has(.analysis-modal) {
+      max-width: 96vw;
+      width: 96vw;
+      height: 90vh;
+      max-height: 90vh;
+    }
+
     .modal-content.draggable {
       position: fixed;
     }
@@ -959,6 +956,62 @@
       border-top: 1px solid #e8e8e8;
       display: flex;
       justify-content: flex-end;
+    }
+
+    .analysis-modal {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .analysis-modal-summary {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .analysis-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 12px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .analysis-modal-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .analysis-modal-card h4 {
+      margin: 0 0 8px 0;
+      color: #334155;
+    }
+
+    .analysis-modal-card pre {
+      margin: 8px 0 0 0;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 8px;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1200px) {
+      .analysis-modal-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .close-button {
@@ -1919,52 +1972,72 @@
           </div>
           <div class="input-group">
             <label>流量类型：</label>
-            <select v-model="load.model_name">
+            <select v-model="load.model_name" @change="onLoadModelChange">
               <option value="deepseek">deepseek</option>
               <option value="qwen">qwen</option>
+              <option value="custom">自定义</option>
             </select>
-            <p class="info-text">模板参考 TrafficGenerator/deepseek.txt 与 qwen.txt</p>
+            <p class="info-text" v-if="load.model_name !== 'custom'">模板参考 TrafficGenerator/deepseek.txt 与 qwen.txt</p>
           </div>
-          <div class="input-group">
-            <label>消息大小：</label>
-            <input v-model="load.msg_len" type="text" placeholder="例如: 32*(1024)">
+          <template v-if="load.model_name !== 'custom'">
+            <div class="input-group">
+              <label>消息大小：</label>
+              <input v-model="load.msg_len" type="text" placeholder="例如: 32*(1024)">
+            </div>
+            <div class="input-group">
+              <label>数据并行度：</label>
+              <input v-model.number="load.dp" type="number" min="1" placeholder="例如: 8">
+            </div>
+            <button class="btn btn-primary" @click="generateLoad" :disabled="isGeneratingLoad">
+              {{ isGeneratingLoad ? '生成中...' : '生成负载' }}
+            </button>
+            <button class="btn btn-secondary" @click="viewLoadFiles">
+              查看负载文件
+            </button>
+          </template>
+          <div v-if="load.model_name === 'custom'" class="input-group" style="margin-top: 10px;">
+            <label>自定义流量文件：</label>
+            <input type="file" ref="customTrafficFileInput" @change="handleCustomTrafficFileChange" accept=".zip">
+            <p class="info-text">
+              ZIP 包需包含：多 rdma_operate*.txt + dependence.txt
+            </p>
+            <p class="info-text" style="margin-top: 6px;">
+              下载示例后解压编辑，按同格式重新打包为 ZIP 上传
+            </p>
+            <div style="margin-top: 8px;">
+              <button class="btn btn-secondary" type="button" @click="downloadCustomTrafficExample">
+                下载示例文件
+              </button>
+            </div>
+            <div class="button-row" style="margin-top: 10px;">
+              <button class="btn btn-success" @click="uploadCustomTraffic" :disabled="!customTrafficFile || isUploadingCustomTraffic">
+                {{ isUploadingCustomTraffic ? '解析中...' : '解析并生成负载' }}
+              </button>
+              <button class="btn btn-secondary" @click="clearCustomTraffic" :disabled="!customTrafficFile && !customTrafficResult">
+                清除自定义流量
+              </button>
+            </div>
           </div>
-          <div class="input-group">
-            <label>数据并行度：</label>
-            <input v-model.number="load.dp" type="number" min="1" placeholder="例如: 8">
+          <div class="input-group" style="margin-top: 10px;">
+            <label>可视化模式：</label>
+            <select v-model="heatmapViewMode">
+              <option value="detailed">详细模式</option>
+              <option value="simple">简洁模式（全屏）</option>
+            </select>
           </div>
-          <button class="btn btn-primary" @click="generateLoad" :disabled="isGeneratingLoad">
-            {{ isGeneratingLoad ? '生成中...' : '生成负载' }}
-          </button>
-          <button class="btn btn-secondary" @click="viewLoadFiles">
-            查看负载文件
-          </button>
-          <button class="btn btn-info" @click="showHeatmapAndFlow" :disabled="!(loadResult || customTrafficResult)">
+          <button class="btn btn-info" @click="showHeatmapAndFlowByMode" :disabled="!(loadResult || customTrafficResult)">
             热力图与负载流量可视化
           </button>
-          <button class="btn btn-info" @click="showHeatmapAndFlowSimple" :disabled="!(loadResult || customTrafficResult)">
-            全屏查看
-          </button>
-          <div class="input-group" style="margin-top: 10px;">
-            <label>自定义流量文件：</label>
-            <input type="file" ref="customTrafficFileInput" @change="handleCustomTrafficFileChange" accept=".txt,.log,.csv">
-            <p class="info-text">
-              支持 rdma_operate 格式，或每行 "src dst [msg_len]" 的文本格式
-            </p>
-          </div>
-          <div class="button-row">
-            <button class="btn btn-success" @click="uploadCustomTraffic" :disabled="!customTrafficFile || isUploadingCustomTraffic">
-              {{ isUploadingCustomTraffic ? '解析中...' : '解析并生成自定义流量' }}
-            </button>
-            <button class="btn btn-secondary" @click="clearCustomTraffic" :disabled="!customTrafficFile && !customTrafficResult">
-              清除自定义流量
-            </button>
-          </div>
-          <div v-if="customTrafficResult && !loadResult" class="result-box" style="margin-top: 10px;">
+          <div v-if="load.model_name === 'custom' && customTrafficResult && !loadResult" class="result-box" style="margin-top: 10px;">
             <p><strong>自定义流量已生成</strong></p>
             <p class="info-text">文件: {{ customTrafficResult.filename }}</p>
             <p class="info-text">节点数量: {{ load.host_num }}</p>
             <p class="info-text">{{ customTrafficResult.message }}</p>
+            <div class="button-row" style="margin-top: 10px;">
+              <button class="btn btn-secondary" @click="viewLoadFiles">
+                查看负载文件
+              </button>
+            </div>
           </div>
           <div v-if="loadResult" class="result-box">
             <p><strong>负载已生成</strong></p>
@@ -1976,21 +2049,14 @@
           </div>
         </div>
 
-        <!-- 3. 通信树生成与切分 -->
+        <!-- 3. 通信树解析与切分 -->
         <div class="section">
-          <h3 class="section-title">第三步：通信树生成与切分</h3>
-          
-          <div class="input-group">
-            <label>训练模型：</label>
-            <select v-model="treeCut.model">
-              <option value="qwen">Qwen (512节点)</option>
-              <option value="deepseek">DeepSeek (64节点)</option>
-            </select>
-          </div>
+          <h3 class="section-title">第三步：通信树解析与切分</h3>
+          <p class="info-text" style="margin-bottom: 10px;">从第二步负载输出中解析通信树结构，用于后续切分</p>
           
           <div class="button-row">
             <button class="btn btn-primary" @click="generateTreeOnly" :disabled="isGeneratingTree">
-              {{ isGeneratingTree ? '生成中...' : '生成通信树' }}
+              {{ isGeneratingTree ? '解析中...' : '解析通信树' }}
             </button>
             <button class="btn btn-success" @click="viewFullTree" :disabled="!treeGenResult">
               查看完整通信树
@@ -1998,8 +2064,7 @@
           </div>
           
           <div v-if="treeGenResult" class="result-box">
-            <p><strong>通信树已生成</strong></p>
-            <p class="info-text">模型: {{ treeCut.model.toUpperCase() }}</p>
+            <p><strong>通信树已解析</strong></p>
             <p class="info-text">节点数: {{ treeGenResult.nodes_count }}</p>
             <p class="info-text">边数: {{ treeGenResult.edges_count }}</p>
           </div>
@@ -2133,19 +2198,6 @@
             <span class="info-text">{{ simulation.enableMixedGranularity ? '已开启' : '已关闭' }}</span>
           </div>
 
-          <div class="input-group">
-            <label>LLM模型：</label>
-            <select v-model="simulation.llm_model">
-              <option value="qwen">Qwen</option>
-              <option value="deepseek">DeepSeek</option>
-            </select>
-          </div>
-
-          <div class="input-group">
-            <label>仿真时间（秒）：</label>
-            <input v-model.number="simulation.simulation_time" type="number" min="1" placeholder="10">
-          </div>
-
           <div class="button-row">
             <button class="btn btn-success" @click="startSimulation" :disabled="simulationStatus.is_running">
               开始仿真
@@ -2209,7 +2261,7 @@
             {{ isAnalyzing ? '分析中...' : '分析结果' }}
           </button>
           <button class="btn btn-secondary" @click="viewAnalysisDetails">
-            查看详情
+            放大查看（实验/基线/对比）
           </button>
           <div v-if="analysisResult" class="result-box">
             <p><strong>分析摘要:</strong></p>
@@ -2352,7 +2404,87 @@
               <pre style="max-height: 500px; overflow: auto;">{{ modal.content }}</pre>
             </div>
             <div v-else-if="modal.type === 'analysis'">
-              <pre style="max-height: 500px; overflow: auto;">{{ JSON.stringify(modal.data, null, 2) }}</pre>
+              <div class="analysis-modal">
+                <div class="analysis-modal-summary">
+                  <p style="margin: 0 0 6px 0;"><strong>分析摘要</strong></p>
+                  <pre style="margin: 0; max-height: 120px; overflow: auto;">{{ modal.summary || '暂无摘要' }}</pre>
+                </div>
+                <div class="analysis-modal-grid">
+                  <div class="analysis-modal-card">
+                    <h4>实验数据</h4>
+                    <p v-if="modal.data?.fct_analysis?.file_found && modal.data?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>总流数:</strong> {{ modal.data.fct_analysis.total_flows }}<br>
+                      <strong>平均FCT:</strong> {{ modal.data.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>平均Slowdown:</strong> {{ modal.data.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>最小FCT:</strong> {{ modal.data.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>最大FCT:</strong> {{ modal.data.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
+                    </p>
+                    <p v-else style="margin: 0; color: #999;">{{ modal.data?.fct_analysis?.error || modal.data?.fct_analysis?.parse_error || '暂无实验FCT数据' }}</p>
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 10px 0;">
+                    <p style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>稳态:</strong> {{ modal.data?.steady_state_analysis?.is_system_steady ? '已进入稳态' : '未进入稳态' }}<br>
+                      <strong>稳态次数:</strong> {{ modal.data?.steady_state_analysis?.steady_state_count ?? 'N/A' }}<br>
+                      <strong>稳态时间:</strong> {{ modal.data?.steady_state_analysis?.steady_state_time_ns?.toFixed(0) || 'N/A' }} ns<br>
+                      <strong>服务器数量:</strong> {{ modal.data?.performance_analysis?.network_config?.server_count ?? 'N/A' }}<br>
+                      <strong>总流数(性能统计):</strong> {{ modal.data?.performance_analysis?.flow_statistics?.total_flows ?? 'N/A' }}<br>
+                      <strong>平均流大小:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.average_flow_size_MB?.toFixed(2) || 'N/A' }} MB
+                    </p>
+                  </div>
+                  <div class="analysis-modal-card">
+                    <h4>基线数据</h4>
+                    <p v-if="modal.data?.baseline_analysis?.fct_analysis?.file_found && modal.data?.baseline_analysis?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
+                      <strong>总流数:</strong> {{ modal.data.baseline_analysis.fct_analysis.total_flows }}<br>
+                      <strong>平均FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>平均Slowdown:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>最小FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
+                      <strong>最大FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
+                    </p>
+                    <p v-else style="margin: 0; color: #999;">{{ modal.data?.baseline_analysis?.fct_analysis?.error || '暂无基线数据' }}</p>
+                    <p v-if="modal.data?.baseline_analysis?.fct_analysis?.parse_error" style="margin: 8px 0 0 0; color: #999;">
+                      {{ modal.data.baseline_analysis.fct_analysis.parse_error }}
+                    </p>
+                  </div>
+                  <div class="analysis-modal-card">
+                    <h4>对比数据</h4>
+                    <p style="margin: 0; color: #475569; line-height: 1.8;">
+                      <strong>FCT保真度:</strong> {{ modal.data?.comparison?.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
+                      <strong>运行时间加速比（基线/实验）:</strong> {{ modal.data?.comparison?.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
+                      <strong>运行时间差值（基线-实验）:</strong> {{ modal.data?.comparison?.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
+                      <strong>实验总时间:</strong> {{ modal.data?.comparison?.runtime_exp_total_ms?.toFixed(2) || 'N/A' }} ms<br>
+                      <strong>基线总时间:</strong> {{ modal.data?.comparison?.runtime_base_total_ms?.toFixed(2) || 'N/A' }} ms
+                    </p>
+                    <p v-if="modal.data?.comparison?.runtime_note" style="margin: 8px 0 0 0; color: #999;">
+                      {{ modal.data.comparison.runtime_note }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_note" style="margin: 6px 0 0 0; color: #999;">
+                      {{ modal.data.comparison.memory_note }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_speedup !== undefined && modal.data?.comparison?.memory_speedup !== null" style="margin: 6px 0 0 0; color: #475569;">
+                      <strong>内存加速比（基线/实验）:</strong> {{ modal.data.comparison.memory_speedup?.toFixed(6) || 'N/A' }}
+                    </p>
+                    <p v-if="modal.data?.comparison?.memory_overhead_mb !== undefined && modal.data?.comparison?.memory_overhead_mb !== null" style="margin: 4px 0 0 0; color: #475569;">
+                      <strong>内存差值（实验-基线）:</strong> {{ modal.data.comparison.memory_overhead_mb?.toFixed(2) || 'N/A' }} MB
+                    </p>
+                  </div>
+                </div>
+                <div class="analysis-modal-card">
+                  <h4>性能分析</h4>
+                  <p style="margin: 0; color: #475569; line-height: 1.8;">
+                    <strong>服务器数量:</strong> {{ modal.data?.performance_analysis?.network_config?.server_count ?? 'N/A' }}<br>
+                    <strong>总流数:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.total_flows ?? 'N/A' }}<br>
+                    <strong>平均流大小:</strong> {{ modal.data?.performance_analysis?.flow_statistics?.average_flow_size_MB?.toFixed(2) || 'N/A' }} MB<br>
+                    <strong>最大内存(实验):</strong> {{ modal.data?.comparison?.memory_exp_max_mb?.toFixed(2) || 'N/A' }} MB<br>
+                    <strong>最大内存(基线):</strong> {{ modal.data?.comparison?.memory_base_max_mb?.toFixed(2) || 'N/A' }} MB
+                  </p>
+                  <p v-if="modal.data?.performance_analysis?.error" style="margin: 8px 0 0 0; color: #999;">
+                    {{ modal.data.performance_analysis.error }}
+                  </p>
+                </div>
+                <div class="analysis-modal-card">
+                  <h4>FCT对比图（实验 vs 基线）</h4>
+                  <div id="fct-comparison-chart-modal" style="width: 100%; height: 360px; margin-top: 6px;"></div>
+                </div>
+              </div>
             </div>
             <div v-else-if="modal.type === 'tree-visualization'" class="tree-visualization-container" v-html="modal.content">
             </div>
@@ -2710,7 +2842,7 @@
     const FlowApp = createApp({
       data() {
         return {
-          apiUrl: 'http://localhost:8000',
+          apiUrl: `${window.location.protocol}//${window.location.hostname}:8000`,
           
           // 拓扑设置
           topology: {
@@ -2739,11 +2871,11 @@
           loadSource: 'generated',
           customTrafficFile: null,
           customTrafficResult: null,
+          customLoadDirectory: null,
           isUploadingCustomTraffic: false,
 
-          // 通信树生成与切分
+          // 通信树解析与切分（输入来自模块二负载输出）
           treeCut: {
-            model: 'qwen',  // qwen 或 deepseek
             output_dir: 'TreeGroup'
             // 不再支持手动指定切分数量，只使用基于依赖分析的自动切分
           },
@@ -2772,7 +2904,6 @@
           simulation: {
             enableCut: false,
             enableMixedGranularity: true,
-            llm_model: 'qwen',
             simulation_time: 10.0
           },
           simulationStatus: {
@@ -2859,6 +2990,7 @@
           heatmapMatrix: null,
           heatmapTypeMatrix: null,
           heatmapMaxValue: 0,
+          heatmapViewMode: 'detailed',
           fullscreenSimpleMode: false,
           fullscreenHeatmap: {
             show: false
@@ -3397,6 +3529,16 @@
         
         async generateLoad(options = {}) {
           const { silent = false } = options
+          if (this.load.model_name === 'custom') {
+            if (this.customTrafficResult) {
+              return
+            }
+            if (!silent) {
+              this.showToast('请先上传并解析自定义流量文件', 'error')
+            } else {
+              throw new Error('自定义模式下请先上传并解析自定义流量文件')
+            }
+          }
           this.isGeneratingLoad = true
           try {
             const ensuredHostNum = this.enforceFixedHostCount()
@@ -3450,6 +3592,26 @@
           }
         },
 
+        onLoadModelChange() {
+          if (this.load.model_name === 'custom') {
+            this.loadResult = null
+            this.loadGenerated = false
+            this.loadCompleted = false
+            this.loadSource = ''
+          } else {
+            this.customTrafficFile = null
+            this.customTrafficResult = null
+            this.customLoadDirectory = null
+            this.loadResult = null
+            this.loadGenerated = false
+            this.loadCompleted = false
+            this.loadSource = ''
+            if (this.$refs.customTrafficFileInput) {
+              this.$refs.customTrafficFileInput.value = ''
+            }
+          }
+        },
+
         handleCustomTrafficFileChange(event) {
           const files = event && event.target ? event.target.files : null
           this.customTrafficFile = files && files.length ? files[0] : null
@@ -3459,6 +3621,7 @@
         clearCustomTraffic() {
           this.customTrafficFile = null
           this.customTrafficResult = null
+          this.customLoadDirectory = null
           if (this.$refs.customTrafficFileInput) {
             this.$refs.customTrafficFileInput.value = ''
           }
@@ -3476,7 +3639,6 @@
             const formData = new FormData()
             formData.append('traffic_file', this.customTrafficFile)
             formData.append('task_num', this.simulation.enableCut ? 4 : 1)
-            formData.append('msg_len_expr', this.load.msg_len || '32*(1024)')
 
             const response = await fetch(`${this.apiUrl}/generate-load-from-file`, {
               method: 'POST',
@@ -3489,11 +3651,13 @@
             }
 
             this.customTrafficResult = result
+            this.customLoadDirectory = result.load_directory || 'rdma_result'
             this.loadResult = null
             if (result.host_num) {
               this.load.host_num = result.host_num
             }
             this.loadGenerated = true
+            this.loadCompleted = true
             this.loadSource = 'custom'
 
             // 清除旧的流量数据，强制重新加载
@@ -3514,7 +3678,15 @@
         // 查看负载文件
         async viewLoadFiles() {
           try {
-            const response = await fetch(`${this.apiUrl}/list-files?directory=rdma_result&t=${Date.now()}`)
+            let directory
+            if (this.loadSource === 'custom' && this.customLoadDirectory) {
+              directory = this.customLoadDirectory
+            } else if (this.loadResult && this.loadResult.load_directory) {
+              directory = this.loadResult.load_directory  // trafficGen 的 task1（104 个 operate）
+            } else {
+              directory = 'rdma_result'
+            }
+            const response = await fetch(`${this.apiUrl}/list-files?directory=${encodeURIComponent(directory)}&t=${Date.now()}`)
             const result = await response.json()
             
             if (result.success) {
@@ -3526,7 +3698,7 @@
                 title: '负载文件列表',
                 type: 'files',
                 files: result.files,
-                currentPath: 'rdma_result'
+                currentPath: directory
               }
             }
           } catch (error) {
@@ -3535,6 +3707,14 @@
         },
 
         // 显示热力图和负载流量（直接全屏）
+        async showHeatmapAndFlowByMode() {
+          if (this.heatmapViewMode === 'simple') {
+            await this.showHeatmapAndFlowSimple()
+            return
+          }
+          await this.showHeatmapAndFlow()
+        },
+
         async showHeatmapAndFlow() {
           try {
             this.fullscreenSimpleMode = false
@@ -3676,6 +3856,21 @@
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
             console.error('显示热力图和负载流量失败:', error)
+          }
+        },
+
+        async downloadCustomTrafficExample() {
+          try {
+            const url = `${this.apiUrl}/custom-traffic-example.zip`
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'custom_traffic_full.zip'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            this.showToast('已开始下载示例文件', 'success')
+          } catch (error) {
+            this.showToast('下载失败，请检查API服务是否可用', 'error')
           }
         },
 
@@ -4256,9 +4451,20 @@
             
             // 根据数据来源选择解析目录
             const useLatestWorkflow = this.loadSource === 'workflow'
+            const customDirectory = (this.loadSource === 'custom' && this.customLoadDirectory)
+              ? this.customLoadDirectory
+              : null
+            // deepseek/qwen: loadResult.load_directory 指向 task1，需用 rdma_result 解析全部 task1..4 的流量
+            const generatedParseDir = (this.loadSource === 'generated' && this.loadResult?.load_directory)
+              ? this.loadResult.load_directory.replace(/\/task\d+$/, '/rdma_result')
+              : null
             const url = useLatestWorkflow
               ? `${this.apiUrl}/parse-load-files?use_latest_workflow=true`
-              : `${this.apiUrl}/parse-load-files`
+              : customDirectory
+                ? `${this.apiUrl}/parse-load-files?directory=${encodeURIComponent(customDirectory)}`
+                : generatedParseDir
+                  ? `${this.apiUrl}/parse-load-files?directory=${encodeURIComponent(generatedParseDir)}`
+                  : `${this.apiUrl}/parse-load-files`
             
             const response = await fetch(url)
             const result = await response.json()
@@ -5622,14 +5828,12 @@
           this.cutResult = null  // 清空切分结果
           
           try {
-            this.showToast(`正在生成${this.treeCut.model.toUpperCase()}通信树...`, 'info')
+            this.showToast('正在解析通信树...', 'info')
             
             const response = await fetch(`${this.apiUrl}/generate-communication-tree`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                model: this.treeCut.model
-              })
+              body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
             })
             
             if (!response.ok) {
@@ -5639,7 +5843,7 @@
             
             const result = await response.json()
             this.treeGenResult = result
-            this.showToast(`通信树生成成功！${result.nodes_count}个节点`, 'success')
+            this.showToast(`通信树解析成功！${result.nodes_count}个节点`, 'success')
             
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
@@ -5655,15 +5859,24 @@
             this.showToast('正在生成完整通信树可视化...', 'info')
             
             const response = await fetch(`${this.apiUrl}/visualize-full-tree`, {
-              method: 'POST'
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
             })
-            
-            const result = await response.json()
+            let result = {}
+            try {
+              result = await response.json()
+            } catch (e) {
+              result = {}
+            }
+            if (!response.ok) {
+              throw new Error(result.detail || '完整通信树可视化失败')
+            }
             
             if (result.success) {
               this.modal = {
                 show: true,
-                title: `完整通信树 (${this.treeCut.model.toUpperCase()})`,
+                title: '完整通信树',
                 type: 'topology'
               }
               
@@ -5672,7 +5885,7 @@
               
               this.showToast(`完整通信树可视化成功！${result.nodes_count}个节点`, 'success')
             } else {
-              this.showToast('可视化失败', 'error')
+              throw new Error(result.message || '可视化失败')
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
@@ -5682,7 +5895,7 @@
         // 只切分通信树（使用已生成的树）- 基于依赖分析的自动切分
         async cutTreeOnly() {
           if (!this.treeGenResult) {
-            this.showToast('请先生成通信树', 'error')
+            this.showToast('请先解析通信树', 'error')
             return
           }
           
@@ -5690,15 +5903,19 @@
           try {
             this.showToast('正在切分通信树...', 'info')
             
+            const payload = {
+              tree_data: this.treeGenResult.tree_data,
+              output_dir: this.treeCut.output_dir,
+              num_groups: 0,  // 强制使用自动切分（0表示自动）
+              show_graphs: false
+            }
+            if (this.treeGenResult.rdma_root) {
+              payload.rdma_root = this.treeGenResult.rdma_root
+            }
             const response = await fetch(`${this.apiUrl}/tree-cut`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                tree_data: this.treeGenResult.tree_data,
-                output_dir: this.treeCut.output_dir,
-                num_groups: 0,  // 强制使用自动切分（0表示自动）
-                show_graphs: false
-              })
+              body: JSON.stringify(payload)
             })
             
             if (!response.ok) {
@@ -5766,7 +5983,8 @@
               const has3D = result.has_3d_viz
               
               // 3D可视化HTML的访问地址（右侧显示）
-              const viz3DUrl = `${this.apiUrl}/get-tree-groups-3d?output_dir=${encodeURIComponent(this.treeCut.output_dir)}&t=${Date.now()}`
+              const outputDir = (this.cutResult && this.cutResult.output_directory) || this.treeCut.output_dir || 'TreeGroup'
+              const viz3DUrl = `${this.apiUrl}/get-tree-groups-3d?output_dir=${encodeURIComponent(outputDir)}&t=${Date.now()}`
               
               // 使用左右两栏布局：左边树组PNG（可滚动），右边3D切分可视化（固定画布）
               let htmlContent = `<style>
@@ -5802,10 +6020,10 @@
               // 右侧3D切分可视化区域 - 直接使用iframe，无多余包装
               if (has3D) {
                 htmlContent += `
-                  <div style="flex: 1; min-width: 0; position: relative; overflow: hidden;">
+                  <div style="flex: 1; min-width: 0; min-height: 500px; position: relative; overflow: hidden;">
                     <iframe 
                       src="${viz3DUrl}" 
-                      style="width: 100%; height: 100%; border: none; background: #ffffff; overflow: hidden; display: block; margin: 0; padding: 0; transform: scale(1.1) translateX(-60px); transform-origin: top left;"
+                      style="width: 100%; height: 100%; min-height: 500px; border: none; background: #ffffff; overflow: hidden; display: block; margin: 0; padding: 0; transform: scale(1.1) translateX(-60px); transform-origin: top left;"
                       scrolling="no"
                       frameborder="0"
                       title="3D分层切分可视化">
@@ -5870,9 +6088,7 @@
                   const treeResponse = await fetch(`${this.apiUrl}/generate-communication-tree`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      model: this.treeCut.model
-                    })
+                    body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
                   })
                   
                   if (!treeResponse.ok) {
@@ -5890,15 +6106,19 @@
               // 执行切分（使用基于依赖分析的自动切分，静默模式）
               this.isCutting = true
               try {
+                const cutPayload = {
+                  tree_data: this.treeGenResult.tree_data,
+                  output_dir: this.treeCut.output_dir,
+                  num_groups: 0,  // 强制使用自动切分（0表示自动）
+                  show_graphs: false
+                }
+                if (this.treeGenResult.rdma_root) {
+                  cutPayload.rdma_root = this.treeGenResult.rdma_root
+                }
                 const cutResponse = await fetch(`${this.apiUrl}/tree-cut`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    tree_data: this.treeGenResult.tree_data,
-                    output_dir: this.treeCut.output_dir,
-                    num_groups: 0,  // 强制使用自动切分（0表示自动）
-                    show_graphs: false
-                  })
+                  body: JSON.stringify(cutPayload)
                 })
                 
                 if (!cutResponse.ok) {
@@ -5943,10 +6163,11 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 task_num: this.simulation.enableCut ? 4 : 1,
-                llm_model: this.simulation.llm_model,
+                llm_model: (this.load.model_name === 'custom' ? 'deepseek' : this.load.model_name) || 'deepseek',
                 enable_mixed_granularity: this.simulation.enableMixedGranularity,
                 simulation_time: this.simulation.simulation_time,
-                use_custom_config: true
+                use_custom_config: true,
+                load_source: this.loadSource === 'custom' ? 'custom' : 'generated'
               })
             })
             
@@ -6335,12 +6556,16 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
             show: true,
             title: '分析详情',
             type: 'analysis',
-            data: this.analysisResult.results
+            data: this.analysisResult.results,
+            summary: this.analysisResult.summary || ''
           }
+          this.$nextTick(() => {
+            this.drawFctComparisonChart(this.analysisResult.results, 'fct-comparison-chart-modal', 360)
+          })
         },
 
         // 绘制 FCT 对比折线图（实验 vs 基线）
-        drawFctComparisonChart(results) {
+        drawFctComparisonChart(results, containerId = 'fct-comparison-chart', chartHeight = 300) {
           if (!results || !results.fct_analysis || !results.baseline_analysis) {
             return
           }
@@ -6353,7 +6578,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
 
           // 查找图表容器
-          const container = document.getElementById('fct-comparison-chart')
+          const container = document.getElementById(containerId)
           if (!container) {
             return
           }
@@ -6363,7 +6588,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
 
           const margin = { top: 20, right: 50, bottom: 50, left: 80 }
           const width = container.clientWidth - margin.left - margin.right
-          const height = 300 - margin.top - margin.bottom
+          const height = chartHeight - margin.top - margin.bottom
 
           if (width <= 0 || height <= 0) {
             return
