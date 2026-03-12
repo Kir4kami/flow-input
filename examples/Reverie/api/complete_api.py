@@ -3683,7 +3683,6 @@ async def generate_load_from_file(
             task_summaries, host_num, load_directory = _process_full_format_zip(tmp_path, base_dir, task_num)
         finally:
             tmp_path.unlink(missing_ok=True)
-
         _sync_task_to_reverie_exec_dir([base_dir], task_num)
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
         if is_ecmp_module_ready():
@@ -4141,7 +4140,7 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             log_file.write(f"任务数: {task_num}\n")
             log_file.write(f"模型: {llm_model}\n")
             log_file.write(f"混合粒度: {enable_mixed_granularity}\n")
-            log_file.write(f"仿真时间: {simulation_time}秒\n")
+            log_file.write(f"仿真模式: 跑完为止（END_TIME 上限 10 天）\n")
             log_file.write(f"使用自定义配置: {use_custom_config}\n")
             log_file.write("=" * 80 + "\n\n")
         
@@ -4262,8 +4261,8 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         # 保存进程信息
         simulation_status.current_process = process
         
-        # 等待进程完成（在后台任务中）
-        timeout_duration = max(simulation_time * 2, 600.0)  # 至少10分钟超时
+        # 等待进程完成（在后台任务中）；仿真为“跑完为止”，预留至少 2 倍 sim 上限时间
+        timeout_duration = max(sim_time_seconds * 2, 86400.0 * 2)  # 至少 2 天，避免提前杀进程
         with open(log_file_path, 'a', encoding='utf-8') as log_file:
             log_file.write(f"等待进程完成，超时时间: {timeout_duration}秒\n")
         

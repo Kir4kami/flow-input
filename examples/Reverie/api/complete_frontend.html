@@ -1980,20 +1980,20 @@
             <p class="info-text" v-if="load.model_name !== 'custom'">模板参考 TrafficGenerator/deepseek.txt 与 qwen.txt</p>
           </div>
           <template v-if="load.model_name !== 'custom'">
-            <div class="input-group">
-              <label>消息大小：</label>
-              <input v-model="load.msg_len" type="text" placeholder="例如: 32*(1024)">
-            </div>
-            <div class="input-group">
-              <label>数据并行度：</label>
-              <input v-model.number="load.dp" type="number" min="1" placeholder="例如: 8">
-            </div>
-            <button class="btn btn-primary" @click="generateLoad" :disabled="isGeneratingLoad">
-              {{ isGeneratingLoad ? '生成中...' : '生成负载' }}
-            </button>
-            <button class="btn btn-secondary" @click="viewLoadFiles">
-              查看负载文件
-            </button>
+          <div class="input-group">
+            <label>消息大小：</label>
+            <input v-model="load.msg_len" type="text" placeholder="例如: 32*(1024)">
+          </div>
+          <div class="input-group">
+            <label>数据并行度：</label>
+            <input v-model.number="load.dp" type="number" min="1" placeholder="例如: 8">
+          </div>
+          <button class="btn btn-primary" @click="generateLoad" :disabled="isGeneratingLoad">
+            {{ isGeneratingLoad ? '生成中...' : '生成负载' }}
+          </button>
+          <button class="btn btn-secondary" @click="viewLoadFiles">
+            查看负载文件
+          </button>
           </template>
           <div v-if="load.model_name === 'custom'" class="input-group" style="margin-top: 10px;">
             <label>自定义流量文件：</label>
@@ -2007,7 +2007,7 @@
             <div style="margin-top: 8px;">
               <button class="btn btn-secondary" type="button" @click="downloadCustomTrafficExample">
                 下载示例文件
-              </button>
+          </button>
             </div>
             <div class="button-row" style="margin-top: 10px;">
               <button class="btn btn-success" @click="uploadCustomTraffic" :disabled="!customTrafficFile || isUploadingCustomTraffic">
@@ -2413,7 +2413,7 @@
                 <div class="analysis-modal-summary">
                   <p style="margin: 0 0 6px 0;"><strong>分析摘要</strong></p>
                   <pre style="margin: 0; max-height: 120px; overflow: auto;">{{ modal.summary || '暂无摘要' }}</pre>
-                </div>
+            </div>
                 <div class="analysis-modal-grid">
                   <div class="analysis-modal-card">
                     <h4>实验数据</h4>
@@ -5333,7 +5333,7 @@
           }
           
           this.flowSvg = svg
-          this.flowGlowFilterId = this.ensureGlowDefs(svg)
+        this.flowGlowFilterId = this.ensureGlowDefs(svg)
           this.flowSvgSize = { width, height }
           this.ecmpOverlayGroup = svg.append('g').attr('class', 'ecmp-overlay')
           
@@ -5909,10 +5909,10 @@
             this.showToast('正在切分通信树...', 'info')
             
             const payload = {
-              tree_data: this.treeGenResult.tree_data,
-              output_dir: this.treeCut.output_dir,
-              num_groups: 0,  // 强制使用自动切分（0表示自动）
-              show_graphs: false
+                tree_data: this.treeGenResult.tree_data,
+                output_dir: this.treeCut.output_dir,
+                num_groups: 0,  // 强制使用自动切分（0表示自动）
+                show_graphs: false
             }
             if (this.treeGenResult.rdma_root) {
               payload.rdma_root = this.treeGenResult.rdma_root
@@ -6112,10 +6112,10 @@
               this.isCutting = true
               try {
                 const cutPayload = {
-                  tree_data: this.treeGenResult.tree_data,
-                  output_dir: this.treeCut.output_dir,
-                  num_groups: 0,  // 强制使用自动切分（0表示自动）
-                  show_graphs: false
+                    tree_data: this.treeGenResult.tree_data,
+                    output_dir: this.treeCut.output_dir,
+                    num_groups: 0,  // 强制使用自动切分（0表示自动）
+                    show_graphs: false
                 }
                 if (this.treeGenResult.rdma_root) {
                   cutPayload.rdma_root = this.treeGenResult.rdma_root
@@ -6403,7 +6403,7 @@
               this.simulationWallClockEnd = endTs
               this.simulationWallClockDuration = endTs - this.simulationWallClockStart
             }
-            this.syncSteadyStateFromStatus(result)
+        this.syncSteadyStateFromStatus(result)
           } catch (error) {
             console.error('检查状态失败:', error)
           }
@@ -9160,7 +9160,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
 
     window.__flowAppCtx = FlowApp
     try {
-      window.__flowApp = FlowApp.mount('#app')
+    window.__flowApp = FlowApp.mount('#app')
       console.log('Vue 应用挂载成功:', window.__flowApp)
     } catch (error) {
       console.error('Vue 应用挂载失败:', error)
