@@ -2198,11 +2198,6 @@
             <span class="info-text">{{ simulation.enableMixedGranularity ? '已开启' : '已关闭' }}</span>
           </div>
 
-          <div class="input-group">
-            <label>仿真时间（秒）：</label>
-            <input v-model.number="simulation.simulation_time" type="number" min="1" placeholder="10">
-          </div>
-
           <div class="button-row">
             <button class="btn btn-success" @click="startSimulation" :disabled="simulationStatus.is_running">
               开始仿真

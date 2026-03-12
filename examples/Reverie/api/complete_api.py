@@ -3683,6 +3683,7 @@ async def generate_load_from_file(
             task_summaries, host_num, load_directory = _process_full_format_zip(tmp_path, base_dir, task_num)
         finally:
             tmp_path.unlink(missing_ok=True)
+
         _sync_task_to_reverie_exec_dir([base_dir], task_num)
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
         if is_ecmp_module_ready():
@@ -4230,13 +4231,10 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         else:
             env.pop("USE_CUSTOM_LOAD", None)
 
-        try:
-            sim_time_seconds = float(simulation_time)
-        except (TypeError, ValueError):
-            sim_time_seconds = 10.0
-        sim_time_seconds = max(sim_time_seconds, 0.1)
-        flow_launch_seconds = max(sim_time_seconds * 0.1, 0.001)
-        # sim.cc 期望 END_TIME 单位为秒，直接传秒
+        # 仿真“从开始跑到结束”：使用足够大的 END_TIME，让 ns3 跑完所有流后自然结束（不按用户设定时长截断）
+        # 10 天（秒），仅作上限；实际结束由流完成或 ns3 事件队列为空决定
+        sim_time_seconds = 864000.0  # 10 days
+        flow_launch_seconds = 3600.0  # 1 小时内完成流注入
         env["SIM_END_TIME_SEC_OVERRIDE"] = str(sim_time_seconds)
         env["SIM_FLOW_LAUNCH_END_SEC_OVERRIDE"] = str(flow_launch_seconds)
         
@@ -4926,25 +4924,11 @@ async def analyze_results(request: AnalysisRequest):
         baseline_strategy = "task_backup_v2"
         baseline_strategy_meta = baseline_meta.get("baseline_strategy")
         baseline_task_flow_count_meta = int(baseline_meta.get("task_flow_count", -1))
-        
-        # 检查实验 dump 是否比基线 dump 新（如果实验重新运行了，即使流量相同，也应该刷新基线）
-        exp_dump_newer = False
-        if exp_dump.exists() and baseline_dump.exists():
-            exp_fct = exp_dump / "evaluation.fct1"
-            base_fct = baseline_dump / "evaluation.fct1"
-            if exp_fct.exists() and base_fct.exists():
-                exp_mtime = exp_fct.stat().st_mtime
-                base_mtime = base_fct.stat().st_mtime
-                if exp_mtime > base_mtime:
-                    exp_dump_newer = True
-                    print(f"[INFO] 检测到实验 dump 比基线 dump 新（实验: {exp_mtime}, 基线: {base_mtime}），将刷新基线")
-        
         baseline_needs_refresh = (
             (not _has_dump_payload(baseline_dump))
             or (current_signature and current_signature != baseline_signature)
             or (baseline_strategy_meta != baseline_strategy)
             or (baseline_task_flow_count_meta != current_task_flow_count)
-            or exp_dump_newer  # 如果实验 dump 比基线 dump 新，强制刷新基线
         )
 
         if not exp_dump.exists():
@@ -4963,13 +4947,6 @@ async def analyze_results(request: AnalysisRequest):
                 # 直接从实验任务备份聚合到单任务，避免 all_rdma_files 来源不一致导致流数偏差。
                 task_backup_root = _backup_task_dirs(base_dir)
                 _prepare_single_baseline_task_from_backup(base_dir=base_dir, backup_root=task_backup_root)
-                # 清空 dump 目录，确保基线仿真生成新的结果文件
-                if exp_dump.exists():
-                    for f in exp_dump.glob("*"):
-                        if f.is_file():
-                            f.unlink()
-                        elif f.is_dir():
-                            shutil.rmtree(f)
                 run_simulation(
                     simulation_id="baseline_packet",
                     task_num=1,
