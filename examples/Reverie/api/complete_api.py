@@ -4926,11 +4926,25 @@ async def analyze_results(request: AnalysisRequest):
         baseline_strategy = "task_backup_v2"
         baseline_strategy_meta = baseline_meta.get("baseline_strategy")
         baseline_task_flow_count_meta = int(baseline_meta.get("task_flow_count", -1))
+        
+        # 检查实验 dump 是否比基线 dump 新（如果实验重新运行了，即使流量相同，也应该刷新基线）
+        exp_dump_newer = False
+        if exp_dump.exists() and baseline_dump.exists():
+            exp_fct = exp_dump / "evaluation.fct1"
+            base_fct = baseline_dump / "evaluation.fct1"
+            if exp_fct.exists() and base_fct.exists():
+                exp_mtime = exp_fct.stat().st_mtime
+                base_mtime = base_fct.stat().st_mtime
+                if exp_mtime > base_mtime:
+                    exp_dump_newer = True
+                    print(f"[INFO] 检测到实验 dump 比基线 dump 新（实验: {exp_mtime}, 基线: {base_mtime}），将刷新基线")
+        
         baseline_needs_refresh = (
             (not _has_dump_payload(baseline_dump))
             or (current_signature and current_signature != baseline_signature)
             or (baseline_strategy_meta != baseline_strategy)
             or (baseline_task_flow_count_meta != current_task_flow_count)
+            or exp_dump_newer  # 如果实验 dump 比基线 dump 新，强制刷新基线
         )
 
         if not exp_dump.exists():
@@ -4949,6 +4963,13 @@ async def analyze_results(request: AnalysisRequest):
                 # 直接从实验任务备份聚合到单任务，避免 all_rdma_files 来源不一致导致流数偏差。
                 task_backup_root = _backup_task_dirs(base_dir)
                 _prepare_single_baseline_task_from_backup(base_dir=base_dir, backup_root=task_backup_root)
+                # 清空 dump 目录，确保基线仿真生成新的结果文件
+                if exp_dump.exists():
+                    for f in exp_dump.glob("*"):
+                        if f.is_file():
+                            f.unlink()
+                        elif f.is_dir():
+                            shutil.rmtree(f)
                 run_simulation(
                     simulation_id="baseline_packet",
                     task_num=1,
