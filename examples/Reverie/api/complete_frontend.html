@@ -2731,6 +2731,7 @@
             <div style="margin-bottom: 15px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
               <label for="fullscreen-river-table-file-input" style="color: #94a3b8; font-size: 0.95rem;">选择 flow_stats.txt：</label>
               <input type="file" id="fullscreen-river-table-file-input" accept=".txt" @change="handleRiverTableFileSelect" style="padding: 8px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2); color: #e2e8f0; background: rgba(15,23,42,0.6);">
+              <button type="button" class="btn btn-secondary" @click="loadServerFlowStats" style="padding: 6px 12px; font-size: 0.9rem;">导入真实 flow_stats.txt</button>
             </div>
             <div class="fullscreen-river-table-controls">
               <button class="btn btn-primary" @click="riverTableAnimation.isPlaying ? pauseRiverTableAnimation() : playRiverTableAnimation()" style="margin: 0 5px;">
@@ -7780,6 +7781,27 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
         },
 
+        // 从服务器直接导入 flow_stats.txt 并画河流图（服务器路径：/home/admins/Desktop/flow-input-repo/flow_stats.txt）
+        async loadServerFlowStats() {
+          try {
+            const res = await fetch('/flow_stats_txt')
+            if (!res.ok) {
+              this.showToast(res.status === 404 ? '服务器上 flow_stats.txt 不存在' : '获取失败: ' + res.status, 'error')
+              return
+            }
+            const text = await res.text()
+            if (!text || !text.trim()) {
+              this.showToast('服务器上 flow_stats.txt 为空', 'error')
+              return
+            }
+            if (this.handleRiverTableData(text, 'flow_stats.txt')) {
+              this.showToast('已载入: flow_stats.txt', 'success')
+            }
+          } catch (e) {
+            this.showToast('导入失败: ' + (e && e.message), 'error')
+          }
+        },
+
         // 处理文件选择
         handleRiverTableFileSelect(event) {
           const file = event.target.files?.[0]
@@ -7831,11 +7853,11 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
           this.handleRiverTableData(demo, "示例数据")
         },
 
-        // 处理河流图与路由表数据
+        // 处理河流图与路由表数据。返回 true 表示成功导入并绘图，false 表示失败或提前返回。
         handleRiverTableData(text, fileName) {
           if (typeof d3 === 'undefined') {
             this.showToast('D3.js未加载，请检查网络连接', 'error')
-            return
+            return false
           }
 
           const lines = text.split(/\r?\n/)
@@ -7896,7 +7918,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
           
           if (!seriesMap.size) {
             this.showToast("未解析到有效数据", 'error')
-            return
+            return false
           }
           
           for (const [, arr] of seriesMap) {
@@ -7910,7 +7932,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
 
           if (seriesMap.size === 0 || timeline.length === 0) {
             this.showToast("错误：数据解析失败", 'error')
-            return
+            return false
           }
 
           // 时间点过多时抽样至最多 2000 点，避免卡顿
@@ -7979,7 +8001,9 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
             console.error("渲染时出错:", error)
             console.error("错误堆栈:", error.stack)
             this.showToast("渲染图表时出错: " + (error.message || String(error)), 'error')
+            return false
           }
+          return true
         },
 
         // 生成路由表数据
@@ -9187,4 +9211,3 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
   </script>
 </body>
 </html>
-
