@@ -4821,6 +4821,23 @@ async def get_steady_state_status():
             "details": []
         }
 
+
+# 服务器上 flow_stats.txt 路径（供河流图一键导入）
+FLOW_STATS_PATH_SERVER = Path("/home/admins/Desktop/flow-input-repo/flow_stats.txt")
+
+
+@app.get("/flow_stats_txt")
+async def get_flow_stats_txt():
+    """返回服务器上 flow_stats.txt 的完整内容，供河流图直接导入并绘图。"""
+    if not FLOW_STATS_PATH_SERVER.exists():
+        raise HTTPException(status_code=404, detail="flow_stats.txt 不存在: " + str(FLOW_STATS_PATH_SERVER))
+    try:
+        content = FLOW_STATS_PATH_SERVER.read_text(encoding="utf-8", errors="ignore")
+        return Response(content=content, media_type="text/plain; charset=utf-8")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/steady-state-history")
 async def get_steady_state_history():
     """获取稳态历史记录"""
