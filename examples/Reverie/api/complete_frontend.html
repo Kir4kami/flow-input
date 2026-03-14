@@ -7903,14 +7903,32 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
             arr.sort((a, b) => a.t - b.t)
           }
           
-          const allTimes = Array.from(slotMap.keys()).sort((a, b) => a - b)
-          const timeline = allTimes.length ? allTimes : Array.from(new Set(
+          let allTimes = Array.from(slotMap.keys()).sort((a, b) => a - b)
+          let timeline = allTimes.length ? allTimes : Array.from(new Set(
             [...seriesMap.values()].flatMap(v => v.map(p => p.t))
           )).sort((a, b) => a - b)
 
           if (seriesMap.size === 0 || timeline.length === 0) {
             this.showToast("错误：数据解析失败", 'error')
             return
+          }
+
+          // 时间点过多时抽样至最多 2000 点，避免卡顿
+          const MAX_TIMELINE = 2000
+          if (timeline.length > MAX_TIMELINE) {
+            const step = timeline.length / MAX_TIMELINE
+            const sampled = []
+            for (let i = 0; i < MAX_TIMELINE; i++) {
+              const idx = Math.min(Math.floor(i * step), timeline.length - 1)
+              sampled.push(timeline[idx])
+            }
+            timeline = [...new Set(sampled)].sort((a, b) => a - b)
+            const newSlotMap = new Map()
+            for (const t of timeline) {
+              if (slotMap.has(t)) newSlotMap.set(t, slotMap.get(t))
+            }
+            slotMap.clear()
+            for (const [k, v] of newSlotMap) slotMap.set(k, v)
           }
           
           const routingData = this.generateRiverTableRoutingData(allFlowsForTable, transitionTimesForTable)
