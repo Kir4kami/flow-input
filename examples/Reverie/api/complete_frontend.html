@@ -1446,6 +1446,9 @@
       background: rgba(2, 6, 23, 0.85);
       border-radius: 8px;
       padding: 10px;
+      padding-bottom: 20px;
+      padding-left: 16px;
+      overflow: visible;
     }
 
     #fullscreen-streamgraph svg {
@@ -1457,10 +1460,12 @@
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 12px;
+      margin-top: 24px;
       padding: 12px;
       background: rgba(15, 23, 42, 0.4);
       border-radius: 8px;
+      max-height: 120px;
+      overflow-y: auto;
     }
 
     .fullscreen-streamgraph-legend-item {
@@ -8103,7 +8108,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
 
           const width = streamgraphDiv.clientWidth || 900
           const height = 500
-          const margin = { top: 50, right: 30, bottom: 40, left: 60 }
+          const margin = { top: 50, right: 30, bottom: 40, left: 76 }
           const chartWidth = width - margin.left - margin.right
           const chartHeight = height - margin.top - margin.bottom
           
@@ -8680,7 +8685,7 @@ Flow ID: 0-3-1016-1016 - Rate: 24.336 Gbps currentTime: 559468000`
           
           const width = streamgraphDiv.clientWidth || 900
           const height = 500
-          const margin = { top: 50, right: 30, bottom: 40, left: 60 }
+          const margin = { top: 50, right: 30, bottom: 40, left: 76 }
           const chartWidth = width - margin.left - margin.right
           const chartHeight = height - margin.top - margin.bottom
           
