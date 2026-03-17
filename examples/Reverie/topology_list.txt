@@ -1,2 +1,2 @@
-# label serversPerTor torSwitches spineSwitches serverTorDelay torSpineDelay serverDataRate otherDataRate errorRate msgLen
-default 8 8 4 2us 2us 25 25 0 4096000
+# label serversPerTor torSwitches spineSwitches serverTorDelay torSpineDelay serverDataRate otherDataRate errorRate msgLen trafficMode(dp|ep|pp|tp)
+default 8 16 8 2us 2us 25 25 0 40960000 dp

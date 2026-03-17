@@ -51,21 +51,39 @@ def parse_fct_file(fct_file):
             return fcts
         
         # 跳过标题行
+        header = re.split(r'\s+', lines[0].strip())
+        header_index = {name: idx for idx, name in enumerate(header)}
+
         for line in lines[1:]:
-            parts = line.strip().split('\t')
+            parts = re.split(r'\s+', line.strip())
             if len(parts) >= 3:
                 try:
-                    timestamp = float(parts[0])
-                    flowsize = int(parts[1])
-                    fct = float(parts[2])  # fctus (纳秒)
-                    basefct = float(parts[3]) if len(parts) > 3 else 0
-                    slowdown = float(parts[4]) if len(parts) > 4 else 0
+                    timestamp = float(parts[header_index.get('timestamp', 0)])
+                    flowsize = int(parts[header_index.get('flowsize', 1)])
+                    fct_legacy = float(parts[header_index.get('fctus', 2)])
+                    fct_phy = float(parts[header_index['fct_phyus']]) if 'fct_phyus' in header_index else None
+                    fct_log = float(parts[header_index['fct_logus']]) if 'fct_logus' in header_index else None
+                    # 对比优先使用物理FCT，保证与原始仿真的物理时钟口径一致。
+                    fct_compare = fct_phy if fct_phy is not None else fct_legacy
+                    basefct = float(parts[header_index.get('basefctus', 3)]) if len(parts) > 3 else 0
+                    slowdown = float(parts[header_index.get('slowdown', 4)]) if len(parts) > 4 else 0
+                    flow_key = None
+                    if all(k in header_index for k in ('src', 'dst', 'sport', 'dport')):
+                        src = int(parts[header_index['src']])
+                        dst = int(parts[header_index['dst']])
+                        sport = int(parts[header_index['sport']])
+                        dport = int(parts[header_index['dport']])
+                        flow_key = (src, dst, sport, dport)
                     fcts.append({
                         'timestamp': timestamp,
                         'flowsize': flowsize,
-                        'fct': fct,
+                        'fct': fct_compare,
+                        'fct_legacy': fct_legacy,
+                        'fct_phy': fct_phy,
+                        'fct_log': fct_log,
                         'basefct': basefct,
-                        'slowdown': slowdown
+                        'slowdown': slowdown,
+                        'flow_key': flow_key
                     })
                 except (ValueError, IndexError):
                     continue
@@ -75,17 +93,44 @@ def calculate_fct_fidelity(old_fct_file, new_fct_file):
     """计算FCT保真度"""
     old_fcts = parse_fct_file(old_fct_file)
     new_fcts = parse_fct_file(new_fct_file)
-    
-    if len(old_fcts) != len(new_fcts):
-        return {
-            'error': f'FCT记录数不匹配: 原始={len(old_fcts)}, 数值={len(new_fcts)}'
-        }
-    
+
+    if not old_fcts or not new_fcts:
+        return {'error': '没有有效的FCT数据'}
+
+    old_has_key = all(item.get('flow_key') is not None for item in old_fcts)
+    new_has_key = all(item.get('flow_key') is not None for item in new_fcts)
+
     errors = []
-    for i, (old_fct, new_fct) in enumerate(zip(old_fcts, new_fcts)):
-        if old_fct['fct'] > 0:
-            relative_error = abs(old_fct['fct'] - new_fct['fct']) / old_fct['fct'] * 100
-            errors.append(relative_error)
+    matched_count = 0
+    old_unmatched = 0
+    new_unmatched = 0
+    match_mode = "line_by_line"
+
+    if old_has_key and new_has_key:
+        match_mode = "flow_key"
+        old_map = {item['flow_key']: item for item in old_fcts}
+        new_map = {item['flow_key']: item for item in new_fcts}
+        common_keys = set(old_map.keys()) & set(new_map.keys())
+        matched_count = len(common_keys)
+        old_unmatched = len(old_map) - matched_count
+        new_unmatched = len(new_map) - matched_count
+
+        for key in common_keys:
+            old_fct = old_map[key]
+            new_fct = new_map[key]
+            if old_fct['fct'] > 0:
+                relative_error = abs(old_fct['fct'] - new_fct['fct']) / old_fct['fct'] * 100
+                errors.append(relative_error)
+    else:
+        # 旧结果文件没有 flow key 时退化为按行对齐。
+        pair_count = min(len(old_fcts), len(new_fcts))
+        matched_count = pair_count
+        old_unmatched = len(old_fcts) - pair_count
+        new_unmatched = len(new_fcts) - pair_count
+        for old_fct, new_fct in zip(old_fcts[:pair_count], new_fcts[:pair_count]):
+            if old_fct['fct'] > 0:
+                relative_error = abs(old_fct['fct'] - new_fct['fct']) / old_fct['fct'] * 100
+                errors.append(relative_error)
     
     if not errors:
         return {'error': '没有有效的FCT数据'}
@@ -96,12 +141,19 @@ def calculate_fct_fidelity(old_fct_file, new_fct_file):
     fidelity = 100 - avg_error
     
     return {
-        'count': len(old_fcts),
+        'count': matched_count,
         'avg_error_percent': avg_error,
         'max_error_percent': max_error,
         'min_error_percent': min_error,
         'fidelity_percent': fidelity,
-        'errors': errors
+        'errors': errors,
+        'match_mode': match_mode,
+        'old_total': len(old_fcts),
+        'new_total': len(new_fcts),
+        'old_unmatched': old_unmatched,
+        'new_unmatched': new_unmatched,
+        'old_has_flow_key': old_has_key,
+        'new_has_flow_key': new_has_key
     }
 
 def parse_pfc_file(pfc_file):
@@ -222,7 +274,14 @@ def main():
         if 'error' in fct_result:
             print(f"错误: {fct_result['error']}")
         else:
-            print(f"FCT记录数: {fct_result['count']}")
+            print(f"FCT匹配方式: {fct_result['match_mode']}")
+            print("FCT比较口径: 优先 fct_phyus（物理FCT），缺失时回退 fctus")
+            print(f"FCT原始记录数: {fct_result['old_total']}")
+            print(f"FCT数值记录数: {fct_result['new_total']}")
+            print(f"FCT匹配记录数: {fct_result['count']}")
+            print(f"原始未匹配: {fct_result['old_unmatched']}, 数值未匹配: {fct_result['new_unmatched']}")
+            if fct_result['match_mode'] == 'line_by_line':
+                print("注意: 当前FCT文件缺少src/dst/sport/dport，仍按行匹配，建议重新仿真生成带flow key的fct文件。")
             print(f"平均相对误差: {fct_result['avg_error_percent']:.4f}%")
             print(f"最大相对误差: {fct_result['max_error_percent']:.4f}%")
             print(f"最小相对误差: {fct_result['min_error_percent']:.4f}%")

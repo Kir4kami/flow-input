@@ -39,8 +39,16 @@ def main():
                 parts = line.split()
                 if len(parts) < 10:
                     raise SystemExit("topology_list.txt format invalid")
-                # label serversPerTor torSwitches spineSwitches serverTorDelay torSpineDelay serverDataRate otherDataRate errorRate msgLen
-                _, servers_per_tor, tor_switches, spine_switches, server_tor_delay, tor_spine_delay, server_data_rate, other_data_rate, error_rate, _ = parts
+                # topology_list.txt:
+                # label serversPerTor torSwitches spineSwitches serverTorDelay torSpineDelay serverDataRate otherDataRate errorRate msgLen [trafficMode]
+                servers_per_tor = parts[1]
+                tor_switches = parts[2]
+                spine_switches = parts[3]
+                server_tor_delay = parts[4]
+                tor_spine_delay = parts[5]
+                server_data_rate = parts[6]
+                other_data_rate = parts[7]
+                error_rate = parts[8]
                 args.servers_per_tor = args.servers_per_tor or int(servers_per_tor)
                 args.tor_switches = args.tor_switches or int(tor_switches)
                 args.spine_switches = args.spine_switches or int(spine_switches)

@@ -6,6 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR" || exit 1
+TOPO_GEN="$SCRIPT_DIR/generate_topology_leafspine_param.py"
 
 # 加载配置
 if [ -f "config.sh" ]; then
@@ -15,10 +16,106 @@ else
     exit 1
 fi
 
+if [ ! -f "$TOPO_GEN" ]; then
+    echo "错误: 找不到拓扑生成脚本: $TOPO_GEN"
+    exit 1
+fi
+
+ensure_task1() {
+    if [ ! -d "task1" ]; then
+        mkdir -p "task1"
+    fi
+}
+
+generate_traffic_for_mode() {
+    local mode="$1"
+    local totalNodes="$2"
+    local msgLen="$3"
+    local trafficOutDir="$4"
+    local topoTag="$5"
+    local dpList="${DP_LIST:-8}"
+
+    case "$mode" in
+        dp|DP)
+            python3 "$SCRIPT_DIR/TrafficGenerator/DP_onephase.py" \
+                --host_num "$totalNodes" \
+                --dp_list "$dpList" \
+                --msg_len "$msgLen" \
+                --output_dir "$trafficOutDir" \
+                --topo "$topoTag"
+            ;;
+        ep|EP)
+            python3 "$SCRIPT_DIR/TrafficGenerator/EP.py" \
+                --host_num "$totalNodes" \
+                --dp_list "$dpList" \
+                --msg_len "$msgLen" \
+                --output_dir "$trafficOutDir" \
+                --topo "$topoTag"
+            ;;
+        pp|PP)
+            python3 "$SCRIPT_DIR/TrafficGenerator/PP.py" \
+                --host_num "$totalNodes" \
+                --dp_list "$dpList" \
+                --msg_len "$msgLen" \
+                --output_dir "$trafficOutDir" \
+                --topo "$topoTag"
+            ;;
+        tp|TP)
+            python3 "$SCRIPT_DIR/TrafficGenerator/TP_ring.py" \
+                --total_nodes "$totalNodes" \
+                --msg_len "$msgLen" \
+                --output_dir "$trafficOutDir" \
+                --topo "$topoTag"
+            ;;
+        *)
+            echo "错误: 不支持的流量模式 '$mode'，仅支持 dp/ep/pp/tp"
+            exit 1
+            ;;
+    esac
+}
+
+# 默认：直接使用现有 task1（不自动从 topology_list 生成流量）
+USE_TOPOLOGY_LIST_TRAFFIC="${USE_TOPOLOGY_LIST_TRAFFIC:-0}"
+TOPOLOGY_LIST_FILE="${TOPOLOGY_LIST_FILE:-$SCRIPT_DIR/topology_list.txt}"
+if [ "$USE_TOPOLOGY_LIST_TRAFFIC" = "1" ]; then
+    if [ ! -f "$TOPOLOGY_LIST_FILE" ]; then
+        echo "错误: USE_TOPOLOGY_LIST_TRAFFIC=1 但未找到 topology_list 文件: $TOPOLOGY_LIST_FILE"
+        exit 1
+    fi
+    first_line="$(grep -vE '^\s*#|^\s*$' "$TOPOLOGY_LIST_FILE" | head -n 1 || true)"
+    if [ -z "$first_line" ]; then
+        echo "错误: topology_list 文件没有可用配置行: $TOPOLOGY_LIST_FILE"
+        exit 1
+    fi
+    read -r label serversPerTor torSwitches spineSwitches serverTorDelay torSpineDelay serverDataRate otherDataRate errorRate msgLen trafficMode <<< "$first_line"
+    trafficMode="${TRAFFIC_MODE:-${trafficMode:-dp}}"
+    totalNodes=$((serversPerTor * torSwitches))
+
+    # 根据 topology_list 生成 leaf-spine.txt，确保 run-compare 可直接运行
+    python3 "$TOPO_GEN" \
+        --servers_per_tor "$serversPerTor" \
+        --tor_switches "$torSwitches" \
+        --spine_switches "$spineSwitches" \
+        --server_tor_delay "$serverTorDelay" \
+        --tor_spine_delay "$torSpineDelay" \
+        --server_data_rate "$serverDataRate" \
+        --other_data_rate "$otherDataRate" \
+        --error_rate "$errorRate" \
+        --output_file "$SCRIPT_DIR/leaf-spine.txt"
+
+    TRAFFIC_OUT_DIR="$SCRIPT_DIR/TrafficGenerator/result"
+    TOPO_TAG="topo_${trafficMode,,}"
+    rm -rf "$TRAFFIC_OUT_DIR"
+    generate_traffic_for_mode "$trafficMode" "$totalNodes" "$msgLen" "$TRAFFIC_OUT_DIR" "$TOPO_TAG"
+    ensure_task1
+    rm -f "$SCRIPT_DIR/task1/rdma_operate"*.txt
+    find "$TRAFFIC_OUT_DIR/$TOPO_TAG/host_num${totalNodes}" -type f -name 'rdma_operate*.txt' -exec cp {} "$SCRIPT_DIR/task1/" \;
+fi
+
 # 检查 task1 目录是否存在
 if [ ! -d "task1" ]; then
     echo "错误: task1 目录不存在！"
-    echo "请先运行 sim.sh 生成 task1 目录"
+    echo "请先运行 sim.sh 生成 task1 目录，或保持 USE_TOPOLOGY_LIST_TRAFFIC=1 自动生成"
     exit 1
 fi
 
@@ -34,6 +131,7 @@ END_TIME="${END_TIME:-10000}"
 FLOW_LAUNCH_END_TIME="${FLOW_LAUNCH_END_TIME:-3}"
 DST="${DST:-1}"
 BUFFERSIZE="${BUFFERSIZE:-}"
+ENABLE_FCT_LOGICAL_TRACE="${ENABLE_FCT_LOGICAL_TRACE:-}"
 
 # 结果目录
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
@@ -47,15 +145,8 @@ run_simulation() {
     local outdir="$2"
     local program="$3"
     local build_target="$4"
-
-    # 记录运行前已有 results_ 时间戳目录（用于归档新生成的目录）
-    local before_file
-    before_file="$(mktemp)"
-    if [ -d "$NS3" ]; then
-        find "$NS3" -maxdepth 1 -type d -name 'results_*' -print0 | tr '\0' '\n' > "$before_file"
-    else
-        : > "$before_file"
-    fi
+    local results_archive_dir="${outdir}/results_timestamped"
+    mkdir -p "$results_archive_dir"
 
     cd "$NS3" || exit 1
 
@@ -76,29 +167,19 @@ run_simulation() {
     echo "输出目录: ${outdir}"
     echo "=========================================="
 
-    local cmd="time ./ns3 run \"${program} --TASKINDEX=${TASKINDEX} --DST=${DST} --START_TIME=${START_TIME} --END_TIME=${END_TIME} --FLOW_LAUNCH_END_TIME=${FLOW_LAUNCH_END_TIME} --fctOutFile=${fctfile} --torOutFile=${torfile} --pfcOutFile=${pfcfile}\""
+    local traceArg=""
+    if [ -n "${ENABLE_FCT_LOGICAL_TRACE}" ]; then
+        traceArg=" --enableFctLogicalTrace=${ENABLE_FCT_LOGICAL_TRACE}"
+    fi
+
+    local cmd="time ./ns3 run \"${program} --TASKINDEX=${TASKINDEX} --DST=${DST} --START_TIME=${START_TIME} --END_TIME=${END_TIME} --FLOW_LAUNCH_END_TIME=${FLOW_LAUNCH_END_TIME} --fctOutFile=${fctfile} --torOutFile=${torfile} --pfcOutFile=${pfcfile}${traceArg}\""
     if [ -n "${BUFFERSIZE}" ]; then
-        cmd="time ./ns3 run \"${program} --TASKINDEX=${TASKINDEX} --DST=${DST} --START_TIME=${START_TIME} --END_TIME=${END_TIME} --FLOW_LAUNCH_END_TIME=${FLOW_LAUNCH_END_TIME} --buffersize=${BUFFERSIZE} --fctOutFile=${fctfile} --torOutFile=${torfile} --pfcOutFile=${pfcfile}\""
+        cmd="time ./ns3 run \"${program} --TASKINDEX=${TASKINDEX} --DST=${DST} --START_TIME=${START_TIME} --END_TIME=${END_TIME} --FLOW_LAUNCH_END_TIME=${FLOW_LAUNCH_END_TIME} --buffersize=${BUFFERSIZE} --fctOutFile=${fctfile} --torOutFile=${torfile} --pfcOutFile=${pfcfile}${traceArg}\""
     fi
 
-    # 运行
-    echo "命令: ${cmd}"
-    bash -lc "${cmd}" > "${outfile}" 2>&1
-
-    # 收集并移动新生成的 results_ 时间戳目录内容（只保留文件，不保留目录）
-    local results_archive_dir="${outdir}/results_timestamped"
-    mkdir -p "$results_archive_dir"
-    if [ -d "$NS3" ]; then
-        while IFS= read -r -d '' dir; do
-            if ! grep -F -x -q "$dir" "$before_file"; then
-                if [ -d "$dir" ]; then
-                    find "$dir" -maxdepth 1 -type f -exec mv -t "$results_archive_dir" {} +
-                    rmdir "$dir" 2>/dev/null || true
-                fi
-            fi
-        done < <(find "$NS3" -maxdepth 1 -type d -name 'results_*' -print0)
-    fi
-    rm -f "$before_file"
+    # 运行：统计类输出直接写入本次结果目录（一步到位，不再中转搬运）
+    echo "命令: NS3_OUTPUT_DIRECTORY=${results_archive_dir} ${cmd}"
+    NS3_OUTPUT_DIRECTORY="${results_archive_dir}" bash -lc "${cmd}" > "${outfile}" 2>&1
 
     # 从输出提取仿真时间，生成 system1.log（用于加速比计算）
     if grep -q "simulation time:" "${outfile}"; then

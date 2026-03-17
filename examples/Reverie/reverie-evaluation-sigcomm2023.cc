@@ -18,6 +18,7 @@
 #include <ns3/rdma-driver.h>
 #include <ns3/switch-node.h>
 #include <ns3/sim-setting.h>
+#include <ns3/stat-config.h>
 //#include "ns3/mpi-interface.h"
 
 #include <cmath>
@@ -183,17 +184,29 @@ void qp_finish(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q) {
     uint64_t base_rtt = pairRtt[sid][did], b = pairBw[sid][did];
     uint32_t total_bytes = q->m_size + ((q->m_size - 1) / packet_payload_size + 1) * (CustomHeader::GetStaticWholeHeaderSize() - IntHeader::GetStaticSize()); // translate to the minimum bytes required (with header but no INT)
     uint64_t standalone_fct = base_rtt + total_bytes * 8 * 1e9 / b;
-    uint64_t fct = (Simulator::Now() - q->startTime).GetNanoSeconds();
+    uint64_t fctPhy = (Simulator::Now() - q->startTime).GetNanoSeconds();
+    uint64_t fctLog = fctPhy;
+    if (q->m_hasLogicalFinishTime && q->m_logicalFinishTimeNs >= q->m_logicalStartTimeNs) {
+        // 数值仿真优先使用逻辑时间计算FCT，保证fct1与逻辑时钟一致。
+        fctLog = q->m_logicalFinishTimeNs - q->m_logicalStartTimeNs;
+    }
+    const uint64_t fct = fctLog;
     double slowdown = double(fct)/standalone_fct;
     *fout->GetStream () 
             << Simulator::Now().GetSeconds()
             << '\t' << q->m_size
             << '\t' << fct 
+            << '\t' << fctPhy
+            << '\t' << fctLog
             << '\t' << standalone_fct
             << '\t' << slowdown
             << '\t' << base_rtt
             << '\t' << 3
             << '\t' << q->incastFlow
+            << '\t' << sid
+            << '\t' << did
+            << '\t' << q->sport
+            << '\t' << q->dport
             << std::endl;
 
     // remove rxQp from the receiver
@@ -725,8 +738,13 @@ int main(int argc, char *argv[]){
     cmd.AddValue ("torOutFile", "File path for ToR statistic", torOutFile);
     std::string pfcOutFile = "./pfc.txt";
     cmd.AddValue ("pfcOutFile", "File path for pfc events", pfcOutFile);
+    bool enableFctLogicalTrace = flag_ENABLE_FCT_LOGICAL_TRACE;
+    cmd.AddValue("enableFctLogicalTrace",
+                 "Enable fct logical trace csv output (fct_logical_trace.csv)",
+                 enableFctLogicalTrace);
 
     cmd.Parse (argc, argv);
+    flag_ENABLE_FCT_LOGICAL_TRACE = enableFctLogicalTrace;
     
     namespace fs = std::filesystem;
     
@@ -770,11 +788,17 @@ int main(int argc, char *argv[]){
             << "timestamp"
             << " " << "flowsize"
             << " " << "fctus"
+            << " " << "fct_phyus"
+            << " " << "fct_logus"
             << " " << "basefctus"
             << " " << "slowdown"
             << " " << "baserttus"
             << " " << "priority"
             << " " << "incastflow"
+            << " " << "src"
+            << " " << "dst"
+            << " " << "sport"
+            << " " << "dport"
             << std::endl;
 
     torStats = torTraceHelper.CreateFileStream (torOutFile);
