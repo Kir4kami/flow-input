@@ -42,7 +42,7 @@ def calculate_speedup(old_log_file, new_log_file):
         'speedup': speedup
     }
 
-def parse_fct_file(fct_file):
+def parse_fct_file(fct_file, prefer_metric="phy"):
     """解析FCT文件"""
     fcts = []
     with open(fct_file, 'r') as f:
@@ -63,8 +63,12 @@ def parse_fct_file(fct_file):
                     fct_legacy = float(parts[header_index.get('fctus', 2)])
                     fct_phy = float(parts[header_index['fct_phyus']]) if 'fct_phyus' in header_index else None
                     fct_log = float(parts[header_index['fct_logus']]) if 'fct_logus' in header_index else None
-                    # 对比优先使用物理FCT，保证与原始仿真的物理时钟口径一致。
-                    fct_compare = fct_phy if fct_phy is not None else fct_legacy
+                    if prefer_metric == "log":
+                        # 数值仿真默认对比逻辑FCT，缺失时回退到fctus。
+                        fct_compare = fct_log if fct_log is not None else fct_legacy
+                    else:
+                        # 原始仿真默认对比物理FCT，缺失时回退到fctus。
+                        fct_compare = fct_phy if fct_phy is not None else fct_legacy
                     basefct = float(parts[header_index.get('basefctus', 3)]) if len(parts) > 3 else 0
                     slowdown = float(parts[header_index.get('slowdown', 4)]) if len(parts) > 4 else 0
                     flow_key = None
@@ -91,15 +95,18 @@ def parse_fct_file(fct_file):
 
 def calculate_fct_fidelity(old_fct_file, new_fct_file):
     """计算FCT保真度"""
-    old_fcts = parse_fct_file(old_fct_file)
-    new_fcts = parse_fct_file(new_fct_file)
-
+    # 口径约定：
+    # - 原始仿真：物理FCT（fct_phyus）
+    # - 数值仿真：逻辑FCT（fct_logus）
+    old_fcts = parse_fct_file(old_fct_file, prefer_metric="phy")
+    new_fcts = parse_fct_file(new_fct_file, prefer_metric="log")
+    
     if not old_fcts or not new_fcts:
         return {'error': '没有有效的FCT数据'}
 
     old_has_key = all(item.get('flow_key') is not None for item in old_fcts)
     new_has_key = all(item.get('flow_key') is not None for item in new_fcts)
-
+    
     errors = []
     matched_count = 0
     old_unmatched = 0
@@ -153,7 +160,8 @@ def calculate_fct_fidelity(old_fct_file, new_fct_file):
         'old_unmatched': old_unmatched,
         'new_unmatched': new_unmatched,
         'old_has_flow_key': old_has_key,
-        'new_has_flow_key': new_has_key
+        'new_has_flow_key': new_has_key,
+        'compare_metric': 'original:fct_phyus, numerical:fct_logus (fallback fctus)'
     }
 
 def parse_pfc_file(pfc_file):
@@ -275,7 +283,7 @@ def main():
             print(f"错误: {fct_result['error']}")
         else:
             print(f"FCT匹配方式: {fct_result['match_mode']}")
-            print("FCT比较口径: 优先 fct_phyus（物理FCT），缺失时回退 fctus")
+            print(f"FCT比较口径: {fct_result.get('compare_metric', 'original:fct_phyus, numerical:fct_logus (fallback fctus)')}")
             print(f"FCT原始记录数: {fct_result['old_total']}")
             print(f"FCT数值记录数: {fct_result['new_total']}")
             print(f"FCT匹配记录数: {fct_result['count']}")

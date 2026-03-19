@@ -742,9 +742,14 @@ int main(int argc, char *argv[]){
     cmd.AddValue("enableFctLogicalTrace",
                  "Enable fct logical trace csv output (fct_logical_trace.csv)",
                  enableFctLogicalTrace);
+    bool enableLogicalVirtualBuffer = flag_ENABLE_LOGICAL_VIRTUAL_BUFFER;
+    cmd.AddValue("enableLogicalVirtualBuffer",
+                 "Enable simplified switch logical virtual buffer (bypass MMU admission/update counters and release by logical time)",
+                 enableLogicalVirtualBuffer);
 
     cmd.Parse (argc, argv);
     flag_ENABLE_FCT_LOGICAL_TRACE = enableFctLogicalTrace;
+    flag_ENABLE_LOGICAL_VIRTUAL_BUFFER = enableLogicalVirtualBuffer;
     
     namespace fs = std::filesystem;
     

@@ -747,9 +747,44 @@ int main(int argc, char *argv[]){
     cmd.AddValue("enableFctLogicalTrace",
                  "Enable fct logical trace csv output (fct_logical_trace.csv)",
                  enableFctLogicalTrace);
+    bool enableLogicalVirtualBuffer = flag_ENABLE_LOGICAL_VIRTUAL_BUFFER;
+    cmd.AddValue("enableLogicalVirtualBuffer",
+                 "Enable simplified switch logical virtual buffer (bypass MMU admission/update counters and release by logical time)",
+                 enableLogicalVirtualBuffer);
+    bool enableVbDelayedRelease = flag_ENABLE_VB_DELAYED_RELEASE;
+    cmd.AddValue("enableVbDelayedRelease",
+                 "Enable delayed release for logical virtual buffer path",
+                 enableVbDelayedRelease);
+    bool enableVbReleaseDelaySubtract = flag_ENABLE_VB_RELEASE_DELAY_SUBTRACT;
+    cmd.AddValue("enableVbReleaseDelaySubtract",
+                 "Enable subtract offset for logical virtual buffer release delay",
+                 enableVbReleaseDelaySubtract);
+    uint64_t vbReleaseDelaySubtractNs = g_VB_RELEASE_DELAY_SUBTRACT_NS;
+    cmd.AddValue("vbReleaseDelaySubtractNs",
+                 "Subtract offset(ns) for logical virtual buffer release delay",
+                 vbReleaseDelaySubtractNs);
+    bool enableDelayedMmuRelease = flag_ENABLE_DELAYED_MMU_RELEASE;
+    cmd.AddValue("enableDelayedMmuRelease",
+                 "Enable delayed release for legacy MMU path (non-virtual-buffer mode)",
+                 enableDelayedMmuRelease);
+    bool enableReleaseDelaySubtract = flag_ENABLE_RELEASE_DELAY_SUBTRACT;
+    cmd.AddValue("enableReleaseDelaySubtract",
+                 "Enable subtract offset for legacy MMU release delay",
+                 enableReleaseDelaySubtract);
+    uint64_t releaseDelaySubtractNs = g_RELEASE_DELAY_SUBTRACT_NS;
+    cmd.AddValue("releaseDelaySubtractNs",
+                 "Subtract offset(ns) for legacy MMU release delay",
+                 releaseDelaySubtractNs);
 
     cmd.Parse (argc, argv);
     flag_ENABLE_FCT_LOGICAL_TRACE = enableFctLogicalTrace;
+    flag_ENABLE_LOGICAL_VIRTUAL_BUFFER = enableLogicalVirtualBuffer;
+    flag_ENABLE_VB_DELAYED_RELEASE = enableVbDelayedRelease;
+    flag_ENABLE_VB_RELEASE_DELAY_SUBTRACT = enableVbReleaseDelaySubtract;
+    g_VB_RELEASE_DELAY_SUBTRACT_NS = vbReleaseDelaySubtractNs;
+    flag_ENABLE_DELAYED_MMU_RELEASE = enableDelayedMmuRelease;
+    flag_ENABLE_RELEASE_DELAY_SUBTRACT = enableReleaseDelaySubtract;
+    g_RELEASE_DELAY_SUBTRACT_NS = releaseDelaySubtractNs;
     
     namespace fs = std::filesystem;
     
@@ -759,6 +794,15 @@ int main(int argc, char *argv[]){
     }
     workFolder += to_string(taskIndex);
     kira::cout << "workFolder:" << workFolder << std::endl;
+    kira::cout << "[NumericalBufferConfig] enableLogicalVirtualBuffer=" << (flag_ENABLE_LOGICAL_VIRTUAL_BUFFER ? 1 : 0)
+               << " enableVbDelayedRelease=" << (flag_ENABLE_VB_DELAYED_RELEASE ? 1 : 0)
+               << " enableVbReleaseDelaySubtract=" << (flag_ENABLE_VB_RELEASE_DELAY_SUBTRACT ? 1 : 0)
+               << " vbReleaseDelaySubtractNs=" << g_VB_RELEASE_DELAY_SUBTRACT_NS
+               << std::endl;
+    kira::cout << "[LegacyMmuReleaseConfig] enableDelayedMmuRelease=" << (flag_ENABLE_DELAYED_MMU_RELEASE ? 1 : 0)
+               << " enableReleaseDelaySubtract=" << (flag_ENABLE_RELEASE_DELAY_SUBTRACT ? 1 : 0)
+               << " releaseDelaySubtractNs=" << g_RELEASE_DELAY_SUBTRACT_NS
+               << std::endl;
     int maxOperateNum = -1;
     // 遍历工作目录
     for (const auto& entry : fs::directory_iterator(workFolder)) {
