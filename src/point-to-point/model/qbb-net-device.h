@@ -123,6 +123,10 @@ public:
   static void SetEnableRoundRobinDebug(bool enable);
   // 获取是否启用轮询调度调试日志
   static bool GetEnableRoundRobinDebug();
+  // 设置是否启用跃迁逻辑
+  static void SetEnableJumpTransition(bool enable);
+  // 获取是否启用跃迁逻辑
+  static bool GetEnableJumpTransition();
   // 输出接收端速率到CSV文件
   void LogReceiverRateToCsv(const std::string& flowid, double avgRate, double instantRate, 
                              uint64_t windowStart, uint64_t windowEnd, uint64_t windowBytes, 
@@ -219,6 +223,9 @@ public:
 	}
 
 protected:
+
+  // 将已构造好的PFC控制帧真正下发到交换机发送路径（用于延迟调度回调）。
+  void DispatchPfcControlFrame(Ptr<Packet> p);
 
 	//Ptr<Node> m_node;
 

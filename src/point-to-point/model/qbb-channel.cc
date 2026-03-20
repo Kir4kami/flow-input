@@ -18,10 +18,14 @@
 
 #include "qbb-channel.h"
 #include "qbb-net-device.h"
+#include "ns3/custom-header.h"
 #include "ns3/trace-source-accessor.h"
 #include "ns3/packet.h"
 #include "ns3/simulator.h"
 #include "ns3/log.h"
+#include "stat-config.h"
+#include "switch-timing-tag.h"
+#include "simplified-switch-node.h"
 #include <iostream>
 #include <fstream>
 
@@ -101,12 +105,35 @@ QbbChannel::TransmitStart (
 
   uint32_t wire = src == m_link[0].m_src ? 0 : 1;
 
+  Time channelDelay = m_delay;
+  if (flag_ENABLE_TRUE_TIME_ACCELERATION)
+    {
+      SwitchTimingTag timingTag;
+      Ptr<Node> srcNode = src->GetNode();
+      if (srcNode && DynamicCast<SimplifiedSwitchNode>(srcNode) && p->PeekPacketTag(timingTag))
+        {
+          // PFC 控制帧不走“零链路时延”加速，保持独立的控制平面时序。
+          CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
+          p->PeekHeader(ch);
+          if (ch.l3Prot == 0xFE)
+            {
+              channelDelay = m_delay;
+            }
+          else
+            {
+          // 数值交换机路径：链路传播时延已并入包时间戳，这里直接投递。
+          // 发送前打散在 SimplifiedSwitchNode::SendToDev 中完成。
+          channelDelay = NanoSeconds(0);
+            }
+        }
+    }
+
   Simulator::ScheduleWithContext (m_link[wire].m_dst->GetNode ()->GetId (),
-                                  txTime + m_delay, &QbbNetDevice::Receive,
+                                  txTime + channelDelay, &QbbNetDevice::Receive,
                                   m_link[wire].m_dst, p);
 
   // Call the tx anim callback on the net device
-  m_txrxQbb (p, src, m_link[wire].m_dst, txTime, txTime + m_delay);
+  m_txrxQbb (p, src, m_link[wire].m_dst, txTime, txTime + channelDelay);
   return true;
 }
 

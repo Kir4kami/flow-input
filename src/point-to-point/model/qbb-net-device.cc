@@ -55,6 +55,7 @@
 #include "ns3/unsched-tag.h"
 #include "ns3/node-list.h"
 #include "ns3/switch-node.h"
+#include "ns3/simplified-switch-node.h"
 #include "flow-acc.h"
 
 
@@ -67,17 +68,11 @@
 #include <fstream>
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
-
-#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
+#include "stat-config.h"
 
 bool allSteadyStateReached=false;
 bool flag_steady =true;// 刚刚/第一次进入稳态
 bool flag_read_SwitchStats = false;
-
-bool flag_ENABLE_JUMP_TRANSITION=false;//启动跃迁
-bool flag_ENABLE_SWITCH_QUEUE_LOGGING = false; // 启用交换机队列记录
-extern bool flag_ENABLE_QBB_DEVICE_RATE_CALC; // 启用QbbNetDevice接收端流速率计算
-bool flag_ENABLE_ROUND_ROBIN_DEBUG = true; // 启用轮询调度调试日志（sender_round_robin_debug.csv），主要测试PFC
 
 // 全局静态变量：控制接收端速率CSV文件的打开模式（第一次覆盖，之后追加）
 static bool g_isFirstOpenReceiverRateCsv = true;
@@ -100,6 +95,9 @@ uint64_t GetWallClockNs() {
 } // namespace
 
 static void WriteSwitchNetTimeSummary() {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT || !flag_ENABLE_PACKET_SWITCH_NET_TIME_REPORT) {
+		return;
+	}
 	if (g_switchNetPacketCount == 0) {
 		return;
 	}
@@ -191,36 +189,44 @@ RdmaEgressQueue::RdmaEgressQueue() {
 Ptr<Packet> RdmaEgressQueue::DequeueQindex(int qIndex) {
 
 	NS_ASSERT_MSG(qIndex != -2, "qIndex -2 appeared in DequeueQindex. This is not intended. Aborting!");
-	if (qIndex == -1) { // high prio
-		Ptr<Packet> p = m_ackQ->Dequeue();
-		m_qlast = -1;
-		m_traceRdmaDequeue(p, 0);//出队
-		UnSchedTag tag;
-		bool found = p->PeekPacketTag(tag);
-		uint32_t unsched = tag.GetValue();
-		return p;
-	}
-	if (qIndex >= 0) { // qp
-		Ptr<Packet> p = m_rdmaGetNxtPkt(m_qpGrp->Get(qIndex));
-		
-		// 记录m_rrlast的更新
-		if (flag_ENABLE_ROUND_ROBIN_DEBUG) {
-			uint64_t currentTime = Simulator::Now().GetNanoSeconds();
-			static std::ofstream rrlastFile;
-			static bool rrlastFileOpened = false;
-			if (!rrlastFileOpened) {
-				std::string rrlastPath = GetOutputDirectory() + "/sender_round_robin_debug.csv";
-				rrlastFile.open(rrlastPath.c_str(), std::ios::out);
-				rrlastFile << "Time(ns),NodeType,NodeID,FlowID,PacketSize(Bytes)" << std::endl;
-				rrlastFileOpened = true;
+	auto logSenderRoundRobinDebug = [this](Ptr<Packet> pkt) {
+		if (!pkt || !flag_ENABLE_STAT_FILE_OUTPUT || !flag_ENABLE_ROUND_ROBIN_DEBUG) {
+			return;
+		}
+
+		Ptr<Packet> cp = pkt->Copy();
+		CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
+		ch.getInt = 1;
+		cp->PeekHeader(ch);
+
+		std::string protocolStr = "";
+		if (ch.l3Prot == 0x11) protocolStr = "UDP";
+		else if (ch.l3Prot == 0xFC) protocolStr = "ACK";
+		else if (ch.l3Prot == 0xFD) protocolStr = "NACK";
+		else return; // sender 调试日志仅记录 UDP/ACK/NACK，与 receiver 口径一致
+
+		const uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+		uint64_t logicalTimeNs = currentTime;
+		SwitchTimingTag timingTag;
+		if (pkt->PeekPacketTag(timingTag)) {
+			const uint64_t ingressNs = timingTag.GetIngressTimeNs();
+			const uint64_t egressNs = timingTag.GetEgressTimeNs();
+			if (egressNs >= ingressNs && ingressNs > 0) {
+				logicalTimeNs = std::max(currentTime, egressNs);
+			} else if (egressNs > 0) {
+				logicalTimeNs = std::max(currentTime, egressNs);
 			}
-			
-			Ptr<RdmaQueuePair> qp = m_qpGrp->Get(qIndex);
+		}
+
 			std::ostringstream flowIdStream;
-			flowIdStream << ((qp->sip.Get() >> 8) & 0xffff) << "-" << ((qp->dip.Get() >> 8) & 0xffff);
-			std::string flowId = flowIdStream.str();
+		flowIdStream << ((ch.sip >> 8) & 0xffff) << "-" << ((ch.dip >> 8) & 0xffff);
+		if (ch.l3Prot == 0x11) {
+			flowIdStream << "-" << ch.udp.sport << "-" << ch.udp.dport;
+		} else {
+			flowIdStream << "-" << ch.ack.sport << "-" << ch.ack.dport;
+		}
+		const std::string flowId = flowIdStream.str();
 			
-			// 获取节点类型和ID
 			std::string nodeType = "Unknown";
 			uint32_t nodeId = 0;
 			if (qb_dev) {
@@ -231,9 +237,31 @@ Ptr<Packet> RdmaEgressQueue::DequeueQindex(int qIndex) {
 				}
 			}
 			
-			uint32_t packetSize = p->GetSize();
-			rrlastFile << currentTime << "," << nodeType << "," << nodeId << "," << flowId << "," << packetSize << std::endl;
+		static std::ofstream senderDebugFile;
+		static bool senderDebugFileOpened = false;
+		if (!senderDebugFileOpened) {
+			std::string senderPath = GetOutputDirectory() + "/sender_round_robin_debug.csv";
+			senderDebugFile.open(senderPath.c_str(), std::ios::out);
+			senderDebugFile << "Time(ns),LogicalTime(ns),NodeType,NodeID,Protocol,FlowID,PacketSize(Bytes)" << std::endl;
+			senderDebugFileOpened = true;
 		}
+		senderDebugFile << currentTime << "," << logicalTimeNs << "," << nodeType << "," << nodeId << ","
+		                << protocolStr << "," << flowId << "," << pkt->GetSize() << std::endl;
+	};
+
+	if (qIndex == -1) { // high prio
+		Ptr<Packet> p = m_ackQ->Dequeue();
+		m_qlast = -1;
+		m_traceRdmaDequeue(p, 0);//出队
+		logSenderRoundRobinDebug(p);
+		UnSchedTag tag;
+		bool found = p->PeekPacketTag(tag);
+		uint32_t unsched = tag.GetValue();
+		return p;
+	}
+	if (qIndex >= 0) { // qp
+		Ptr<Packet> p = m_rdmaGetNxtPkt(m_qpGrp->Get(qIndex));
+		logSenderRoundRobinDebug(p);
 		
 		m_rrlast = qIndex;
 		m_qlast = qIndex;
@@ -444,6 +472,13 @@ QbbNetDevice::TransmitStart(Ptr<Packet> p)
 	m_phyTxBeginTrace(m_currentPkt);
 
 	Time txTime = m_bps.CalculateBytesTxTime(p->GetSize());
+	if (flag_ENABLE_TRUE_TIME_ACCELERATION) {
+		SwitchTimingTag timingTag;
+		if (m_node && DynamicCast<SimplifiedSwitchNode>(m_node) && p->PeekPacketTag(timingTag)) {
+			// 数值交换机路径：序列化时延已并入包时间戳，设备侧不再等待真实发送时间。
+			txTime = NanoSeconds(0);
+		}
+	}
 	auto it = node_latency_fix.find(m_node->GetId());
 	if(it!=node_latency_fix.end()){
 		txTime+=it->second;
@@ -557,7 +592,7 @@ QbbNetDevice::DequeueAndTransmit(void)
 			uint32_t qIndex = m_queue->GetLastQueue();
 			
 			// 记录发送的流ID（简化日志）
-			if (flag_ENABLE_ROUND_ROBIN_DEBUG && qIndex != 0) {
+			if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_ROUND_ROBIN_DEBUG && qIndex != 0) {
 				uint64_t currentTime = Simulator::Now().GetNanoSeconds();
 				// 从数据包中提取流ID
 				Ptr<Packet> cp = p->Copy();
@@ -567,10 +602,11 @@ QbbNetDevice::DequeueAndTransmit(void)
 				
 				std::string flowid = "";
 				if (ch.l3Prot == 0x11) { // UDP
-					Ptr<SwitchNode> switchNode = DynamicCast<SwitchNode>(m_node);
-					if (switchNode) {
-						flowid = switchNode->GenerateFlowIdFromPacket(cp, ch);
-					}
+					uint32_t srcId = ((ch.sip >> 8) & 0xffff);
+					uint32_t dstId = ((ch.dip >> 8) & 0xffff);
+					std::ostringstream flowIdStream;
+					flowIdStream << srcId << "-" << dstId << "-" << ch.udp.sport << "-" << ch.udp.dport;
+					flowid = flowIdStream.str();
 				}
 				
 				// 协议类型转换
@@ -808,31 +844,40 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		unsigned qIndex = ch.pfc.qIndex;
 		uint64_t currentTime = Simulator::Now().GetNanoSeconds();
 		
-		// 记录PFC接收事件
+		// PFC功能逻辑必须始终生效，不能依赖日志开关。
+		const bool isPause = (ch.pfc.time > 0);
+		if (isPause) {
+			m_tracePfc(1);
+			m_paused[qIndex] = true;
+		} else {
+			m_tracePfc(0);
+			Resume(qIndex);
+		}
+
+		// 仅将“写文件”作为可选行为。
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_PFC_EVENTS_LOG) {
 		static bool pfcLogFileOpened = false;
 		std::ofstream pfcLogFile;
-		std::ios_base::openmode mode = pfcLogFileOpened ? std::ios::app : std::ios::out;
 		std::string pfcEventsPath = GetOutputDirectory() + "/pfc_events.csv";
-		pfcLogFile.open(pfcEventsPath.c_str(), mode);
-		if (pfcLogFile.is_open()) {
-			if (!pfcLogFileOpened) {
-				pfcLogFile << "Time(ns),Event,NodeType,NodeID,Port/DeviceIndex,Queue,Action" << std::endl;
-				pfcLogFileOpened = true;
+			bool hasExisting = false;
+			{
+				std::ifstream existing(pfcEventsPath.c_str());
+				hasExisting = existing.good() && existing.peek() != std::ifstream::traits_type::eof();
 			}
-			
-			// 区分节点和交换机
+			pfcLogFile.open(pfcEventsPath.c_str(), std::ios::app);
+		if (pfcLogFile.is_open()) {
+				if (!pfcLogFileOpened && !hasExisting) {
+				pfcLogFile << "Time(ns),Event,NodeType,NodeID,Port/DeviceIndex,Queue,Action" << std::endl;
+			}
+				pfcLogFileOpened = true;
 			std::string nodeType = (m_node->GetNodeType() == 0) ? "Node" : "Switch";
-			
-			if (ch.pfc.time > 0) {
-				m_tracePfc(1);
-				m_paused[qIndex] = true;
+				if (isPause) {
 				pfcLogFile << currentTime << ",PFC_PAUSE_RECEIVED," << nodeType << "," << m_node->GetId() << "," << m_ifIndex << "," << qIndex << ",Pause" << std::endl;
 			} else {
-				m_tracePfc(0);
-				Resume(qIndex);
 				pfcLogFile << currentTime << ",PFC_RESUME_RECEIVED," << nodeType << "," << m_node->GetId() << "," << m_ifIndex << "," << qIndex << ",Resume" << std::endl;
 			}
 			pfcLogFile.close();
+			}
 		}
 	} else { // non-PFC packets (data, ACK, NACK, CNP...)
 		// 记录每个数据包在交换机与网侧的时间
@@ -846,10 +891,11 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			uint64_t ingressWallNs = timingTag.GetIngressWallTimeNs();
 			uint64_t egressWallNs = timingTag.GetEgressWallTimeNs();
 
-			if (ingressNs > 0 && egressNs >= ingressNs && nowNs >= egressNs) {
+			if (ingressNs > 0 && egressNs >= ingressNs) {
+				const uint64_t effectiveNowNs = std::max(nowNs, egressNs);
 				uint64_t switchTimeNs = egressNs - ingressNs;
-				uint64_t netTimeNs = nowNs - egressNs;
-				uint64_t totalTimeNs = nowNs - ingressNs;
+				uint64_t netTimeNs = effectiveNowNs - egressNs;
+				uint64_t totalTimeNs = effectiveNowNs - ingressNs;
 
 				uint64_t switchWallTimeNs = 0;
 				uint64_t netWallTimeNs = 0;
@@ -861,6 +907,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				}
 
 				std::ofstream logFile;
+				if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_PACKET_SWITCH_NET_TIME_CSV) {
 				std::ios_base::openmode mode = g_switchNetLogOpened ? std::ios::app : std::ios::out;
 				std::string logPath = GetOutputDirectory() + "/packet_switch_net_time.csv";
 				logFile.open(logPath.c_str(), mode);
@@ -879,6 +926,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 					        << std::endl;
 					logFile.close();
 				}
+				}
 
 				g_switchTimeSumNs += switchTimeNs;
 				g_netTimeSumNs += netTimeNs;
@@ -888,7 +936,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 					g_netWallTimeSumNs += netWallTimeNs;
 				}
 
-				if (!g_switchNetSummaryScheduled) {
+				if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_PACKET_SWITCH_NET_TIME_REPORT && !g_switchNetSummaryScheduled) {
 					Simulator::ScheduleDestroy(MakeEvent(&WriteSwitchNetTimeSummary));
 					g_switchNetSummaryScheduled = true;
 				}
@@ -905,6 +953,55 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			PppHeader ph; cp->RemoveHeader(ph);//（可以得到源、目的端口）
  			Ipv4Header ih;//(这里可以得到源、目的地址ipv4地址)
 			cp->RemoveHeader(ih);
+
+			// 接收端轮询调试日志：
+			// 记录真正到达目的主机的 UDP/ACK/NACK，并新增 Protocol 列便于区分协议。
+			if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_ROUND_ROBIN_DEBUG &&
+			    (ch.l3Prot == 0x11 || ch.l3Prot == 0xFC || ch.l3Prot == 0xFD) &&
+			    ((ch.dip >> 8) & 0xffff) == m_node->GetId()) {
+				uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+				// 逻辑时间：优先使用包上的加速时间戳，便于和“真实时间加速”语义对齐。
+				uint64_t logicalTimeNs = currentTime;
+				SwitchTimingTag rrTimingTag;
+				if (packet->PeekPacketTag(rrTimingTag)) {
+					const uint64_t ingressNs = rrTimingTag.GetIngressTimeNs();
+					const uint64_t egressNs = rrTimingTag.GetEgressTimeNs();
+					if (egressNs >= ingressNs && ingressNs > 0) {
+						logicalTimeNs = std::max(currentTime, egressNs);
+					} else if (egressNs > 0) {
+						logicalTimeNs = std::max(currentTime, egressNs);
+					}
+				}
+				static std::ofstream receiverRrDebugFile;
+				static bool receiverRrDebugFileOpened = false;
+				if (!receiverRrDebugFileOpened) {
+					std::string receiverRrPath = GetOutputDirectory() + "/receiver_round_robin_debug.csv";
+					receiverRrDebugFile.open(receiverRrPath.c_str(), std::ios::out);
+					receiverRrDebugFile << "Time(ns),LogicalTime(ns),NodeType,NodeID,Protocol,FlowID,PacketSize(Bytes)" << std::endl;
+					receiverRrDebugFileOpened = true;
+				}
+
+				std::ostringstream flowIdStream;
+				flowIdStream << ((ch.sip >> 8) & 0xffff) << "-" << ((ch.dip >> 8) & 0xffff);
+				if (ch.l3Prot == 0x11) {
+					flowIdStream << "-" << ch.udp.sport << "-" << ch.udp.dport;
+				} else if (ch.l3Prot == 0xFC || ch.l3Prot == 0xFD) {
+					flowIdStream << "-" << ch.ack.sport << "-" << ch.ack.dport;
+				}
+				std::string flowId = flowIdStream.str();
+
+				std::string protocolStr = "";
+				if (ch.l3Prot == 0x11) protocolStr = "UDP";
+				else if (ch.l3Prot == 0xFC) protocolStr = "ACK";
+				else if (ch.l3Prot == 0xFD) protocolStr = "NACK";
+				else protocolStr = "UNKNOWN";
+
+				std::string nodeType = (m_node->GetNodeType() == 0) ? "Node" : "Switch";
+				uint32_t nodeId = m_node->GetId();
+				uint32_t packetSize = packet->GetSize();
+				receiverRrDebugFile << currentTime << "," << logicalTimeNs << "," << nodeType << "," << nodeId << "," << protocolStr << "," << flowId << "," << packetSize << std::endl;
+			}
+
 			if (ih.GetProtocol() == 0x06) {
 				m_snifferTrace (packet);
 				m_promiscSnifferTrace (packet);
@@ -925,20 +1022,23 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 				// send to RdmaHw
 				if(((ch.dip >> 8) & 0xffff)==m_node->GetId()){//接收端才进行计算
 				std::ofstream flowstatsFile;
+				if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_FLOW_STATS_TXT) {
 				// 根据是否是第一次打开文件来选择文件打开模式
         		std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
 				std::string flowStatsPath = GetOutputDirectory() + "/flow_stats.txt";
 				flowstatsFile.open(flowStatsPath.c_str(), mode);
-				
 				if (!flowstatsFile.is_open()) {
         			throw std::runtime_error("Unable to open file for writing flow statistics.");
+					}
     			}
 
 				GenerateFlowId(cp,ch,flowstatsFile);
 				
 				// 如果是第一次打开，设置标志为false，后续追加
+				if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_FLOW_STATS_TXT) {
             	isFirstOpen = false;
 				flowstatsFile.close();
+				}
 				}
 				ret = m_rdmaReceiveCb(packet, ch);
 			}
@@ -947,7 +1047,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 	}
 	if(allSteadyStateReached && flag_ENABLE_JUMP_TRANSITION){
 		if(flag_read_SwitchStats){
-			loadFlowSwitchStats("flow_SwitchStats.txt");
+			loadFlowSwitchStats(GetOutputDirectory() + "/flow_SwitchStats.txt");
 			flag_read_SwitchStats =false;
 			
 		}
@@ -982,6 +1082,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			flag_steady=true;
 
 		std::ofstream flowstatsFile;
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_FLOW_STATS_TXT) {
 		// 根据是否是第一次打开文件来选择文件打开模式
 		std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
 		std::string flowStatsPath = GetOutputDirectory() + "/flow_stats.txt";
@@ -991,6 +1092,7 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 		}
 		// 如果是第一次打开，设置标志为false，后续追加
 		isFirstOpen = false;
+		}
 		
 		// 记录仿真结束时的交换机状态
 		if (flag_ENABLE_SWITCH_QUEUE_LOGGING) {
@@ -998,8 +1100,10 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			LogAllSwitchQueueInfo(flowstatsFile, currentTime, "Simulation End");
 		}
 		
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_FLOW_STATS_TXT) {
 		flowstatsFile << "System exit"<<endl;
 		flowstatsFile.close();
+		}
 
 		SwitchStats.clear();
 		exit_SwitchStats.clear();
@@ -1049,14 +1153,8 @@ void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstr
 		flowstatsFile <<header.udp.seq<<endl;
 	}*/
 
-	// 启动跃迁逻辑
-	#ifdef ENABLE_JUMP_TRANSITION
-    //计算速率
+	// 计算接收端统计
 	onPacketReceived(flowid, packetSize,flowstatsFile); 
-	#else
-    // 可选：记录日志或保持静默
-    // NS_LOG_DEBUG("Jump transition is disabled via macro.");
-	#endif
 	
 }
 
@@ -1334,6 +1432,7 @@ void QbbNetDevice::exitSteadyState(){
 	
 	// 打开文件用于输出日志
 	std::ofstream flowstatsFile;
+	if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_FLOW_STATS_TXT) {
 	std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
 	std::string flowStatsPath = GetOutputDirectory() + "/flow_stats.txt";
 	flowstatsFile.open(flowStatsPath.c_str(), mode);
@@ -1342,6 +1441,7 @@ void QbbNetDevice::exitSteadyState(){
 	}
 	if (isFirstOpen) {
 		isFirstOpen = false;
+		}
 	}
 	
 	// 方案1：流完成后重置相关流的稳态状态（开启跃迁时）
@@ -1809,6 +1909,12 @@ bool QbbNetDevice::SwitchSend (uint32_t qIndex, Ptr<Packet> packet, CustomHeader
 	return true;
 }
 
+void QbbNetDevice::DispatchPfcControlFrame(Ptr<Packet> p) {
+	CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
+	p->PeekHeader(ch);
+	SwitchSend(0, p, ch);
+}
+
 void QbbNetDevice::SendPfc(uint32_t qIndex, uint32_t type) {
 	Ptr<Packet> p = Create<Packet>(0);
 	PauseHeader pauseh((type == 0 ? m_pausetime : 0), m_queue->GetNBytes(qIndex), qIndex);
@@ -1822,10 +1928,9 @@ void QbbNetDevice::SendPfc(uint32_t qIndex, uint32_t type) {
 	ipv4h.SetIdentification(UniformVariable(0, 65536).GetValue());
 	p->AddHeader(ipv4h);
 	AddHeader(p, 0x800);
-	CustomHeader ch(CustomHeader::L2_Header | CustomHeader::L3_Header | CustomHeader::L4_Header);
-	p->PeekHeader(ch);
 	m_tracePfc(type+2); // 2 indicates PFC PAUSE sent.3 indicates RESUME sent
-	SwitchSend(0, p, ch);
+	// PFC控制帧统一走设备/信道常规发送路径，由txTime+channelDelay体现传播时延。
+	DispatchPfcControlFrame(p);
 }
 
 bool
@@ -2118,11 +2223,24 @@ bool QbbNetDevice::GetEnableRoundRobinDebug() {
 	return flag_ENABLE_ROUND_ROBIN_DEBUG;
 }
 
+// 设置是否启用跃迁逻辑
+void QbbNetDevice::SetEnableJumpTransition(bool enable) {
+	SetJumpTransitionEnabled(enable);
+}
+
+// 获取是否启用跃迁逻辑
+bool QbbNetDevice::GetEnableJumpTransition() {
+	return GetJumpTransitionEnabled();
+}
+
 // 输出接收端速率到CSV文件
 void QbbNetDevice::LogReceiverRateToCsv(const std::string& flowid, double avgRate, double instantRate, 
                                          uint64_t windowStart, uint64_t windowEnd, uint64_t windowBytes, 
                                          uint64_t packetCount, uint64_t currentTime) {
 	if (!flag_ENABLE_QBB_DEVICE_RATE_CALC) {
+		return;
+	}
+	if (!flag_ENABLE_STAT_FILE_OUTPUT) {
 		return;
 	}
 	

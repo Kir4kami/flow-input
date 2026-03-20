@@ -22,6 +22,9 @@ TypeId RdmaQueuePair::GetTypeId (void)
 
 RdmaQueuePair::RdmaQueuePair(uint16_t pg, Ipv4Address _sip, Ipv4Address _dip, uint16_t _sport, uint16_t _dport) {
 	startTime = Simulator::Now();
+	m_logicalStartTimeNs = startTime.GetNanoSeconds();
+	m_logicalFinishTimeNs = m_logicalStartTimeNs;
+	m_hasLogicalFinishTime = false;
 	stopTime = Simulator::GetMaximumSimulationTime();
 	sip = _sip;
 	dip = _dip;

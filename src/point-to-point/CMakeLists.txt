@@ -38,6 +38,7 @@ build_lib(
     model/switch-timing-tag.cc
     helper/qbb-helper.cc
     model/flow-acc.cc
+    model/stat-config.cc
     model/simplified-switch-simulator-wrapper.cc
     model/simplified-switch-node.cc
     model/output-directory.cc
@@ -64,6 +65,7 @@ build_lib(
     helper/qbb-helper.h
     helper/sim-setting.h
     model/flow-acc.h
+    model/stat-config.h
     model/simplified-switch-simulator-wrapper.h
     model/simplified-switch-node.h
     model/output-directory.h

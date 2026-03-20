@@ -17,6 +17,9 @@ namespace ns3 {
 class RdmaQueuePair : public Object {
 public:
 	Time startTime;
+	uint64_t m_logicalStartTimeNs;   // 逻辑开始时间（ns），用于数值仿真FCT统计
+	uint64_t m_logicalFinishTimeNs;  // 逻辑完成时间（ns），由ACK路径更新
+	bool m_hasLogicalFinishTime;     // 是否已经记录到有效逻辑完成时间
 	Ipv4Address sip, dip;
 	uint16_t sport, dport;
 	uint64_t m_size;

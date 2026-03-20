@@ -13,6 +13,7 @@
 #include "ns3/simulator.h"
 #include "output-directory.h"
 #include "switch-timing-tag.h"
+#include "stat-config.h"
 #include <cmath>
 #include "ns3/tcp-header.h"
 #include "ns3/udp-header.h"
@@ -28,17 +29,50 @@
 #include <algorithm>
 #include <map>
 
-// 前向声明外部变量（在命名空间外）
-extern bool flag_ENABLE_SWITCH_PORT_RATE_CALC;//计算交换机端口速率
-extern bool flag_ENABLE_SWITCH_PORT_RATE_LOG;//记录交换机端口速率
-extern bool flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG;//记录交换机端口数据量
-extern bool flag_ENABLE_ROUND_ROBIN_DEBUG;//记录交换机内部数据包转发日志
-
 namespace {
 uint64_t GetWallClockNs() {
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(
 	           std::chrono::steady_clock::now().time_since_epoch())
 	    .count();
+}
+
+void LogSwitchDequeueReleaseTime(uint64_t egressTimeNs,
+                                 uint64_t releaseTimeNs,
+                                 uint64_t packetUid,
+                                 uint32_t switchId,
+                                 uint32_t inDev,
+                                 uint32_t outDev,
+                                 uint32_t qIndex,
+                                 uint32_t packetSize,
+                                 bool releaseApplied) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT || !flag_ENABLE_SWITCH_DEQUEUE_RELEASE_TIME_CSV) {
+		return;
+	}
+
+	static std::ofstream logFile;
+	static bool opened = false;
+	if (!opened) {
+		std::string path = ns3::GetOutputDirectory() + "/switch_dequeue_release_time.csv";
+		logFile.open(path.c_str(), std::ios::out);
+		if (!logFile.is_open()) {
+			return;
+		}
+		logFile << "EgressTimeNs,MmuReleaseTimeNs,DeltaNs,PacketUid,SwitchID,InDev,OutDev,Queue,PacketSize(Bytes),ReleaseApplied" << std::endl;
+		opened = true;
+	}
+
+	const uint64_t deltaNs = (releaseTimeNs >= egressTimeNs) ? (releaseTimeNs - egressTimeNs) : 0;
+	logFile << egressTimeNs << ","
+	        << releaseTimeNs << ","
+	        << deltaNs << ","
+	        << packetUid << ","
+	        << switchId << ","
+	        << inDev << ","
+	        << outDev << ","
+	        << qIndex << ","
+	        << packetSize << ","
+	        << (releaseApplied ? 1 : 0) << std::endl;
+	logFile.flush();
 }
 } // namespace
 
@@ -157,6 +191,7 @@ void SwitchNode::CheckAndSendPfc(uint32_t inDev, uint32_t qIndex) {
 		
 		// 记录PFC暂停事件
 		uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_PFC_EVENTS_LOG) {
 		std::ofstream pfcLogFile;
 		std::ios_base::openmode mode = g_isFirstOpenPfcLog ? std::ios::out : std::ios::app;
 		std::string pfcEventsPath = GetOutputDirectory() + "/pfc_events.csv";
@@ -168,6 +203,7 @@ void SwitchNode::CheckAndSendPfc(uint32_t inDev, uint32_t qIndex) {
 			}
 			pfcLogFile << currentTime << ",PFC_PAUSE_SENT,Switch," << m_id << "," << inDev << "," << qIndex << ",Pause" << std::endl;
 			pfcLogFile.close();
+		}
 		}
 		
 		// 记录详细的PFC统计信息
@@ -182,6 +218,7 @@ void SwitchNode::CheckAndSendResume(uint32_t inDev, uint32_t qIndex) {
 		
 		// 记录PFC恢复事件
 		uint64_t currentTime = Simulator::Now().GetNanoSeconds();
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_PFC_EVENTS_LOG) {
 		std::ofstream pfcLogFile;
 		std::ios_base::openmode mode = g_isFirstOpenPfcLog ? std::ios::out : std::ios::app;
 		std::string pfcEventsPath = GetOutputDirectory() + "/pfc_events.csv";
@@ -193,6 +230,7 @@ void SwitchNode::CheckAndSendResume(uint32_t inDev, uint32_t qIndex) {
 			}
 			pfcLogFile << currentTime << ",PFC_RESUME_SENT,Switch," << m_id << "," << inDev << "," << qIndex << ",Resume" << std::endl;
 			pfcLogFile.close();
+		}
 		}
 		
 		// 记录详细的PFC统计信息
@@ -263,7 +301,7 @@ void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
 		}
 		
 		// 在入端口统计更新后计算入端口速率（如果启用）
-		if (flag_ENABLE_SWITCH_PORT_RATE_CALC && qIndex != 0 && ch.l3Prot == 0x11) {
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_SWITCH_PORT_RATE_CALC && qIndex != 0 && ch.l3Prot == 0x11) {
 			if (!flowid.empty()) {
 				// 计算入端口速率（数据包进入入端口队列时）
 				CalculateFlowRateAtPort(inDev, flowid, p->GetSize(), true, qIndex);
@@ -271,13 +309,13 @@ void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch) {
 		}
 		
 		// 输出与流相关的交换机端口数据量（该流经过的入端口和出端口）
-		if (flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG && qIndex != 0 && ch.l3Prot == 0x11 && !flowid.empty()) {
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG && qIndex != 0 && ch.l3Prot == 0x11 && !flowid.empty()) {
 			uint64_t currentTime = Simulator::Now().GetNanoSeconds();
 			LogFlowRelatedPortsQueueBytes(flowid, inDev, idx, qIndex, currentTime);
 		}
 		
 		// 记录入端口数据包进入日志（格式类似于switch_egress_round_robin_debug.csv）
-		if (flag_ENABLE_ROUND_ROBIN_DEBUG && qIndex != 0) {
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_ROUND_ROBIN_DEBUG && qIndex != 0) {
 			uint64_t currentTime = Simulator::Now().GetNanoSeconds();
 			
 			// 协议类型转换
@@ -446,14 +484,24 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	
 	if (qIndex != 0) {
 		uint32_t inDev = t.GetPortId();
+		const uint64_t mmuReleaseTimeNs = Simulator::Now().GetNanoSeconds();
 		m_mmu->RemoveFromIngressAdmission(inDev, qIndex, p->GetSize(), found);
 		m_mmu->RemoveFromEgressAdmission(ifIndex, qIndex, p->GetSize(), found);
 		m_bytes[inDev][ifIndex][qIndex] -= p->GetSize();
+		LogSwitchDequeueReleaseTime(currentTime,
+		                           mmuReleaseTimeNs,
+		                           p->GetUid(),
+		                           m_id,
+		                           inDev,
+		                           ifIndex,
+		                           qIndex,
+		                           p->GetSize(),
+		                           true);
 		
 		// 在数据包从出端口队列出队时计算出端口速率
 		// 这是数据包真正离开交换机的时刻，能正确反映出端口的实际转发速率
 		// 如果出端口队列积压，数据包会在队列中等待，出队速率会低于入队速率
-		if (flag_ENABLE_SWITCH_PORT_RATE_CALC && qIndex != 0) {
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_SWITCH_PORT_RATE_CALC && qIndex != 0) {
 			if (protocol == 0x11 && !flowid.empty()) { // UDP协议
 				// 计算出端口速率（数据包从出端口队列出队时）
 				// 此时数据包真正离开交换机，能反映出端口的实际转发速率
@@ -462,7 +510,7 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 		}
 
 		// 输出与流相关的交换机端口数据量（该流经过的入端口和出端口）
-		if (flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG && qIndex != 0 && protocol == 0x11 && !flowid.empty()) {
+		if (flag_ENABLE_STAT_FILE_OUTPUT && flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG && qIndex != 0 && protocol == 0x11 && !flowid.empty()) {
 			uint64_t currentTime = Simulator::Now().GetNanoSeconds();
 			LogFlowRelatedPortsQueueBytes(flowid, inDev, ifIndex, qIndex, currentTime);
 		}
@@ -484,6 +532,15 @@ void SwitchNode::SwitchNotifyDequeue(uint32_t ifIndex, uint32_t qIndex, Ptr<Pack
 	}
 	else {
 		// qIndex=0的数据包出队时不会被统计到totalEgressBytes
+		LogSwitchDequeueReleaseTime(currentTime,
+		                           currentTime,
+		                           p->GetUid(),
+		                           m_id,
+		                           t.GetPortId(),
+		                           ifIndex,
+		                           qIndex,
+		                           p->GetSize(),
+		                           false);
 	}
 	if (1) {
 		uint8_t* buf = p->GetBuffer();
@@ -1034,6 +1091,9 @@ void SwitchNode::GetPortTotalBytes(uint32_t port, uint32_t qIndex, uint64_t& tot
 
 // 输出端口数据量
 void SwitchNode::LogPortQueueBytes(uint32_t port, uint32_t qIndex, bool isIngress, uint64_t currentTime, const std::string& flowid) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT || !flag_ENABLE_PFC_DETAILED_CSV) {
+		return;
+	}
 	if (!m_mmu || qIndex >= qCnt || port >= pCnt) {
 		return;
 	}
@@ -1077,6 +1137,9 @@ void SwitchNode::LogPortQueueBytes(uint32_t port, uint32_t qIndex, bool isIngres
 // 输出速率到CSV文件
 void SwitchNode::LogRateToCsv(uint32_t port, uint32_t qIndex, bool isIngress, const std::string& flowid, double avgRate, double instantRate, 
                               uint64_t windowStart, uint64_t windowEnd, uint64_t windowBytes, uint64_t packetCount, uint64_t currentTime) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT) {
+		return;
+	}
 	if (!flag_ENABLE_SWITCH_PORT_RATE_LOG) {
 		return;
 	}
@@ -1113,6 +1176,9 @@ void SwitchNode::LogRateToCsv(uint32_t port, uint32_t qIndex, bool isIngress, co
 
 // 输出端口数据量到CSV文件
 void SwitchNode::LogPortQueueBytesToCsv(uint32_t port, uint32_t qIndex, bool isIngress, const std::string& flowid, uint64_t currentTime) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT) {
+		return;
+	}
 	if (!flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG) {
 		return;
 	}
@@ -1163,6 +1229,9 @@ void SwitchNode::LogPortQueueBytesToCsv(uint32_t port, uint32_t qIndex, bool isI
 
 // 输出与流相关的交换机端口数据量（输出所有有数据的端口）
 void SwitchNode::LogFlowRelatedPortsQueueBytes(const std::string& flowid, uint32_t inPort, uint32_t outPort, uint32_t qIndex, uint64_t currentTime) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT) {
+		return;
+	}
 	if (!flag_ENABLE_SWITCH_PORT_QUEUE_BYTES_LOG || !m_mmu || flowid.empty()) {
 		return;
 	}
@@ -1272,6 +1341,12 @@ void SwitchNode::LogFlowRelatedPortsQueueBytes(const std::string& flowid, uint32
 }
 
 void SwitchNode::LogPfcDetailedStats(uint32_t port, uint32_t queue, bool pause) {
+	if (!flag_ENABLE_STAT_FILE_OUTPUT) {
+		return;
+	}
+	if (!flag_ENABLE_PFC_DETAILED_CSV) {
+		return;
+	}
 	if (!m_mmu) {
 		return;
 	}

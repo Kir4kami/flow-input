@@ -13,8 +13,77 @@
 #include "qbb-header.h"
 #include "cn-header.h"
 #include "ns3/unsched-tag.h"
+#include "switch-timing-tag.h"
+#include "output-directory.h"
+#include "stat-config.h"
+#include <fstream>
 
 namespace ns3 {
+namespace {
+
+inline uint32_t
+IpToNodeIdFromU32(uint32_t ip)
+{
+	return (ip >> 8) & 0xffff;
+}
+
+void
+LogFctLogicalTrace(const char* event,
+                  uint64_t nowNs,
+                  uint32_t nodeId,
+                  uint32_t sip,
+                  uint32_t dip,
+                  uint16_t sport,
+                  uint16_t dport,
+                  uint32_t seq,
+                  uint64_t tagIngressNs,
+                  uint64_t tagEgressNs,
+                  uint64_t logicalNs,
+                  uint64_t qpLogicalStartNs,
+                  uint64_t qpLogicalFinishNs,
+                  uint64_t qpStartNs)
+{
+	if (!flag_ENABLE_STAT_FILE_OUTPUT || !flag_ENABLE_FCT_LOGICAL_TRACE)
+	{
+		return;
+	}
+	static std::ofstream traceFile;
+	static bool traceFileOpened = false;
+	if (!traceFileOpened)
+	{
+		std::string path = GetOutputDirectory() + "/fct_logical_trace.csv";
+		traceFile.open(path.c_str(), std::ios::out);
+		if (!traceFile.is_open())
+		{
+			return;
+		}
+		traceFile << "Event,NowNs,NodeId,SipId,DipId,Sport,Dport,Seq,"
+		          << "TagIngressNs,TagEgressNs,LogicalNs,"
+		          << "QpLogicalStartNs,QpLogicalFinishNs,QpStartNs,LogicalMinusNowNs" << std::endl;
+		traceFileOpened = true;
+	}
+	if (!traceFile.is_open())
+	{
+		return;
+	}
+	traceFile << event << ","
+	          << nowNs << ","
+	          << nodeId << ","
+	          << IpToNodeIdFromU32(sip) << ","
+	          << IpToNodeIdFromU32(dip) << ","
+	          << sport << ","
+	          << dport << ","
+	          << seq << ","
+	          << tagIngressNs << ","
+	          << tagEgressNs << ","
+	          << logicalNs << ","
+	          << qpLogicalStartNs << ","
+	          << qpLogicalFinishNs << ","
+	          << qpStartNs << ","
+	          << (logicalNs >= nowNs ? (logicalNs - nowNs) : 0) << std::endl;
+}
+
+} // anonymous namespace
 
 TypeId RdmaHw::GetTypeId (void)
 {
@@ -226,6 +295,9 @@ Ptr<RdmaQueuePair> RdmaHw::GetQp(uint32_t dip, uint16_t sport, uint16_t pg) {
 void RdmaHw::AddQueuePair(uint64_t size, uint16_t pg, Ipv4Address sip, Ipv4Address dip, uint16_t sport, uint16_t dport, uint32_t win, uint64_t baseRtt, Callback<void> notifyAppFinish, Time stopTime) {
 	// create qp
 	Ptr<RdmaQueuePair> qp = CreateObject<RdmaQueuePair>(pg, sip, dip, sport, dport);
+	qp->m_logicalStartTimeNs = qp->startTime.GetNanoSeconds();
+	qp->m_logicalFinishTimeNs = qp->m_logicalStartTimeNs;
+	qp->m_hasLogicalFinishTime = false;
 	qp->SetSize(size);
 	qp->SetWin(win);
 	qp->SetBaseRtt(baseRtt);
@@ -317,6 +389,22 @@ void RdmaHw::DeleteRxQp(uint32_t dip, uint16_t pg, uint16_t dport) {
 
 int RdmaHw::ReceiveUdp(Ptr<Packet> p, CustomHeader &ch) {
 	uint8_t ecnbits = ch.GetIpv4EcnBits();
+	const uint64_t nowNs = Simulator::Now().GetNanoSeconds();
+	uint64_t rxLogicalTimeNs = nowNs;
+	uint64_t rxTagIngressNs = 0;
+	uint64_t rxTagEgressNs = 0;
+	SwitchTimingTag rxTimingTag;
+	if (p->PeekPacketTag(rxTimingTag)) {
+		const uint64_t ingressNs = rxTimingTag.GetIngressTimeNs();
+		const uint64_t egressNs = rxTimingTag.GetEgressTimeNs();
+		rxTagIngressNs = ingressNs;
+		rxTagEgressNs = egressNs;
+		if (egressNs >= ingressNs && ingressNs > 0) {
+			rxLogicalTimeNs = std::max(nowNs, egressNs);
+		} else if (egressNs > 0) {
+			rxLogicalTimeNs = std::max(nowNs, egressNs);
+		}
+	}
 
 	uint32_t payload_size = p->GetSize() - ch.GetSerializedSize();
 
@@ -353,6 +441,28 @@ int RdmaHw::ReceiveUdp(Ptr<Packet> p, CustomHeader &ch) {
 
 		newp->AddHeader(head);
 		AddHeader(newp, 0x800);	// Attach PPP header
+
+		// ACK/NACK 逻辑时间继承“被确认数据包”的逻辑时间：
+		// 发送时刻仍是 nowNs，但逻辑时间使用 rxLogicalTimeNs。
+		SwitchTimingTag ackTimingTag;
+		ackTimingTag.SetIngressTimeNs(nowNs);
+		ackTimingTag.SetEgressTimeNs(rxLogicalTimeNs);
+		newp->AddPacketTag(ackTimingTag);
+		LogFctLogicalTrace("ACK_GEN",
+		                  nowNs,
+		                  m_node->GetId(),
+		                  ch.sip,
+		                  ch.dip,
+		                  ch.udp.sport,
+		                  ch.udp.dport,
+		                  rxQp->ReceiverNextExpectedSeq,
+		                  rxTagIngressNs,
+		                  rxTagEgressNs,
+		                  rxLogicalTimeNs,
+		                  0,
+		                  0,
+		                  0);
+
 		// send
 		uint32_t nic_idx = GetNicIdxOfRxQp(rxQp);
 		m_nic[nic_idx].dev->RdmaEnqueueHighPrioQ(newp);
@@ -427,6 +537,39 @@ int RdmaHw::ReceiveAck(Ptr<Packet> p, CustomHeader &ch) {
 
 	uint32_t nic_idx = GetNicIdxOfQp(qp);
 	Ptr<QbbNetDevice> dev = m_nic[nic_idx].dev;
+
+	// 数值仿真FCT：从ACK包标签提取逻辑时间，作为该QP最新逻辑完成时刻候选。
+	uint64_t logicalNowNs = Simulator::Now().GetNanoSeconds();
+	uint64_t ackTagIngressNs = 0;
+	uint64_t ackTagEgressNs = 0;
+	SwitchTimingTag ackTimingTag;
+	if (p->PeekPacketTag(ackTimingTag)) {
+		const uint64_t ingressNs = ackTimingTag.GetIngressTimeNs();
+		const uint64_t egressNs = ackTimingTag.GetEgressTimeNs();
+		ackTagIngressNs = ingressNs;
+		ackTagEgressNs = egressNs;
+		if (egressNs >= ingressNs && ingressNs > 0) {
+			logicalNowNs = std::max(logicalNowNs, egressNs);
+		} else if (egressNs > 0) {
+			logicalNowNs = std::max(logicalNowNs, egressNs);
+		}
+	}
+	qp->m_logicalFinishTimeNs = logicalNowNs;
+	qp->m_hasLogicalFinishTime = true;
+	LogFctLogicalTrace("ACK_RX",
+	                  Simulator::Now().GetNanoSeconds(),
+	                  m_node->GetId(),
+	                  ch.dip,
+	                  ch.sip,
+	                  ch.ack.dport,
+	                  ch.ack.sport,
+	                  ch.ack.seq,
+	                  ackTagIngressNs,
+	                  ackTagEgressNs,
+	                  logicalNowNs,
+	                  qp->m_logicalStartTimeNs,
+	                  qp->m_logicalFinishTimeNs,
+	                  qp->startTime.GetNanoSeconds());
 	if (m_ack_interval == 0)
 		std::cout << "ERROR: shouldn't receive ack\n";
 	else {
@@ -1322,3 +1465,4 @@ void RdmaHw::UpdateRateHpPint(Ptr<RdmaQueuePair> qp, Ptr<Packet> p, CustomHeader
 }
 
 }
+
