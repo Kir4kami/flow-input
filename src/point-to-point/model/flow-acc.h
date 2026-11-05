@@ -6,17 +6,19 @@
 #include<string>
 #include<vector>
 #include "ns3/nstime.h"
+#include "steady-flow-model.h"
 
 using namespace std;
 
 // 流统计结构体，记录字节数和时间戳
 struct FlowStat {
-    uint64_t byteCount;    // 累计的字节数
-    uint64_t timestamp;    // 数据包到达的时间戳（单位：毫秒）
+    uint64_t byteCount;    // 当前采样区间的应用payload字节数（不含协议头）
+    uint64_t timestamp;    // 当前采样区间起点，单位纳秒
     std::vector<double> rate;   //用来存储速率的队列
     bool ifnewpacket = true; //新的周期内是否有新数据包进入
     int size = 10;//队列大小(判断是否进入稳态)
     bool steadyStateReached = false; //是否进入稳态的标志
+    flow_acc::SamplingState sampling; // pure receive-side payload/wire sampling
 };
 
 struct NodeStat{
@@ -56,7 +58,7 @@ struct SwitchStatsPair
 // 包含多个 pair
 extern std::vector<SwitchStatsPair> multiSwitchStats;
 
-extern uint64_t MONITOR_PERIOD; // 监测周期（us）
+extern uint64_t MONITOR_PERIOD; // 监测周期（ns）
 extern std::map<string, FlowStat> flowStats; //flowid,size字节大小,存储流的统计信息
 extern std::map<uint32_t, NodeStat>NodeStats; //flowid,size字节大小,存储流的统计信息
 extern bool isFirstOpen;

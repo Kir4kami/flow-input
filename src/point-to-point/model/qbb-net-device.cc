@@ -57,22 +57,163 @@
 
 
 #include <iostream>
+#include <limits>
+#include <cmath>
 #include <iomanip>
 #include <fstream>
+#include <deque>
+#include <set>
+#include "ns3/rdma-driver.h"
 #include "ns3/mixed-granularity.h"
 #include "qbb-net-device.h"
-// // // // // // // // #define ENABLE_JUMP_TRANSITION  // 启用跃迁功能
+// Mixed granularity is selected per process through the environment.
 
 bool allSteadyStateReached=false;
 bool flag_steady =true;// 刚刚/第一次进入稳态
 bool flag_read_SwitchStats = true;
 int steady_state_count = 0;  // 稳态次数计数器
 
-bool flag_ENABLE_JUMP_TRANSITION=true;//启动跃迁
+bool flag_ENABLE_JUMP_TRANSITION = ns3::IsMixedGranularityEnabled();
 
 NS_LOG_COMPONENT_DEFINE("QbbNetDevice");
 
 namespace ns3 {
+
+namespace {
+using WideUInt = unsigned __int128;
+const size_t steadyWindowSamples = 10;
+
+struct JumpFlow {
+    Ptr<RdmaQueuePair> qp;
+    std::string id;
+    uint64_t sourceNext = 0;
+    uint64_t remaining = 0;
+    uint64_t inFlight = 0;
+    uint64_t reserve = 0;
+    uint64_t skipLimit = 0;
+    uint64_t horizonNs = 0;
+    uint64_t payloadNumerator = 0;
+    uint64_t elapsedDenominator = 0;
+    uint64_t packetPeriodNs = 0;
+    uint64_t skipBytes = 0;
+    uint32_t mtu = 0;
+    uint32_t wireBytes = 0;
+};
+
+struct JumpPlan {
+    std::vector<JumpFlow> flows;
+    uint64_t durationNs = 0;
+    uint64_t originalHorizonNs = 0;
+    uint64_t commonPacketTickNs = 0;
+    bool packetTimeAligned = false;
+    std::string alignmentFallback;
+    bool ready = false;
+    bool blocked = false;
+};
+
+JumpPlan jumpPlan;
+int pendingJumpToken = 0;
+std::set<std::string> reportedJumpGuards;
+uint32_t largestObservedFrame = 0;
+using BufferKey = std::pair<uint32_t, uint32_t>;
+using BufferSnapshot = std::map<BufferKey, uint64_t>;
+std::deque<BufferSnapshot> bufferHistory;
+uint64_t lastBufferSampleNs = 0;
+bool bufferSampleInitialized = false;
+bool bufferStationaryCacheValid = false;
+bool bufferStationaryCacheResult = false;
+
+WideUInt GreatestCommonDivisor(WideUInt a, WideUInt b) {
+    while (b) { const WideUInt remainder = a % b; a = b; b = remainder; }
+    return a;
+}
+
+std::string WideIntegerString(WideUInt value) {
+    if (!value) return "0";
+    std::string result;
+    while (value) { result.push_back('0' + static_cast<unsigned>(value % 10)); value /= 10; }
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+std::ofstream& FlowStatisticsFile() {
+    static std::ofstream output(GetSimulationOutputPath("flow_stats.txt"),
+                                isFirstOpen ? std::ios::out : std::ios::app);
+    if (!output) throw std::runtime_error("Unable to write flow statistics");
+    isFirstOpen = false;
+    return output;
+}
+
+flow_acc::SamplingPolicy SamplingPolicy() {
+    return flow_acc::SamplingPolicy(MONITOR_PERIOD, steadyWindowSamples, 1);
+}
+
+void JumpGuard(const std::string& reason, const std::string& flow = "") {
+    jumpPlan.blocked = true;
+    const std::string key = reason + ":" + flow;
+    if (!reportedJumpGuards.insert(key).second) return;
+    std::ofstream output(GetSimulationOutputPath("jump_events.jsonl"), std::ios::app);
+    output << "{\"event\":\"jump_deferred\",\"time_ns\":" << Simulator::Now().GetNanoSeconds()
+           << ",\"reason\":\"" << reason << "\",\"flow\":\"" << flow << "\"}" << std::endl;
+    if (!output) throw std::runtime_error("Unable to write jump guard telemetry");
+}
+
+void SampleBuffers(uint64_t now) {
+    if (bufferSampleInitialized && now >= lastBufferSampleNs && now - lastBufferSampleNs < MONITOR_PERIOD)
+        return;
+    BufferSnapshot snapshot;
+    for (auto it = NodeList::Begin(); it != NodeList::End(); ++it) {
+        Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(*it);
+        if (!sw) continue;
+        snapshot[{sw->GetId(), std::numeric_limits<uint32_t>::max()}] = sw->m_mmu->totalUsed;
+        for (uint32_t index = 0; index < sw->GetNDevices(); ++index) {
+            auto device = DynamicCast<QbbNetDevice>(sw->GetDevice(index));
+            if (device && device->GetQueue())
+                snapshot[{sw->GetId(), index}] = device->GetQueue()->GetNBytesTotal();
+        }
+    }
+    bufferHistory.push_back(std::move(snapshot));
+    if (bufferHistory.size() > steadyWindowSamples + 1) bufferHistory.pop_front();
+    lastBufferSampleNs = now;
+    bufferSampleInitialized = true;
+    bufferStationaryCacheValid = false;
+}
+
+bool BuffersAreStationary() {
+    if (bufferStationaryCacheValid) {
+        if (!bufferStationaryCacheResult) jumpPlan.blocked = true;
+        return bufferStationaryCacheResult;
+    }
+    bufferStationaryCacheValid = true;
+    bufferStationaryCacheResult = false;
+    if (bufferHistory.size() < steadyWindowSamples + 1 || !largestObservedFrame) {
+        JumpGuard("buffer_history_warming");
+        return false;
+    }
+    // One real frame is the discrete queue-observation uncertainty. A growing
+    // or draining queue is not a stationary network, even at a constant rate.
+    for (const auto& resource : bufferHistory.front()) {
+        uint64_t low = resource.second, high = resource.second;
+        for (const auto& snapshot : bufferHistory) {
+            const auto found = snapshot.find(resource.first);
+            if (found == snapshot.end()) { JumpGuard("buffer_layout_changed"); return false; }
+            low = std::min(low, found->second); high = std::max(high, found->second);
+        }
+        if (high - low > largestObservedFrame) {
+            JumpGuard("buffer_growing_or_draining");
+            return false;
+        }
+    }
+    bufferStationaryCacheResult = true;
+    return true;
+}
+
+std::string FlowId(Ptr<RdmaQueuePair> qp) {
+    return std::to_string((qp->sip.Get() >> 8) & 0xffff) + "-"
+        + std::to_string((qp->dip.Get() >> 8) & 0xffff) + "-"
+        + std::to_string(qp->sport) + "-" + std::to_string(qp->dport);
+}
+}
 
 uint32_t RdmaEgressQueue::ack_q_idx = 3;
 uint32_t RdmaEgressQueue::tcpip_q_idx = 1;
@@ -278,6 +419,19 @@ QbbNetDevice::GetTypeId(void)
 
 QbbNetDevice::QbbNetDevice()
 {
+    // Keep the legacy artifact for launchers that copy it, without collecting
+    // unused multi-megabyte switch matrices. Never truncate a mixed-mode input.
+    if (!flag_ENABLE_JUMP_TRANSITION) {
+        static bool compatibilityFileInitialized = false;
+        if (!compatibilityFileInitialized) {
+            std::ofstream calibration(GetSimulationOutputPath("flow_SwitchStats.txt"), std::ios::trunc);
+            if (!calibration) throw std::runtime_error("Unable to create legacy calibration compatibility file");
+            compatibilityFileInitialized = true;
+            std::cout << "Legacy switch matrix calibration disabled: mixed transitions use "
+                         "payload samples and lightweight buffer guards." << std::endl;
+        }
+    }
+
 	NS_LOG_FUNCTION(this);
 	m_ecn_source = new std::vector<ECNAccount>;
 	m_rdmaEQ = CreateObject<RdmaEgressQueue>();
@@ -676,414 +830,137 @@ QbbNetDevice::Receive(Ptr<Packet> packet)
 			else {
 				// send to RdmaHw
 				if(((ch.dip >> 8) & 0xffff)==m_node->GetId()){//接收端才进行计算
-				std::ofstream flowstatsFile;
-				// 根据是否是第一次打开文件来选择文件打开模式
-        		std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
-
-				flowstatsFile.open("flow_stats.txt", mode);
-				
-				if (!flowstatsFile.is_open()) {
-        			throw std::runtime_error("Unable to open file for writing flow statistics.");
-    			}
-
-				GenerateFlowId(cp,ch,flowstatsFile);
-				
-				// 如果是第一次打开，设置标志为false，后续追加
-            	isFirstOpen = false;
-				flowstatsFile.close();
+                auto& flowstatsFile = FlowStatisticsFile();
+                GenerateFlowId(packet, ch, flowstatsFile);
 				}
 				ret = m_rdmaReceiveCb(packet, ch);
 			}
 			// TODO we may based on the ret do something
 		}
 	}
-	if(allSteadyStateReached && flag_ENABLE_JUMP_TRANSITION){
-		if(flag_read_SwitchStats){
-			loadFlowSwitchStats("flow_SwitchStats.txt");
-			flag_read_SwitchStats =false;
-			/*std::ofstream flowstatsFile_SwitchStats;
-			// 根据是否是第一次打开文件来选择文件打开模式
-			std::ios_base::openmode mode1 = isFirstOpen_SwitchStats ? std::ios::out : std::ios::app;
-			flowstatsFile_SwitchStats.open("flow_SwitchStats.txt", mode1);	
-			if (!flowstatsFile_SwitchStats.is_open()) {
-				throw std::runtime_error("Unable to open file for writing flow statistics.");
-			}
-			// 如果是第一次打开，设置标志为false，后续追加
-			isFirstOpen_SwitchStats = false;
-			PrintAllSwitchStats(multiSwitchStats[0].normalStats,flowstatsFile_SwitchStats);
-			PrintAllSwitchStats(multiSwitchStats[0].exitStats,flowstatsFile_SwitchStats);
-			flowstatsFile_SwitchStats.close();*/
-		}
-		
-		Simulator::ScheduleNow( &ns3::QbbNetDevice::exitSteadyState, this);
-
-		/*for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-    	{
-			Ptr<Node> node = *it;
-			// 遍历�? Node 的所有NetDevice（设备）
-			for (uint32_t i = 0; i < node->GetNDevices(); ++i)
-			{
-				Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
-				if (!qbbDev){
-					continue;
-				}
-				else if(node->GetNodeType()!=0){
-					auto iter = NodeStats.find(node->GetId());
-					if(iter!=NodeStats.end()){
-						DataRate queue_rate(iter->second.rate); //获取节点的队列速率
-						queue_rate-= qbbDev->m_bps; //减去设备的带宽
-						
-						Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
-						node_latency_fix[node->GetId()]=latency_fix;
-					}
-					
-				}
-			}
-		}*/
-		allSteadyStateReached=false;
-		transition_cnt++;//增加状态转换计数器
-		
-		// 输出跃迁信息
-		uint64_t transitionTime = Simulator::Now().GetNanoSeconds();
-		cout << "========================================" << endl;
-		cout << "【系统跃迁】第 " << transition_cnt << " 次跃迁" << endl;
-		cout << "跃迁时间: " << transitionTime << " ns" << endl;
-		cout << "========================================" << endl;
-		
-		// 写入跃迁标记到单独的标记文件（避免与主数据文件冲突）
-		{
-			const std::string markerPath = "/tmp/bandwidth_markers.txt";
-			double time_sec = transitionTime / 1e9;
-			
-			FILE* fp = fopen(markerPath.c_str(), "a");
-			if (fp != nullptr) {
-				fprintf(fp, "# TRANSITION %.9f\n", time_sec);
-				fflush(fp);
-				fclose(fp);
-				std::cout << "[bandwidth_animation] 写入跃迁标记: " << time_sec << " (第" << transition_cnt << "次)" << std::endl;
-			} else {
-				std::cout << "[bandwidth_animation] ERROR: 无法打开标记文件" << std::endl;
-			}
-		}
-		
-		flag_steady=true;
-	}
-	if(allSteadyStateReached == false&&flag_steady==false && !flag_ENABLE_JUMP_TRANSITION){
-		for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-		{
-			Ptr<Node> node = *it;
-
-			if(node->GetNodeType()==1){//交换机
-					node->SwitchStatsCount(0);
-			}
-		}
-		SwitchStatsPair oneRun;
-		oneRun.normalStats = SwitchStats;
-		oneRun.exitStats = exit_SwitchStats;
-		multiSwitchStats.push_back(oneRun);
-
-		allSteadyStateReached=false;
-			cout<<"System exit"<<endl;
-			flag_steady=true;
-
-		std::ofstream flowstatsFile;
-		// 根据是否是第一次打开文件来选择文件打开模式
-		std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
-		flowstatsFile.open("flow_stats.txt", mode);	
-		if (!flowstatsFile.is_open()) {
-			throw std::runtime_error("Unable to open file for writing flow statistics.");
-		}
-		// 如果是第一次打开，设置标志为false，后续追加
-		isFirstOpen = false;
-		
-		flowstatsFile << "System exit"<<endl;
-		flowstatsFile.close();
-
-		std::ofstream flowstatsFile_SwitchStats;
-		// 根据是否是第一次打开文件来选择文件打开模式
-		std::ios_base::openmode mode1 = isFirstOpen_SwitchStats ? std::ios::out : std::ios::app;
-		flowstatsFile_SwitchStats.open("flow_SwitchStats.txt", mode1);	
-		if (!flowstatsFile_SwitchStats.is_open()) {
-			throw std::runtime_error("Unable to open file for writing flow statistics.");
-		}
-		// 如果是第一次打开，设置标志为false，后续追加
-		isFirstOpen_SwitchStats = false;
-		flowstatsFile_SwitchStats<<"SwitchStats"<<transition_cnt<<endl;
-		PrintAllSwitchStats(SwitchStats,flowstatsFile_SwitchStats);
-		SwitchStats.clear();
-		flowstatsFile_SwitchStats<<"exit_SwitchStats"<<transition_cnt<<endl;
-		PrintAllSwitchStats(exit_SwitchStats,flowstatsFile_SwitchStats);
-		exit_SwitchStats.clear();
-		flowstatsFile_SwitchStats.close();
-	}
+    // Every flow uses one frozen payload-service model for both elapsed time
+    // and sequence progress. The exit callback only closes this transition.
+    if (allSteadyStateReached && flag_ENABLE_JUMP_TRANSITION && !pendingJumpToken) {
+        calculateMintime();
+        if (jumpPlan.ready) {
+            const uint64_t duration = jumpPlan.durationNs;
+            ApplyJumpPlan();
+            transition_delay.push_back(duration);
+            // Schedule under the old stage so the core moves this callback to
+            // the end of the virtual interval along with the pending packets.
+            Simulator::ScheduleNow(&QbbNetDevice::exitSteadyState, this);
+            ++transition_cnt;
+            pendingJumpToken = transition_cnt;
+            next_trans_avail = Simulator::Now().GetNanoSeconds() + duration;
+            allSteadyStateReached = false;
+            flag_steady = true;
+            std::cout << "Mixed transition " << transition_cnt << " at "
+                      << Simulator::Now().GetNanoSeconds() << " ns, duration "
+                      << duration << " ns" << std::endl;
+            FILE* marker = fopen(GetSimulationOutputPath("bandwidth_markers.txt").c_str(), "a");
+            if (marker) {
+                fprintf(marker, "# TRANSITION %.9f\n", Simulator::Now().GetSeconds());
+                fclose(marker);
+            }
+        }
+    }
+    if (!allSteadyStateReached && !flag_steady && flag_ENABLE_JUMP_TRANSITION) {
+        RecordSteadyStateEvent("exit", Simulator::Now().GetNanoSeconds());
+        flag_steady = true;
+    }
+    if (!allSteadyStateReached && !flag_steady && !flag_ENABLE_JUMP_TRANSITION) {
+        RecordSteadyStateEvent("exit", Simulator::Now().GetNanoSeconds());
+        flag_steady = true;
+        auto& output = FlowStatisticsFile();
+        output << "System exit" << std::endl;
+        if (!output) throw std::runtime_error("Unable to write steady-state exit");
+    }
 	return;
 }
 
 //生成flowid和获取数据包大小
-void QbbNetDevice::GenerateFlowId(Ptr<Packet> cp,CustomHeader& header,std::ofstream& flowstatsFile)
-{
-	uint8_t protocol = header.l3Prot; // 获取协议�?
-    uint32_t srcIp = header.sip; // 获取源IP地址
-    uint32_t dstIp = header.dip; // 获取目标IP地址
-	//将IP转换成ID
-	uint32_t srcId = ((srcIp >> 8) & 0xffff);
-	uint32_t dstId = ((dstIp >> 8) & 0xffff);
-    uint16_t srcPort = 0; // 源端口号
-    uint16_t dstPort = 0; // 目标端口�?
-	//获取数据包大�?
-	uint16_t packetSize = 0;
-	// 根据协议类型处理传输层头�?
-    if (protocol == 0x11) // UDP协议号为17
-    {
-        srcPort = header.udp.sport; // 获取源端口号
-        dstPort = header.udp.dport; // 获取目标端口�?
-		packetSize = cp->GetSize();
-		//packetSize = header.udp.payload_size;
-		//packetSize = header.m_payloadSize;
+void QbbNetDevice::GenerateFlowId(Ptr<Packet> packet, CustomHeader& header,
+                                std::ofstream& flowstatsFile) {
+    if (header.l3Prot != 0x11) return;
+    const uint32_t wireBytes = packet->GetSize();
+    const uint32_t headerBytes = header.GetSerializedSize();
+    if (wireBytes < headerBytes)
+        throw std::runtime_error("RDMA frame is shorter than its parsed headers");
+    const uint32_t payloadBytes = wireBytes - headerBytes;
+    if (wireBytes > largestObservedFrame) {
+        largestObservedFrame = wireBytes;
+        bufferStationaryCacheValid = false;
     }
-    else
-    {
-        NS_LOG_INFO("不支持的协议: " << static_cast<uint32_t>(protocol)); // 记录不支持的协议
-        return ; // 返回默认值表示不支持的协�?
-    }
-
-    // 将所有信息组合成一个字符串
-    std::ostringstream oss;
-    oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
-
-    // 使用哈希函数将组合后的字符串转换为唯一整数ID
-    /*std::hash<std::string> hasher;
-    uint32_t flowid = static_cast<uint32_t>(hasher(oss.str()));*/
-	std::string flowid = oss.str();
-    
-	/*if(flowid == "0-1-0-0"){
-		cout << header.udp.seq<<endl;
-		flowstatsFile <<header.udp.seq<<endl;
-	}*/
-
-	// 启动跃迁逻辑
-	#ifdef ENABLE_JUMP_TRANSITION
-    //计算速率
-	onPacketReceived(flowid, packetSize,flowstatsFile); 
-	#else
-    // 可选：记录日志或保持静默
-    // NS_LOG_DEBUG("Jump transition is disabled via macro.");
-	#endif
-	
+    const std::string id = std::to_string((header.sip >> 8) & 0xffff) + "-"
+        + std::to_string((header.dip >> 8) & 0xffff) + "-"
+        + std::to_string(header.udp.sport) + "-" + std::to_string(header.udp.dport);
+    onPacketReceived(id, payloadBytes, wireBytes, flowstatsFile);
 }
 
-void QbbNetDevice::onPacketReceived(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
-    uint64_t currentTime = Simulator::Now().GetNanoSeconds();
-    
-    // 检查该流是否存在
-    auto it = flowStats.find(flowid);
-    auto filter_it =filter.find(flowid);
-    if (it == flowStats.end()&&filter_it==filter.end()){
-        // 流不存在，创建新流
-        FlowStat newStat = { packetSize, currentTime };
-        flowStats[flowid] = newStat;
-    }
-	calculateRate(flowid,packetSize,flowstatsFile);
+void QbbNetDevice::onPacketReceived(std::string flowid, uint32_t payloadBytes,
+                                   uint32_t wireBytes, std::ofstream& flowstatsFile) {
+    MarkFlowObserved(flowid);
+    if (filter.find(flowid) != filter.end()) return;
+    // ObservePacket owns the first byte count too: never pre-count a packet.
+    if (flowStats.find(flowid) == flowStats.end()) flowStats.emplace(flowid, FlowStat{});
+    calculateRate(flowid, payloadBytes, wireBytes, flowstatsFile);
 }
 
-// 计算每条流速率并输出
-void QbbNetDevice::calculateRate(std::string flowid, uint16_t packetSize,std::ofstream& flowstatsFile) {
-    uint64_t currentTime =  Simulator::Now().GetNanoSeconds();
-
-    // 遍历所有流，找出与flowid对应的流，计算速率
-    //判断系统稳态的变量
-	allSteadyStateReached = flowStats.size()>0;
-
-    // 打开带宽动画输出文件（专门用于稳态动画图）
-    static const std::string bandwidthAnimPath = "/tmp/bandwidth_animation_task.txt";
-    static std::ofstream bandwidthAnimationFile;
-    static bool isFirstOpenAnimation = true;
-    
-    // 确保文件流始终打开
-    if (!bandwidthAnimationFile.is_open()) {
-        if (isFirstOpenAnimation) {
-            // 第一次打开：检查文件是否存在，如果存在则追加，否则创建新文件
-            FILE* testFp = fopen(bandwidthAnimPath.c_str(), "r");
-            bool fileExists = (testFp != nullptr);
-            if (testFp) fclose(testFp);
-            
-            if (fileExists) {
-                // 文件已存在（可能已有标记），使用追加模式
-                bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::app);
-                std::cout << "[bandwidth_animation] File exists, opened in append mode" << std::endl;
-            } else {
-                // 文件不存在，创建新文件并写入注释头
-                bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::out);
-                if (bandwidthAnimationFile.is_open()) {
-                    bandwidthAnimationFile << "# 格式: time_sec flow_id bandwidth_gbps" << std::endl;
-                    bandwidthAnimationFile.flush();
-                    std::cout << "[bandwidth_animation] File created (first time), flowStats.size()=" << flowStats.size() << std::endl;
-                }
-            }
-            isFirstOpenAnimation = false;
-        } else {
-            // 后续打开：追加模式
-            bandwidthAnimationFile.clear();
-            bandwidthAnimationFile.open(bandwidthAnimPath.c_str(), std::ios::app);
-            if (bandwidthAnimationFile.is_open()) {
-                std::cout << "[bandwidth_animation] File reopened (append mode)" << std::endl;
-            } else {
-                std::cout << "[bandwidth_animation] ERROR: failed to reopen file" << std::endl;
-            }
+void QbbNetDevice::calculateRate(std::string flowid, uint32_t payloadBytes,
+                                uint32_t wireBytes, std::ofstream& flowstatsFile) {
+    const uint64_t now = Simulator::Now().GetNanoSeconds();
+    const auto policy = SamplingPolicy();
+    auto current = flowStats.find(flowid);
+    if (current == flowStats.end()) { allSteadyStateReached = false; return; }
+    const auto observation = flow_acc::ObservePacket(current->second.sampling, now,
+                                                      payloadBytes, wireBytes, policy);
+    for (auto& entry : flowStats) {
+        auto& stat = entry.second;
+        bool historyChanged = observation.sampled || observation.history_reset;
+        if (entry.first != flowid) {
+            const size_t previousSize = stat.sampling.samples.size();
+            const bool previousInvalid = stat.sampling.interval_invalidated;
+            flow_acc::InvalidateIfStale(stat.sampling, now, policy);
+            historyChanged = previousSize != stat.sampling.samples.size() ||
+                             previousInvalid != stat.sampling.interval_invalidated;
+        }
+        stat.byteCount = stat.sampling.payload_bytes;
+        stat.timestamp = stat.sampling.interval_start_ns;
+        stat.steadyStateReached = flow_acc::IsFreshSteady(stat.sampling, now, policy);
+        if (historyChanged) {
+            stat.rate.clear();
+            for (const auto& sample : stat.sampling.samples) stat.rate.push_back(sample.payload_gbps);
         }
     }
-
-    // 遍历所有流，找出与flowid对应的流，计算速率
-    if (flowStats.empty()) {
-        std::cout << "[bandwidth_animation] WARNING: flowStats is empty!" << std::endl;
+    SampleBuffers(now);
+    if (observation.sampled) {
+        const auto& sample = observation.sample;
+        flowstatsFile << "Flow ID: " << flowid << " - Payload rate: " << sample.payload_gbps
+                      << " Gbps currentTime: " << now << " elapsed_ns: " << sample.elapsed_ns
+                      << " payload_bytes: " << sample.payload_bytes << " wire_bytes: "
+                      << sample.wire_bytes << std::endl;
+        static std::ofstream animation(GetSimulationOutputPath("bandwidth_animation_task.txt"));
+        if (!animation) throw std::runtime_error("Unable to write payload bandwidth samples");
+        animation << std::fixed << std::setprecision(9) << now / 1e9 << ' ' << flowid
+                  << ' ' << std::setprecision(6) << sample.payload_gbps << std::endl;
     }
-    for (auto& entry : flowStats) {
-        string flow_id = entry.first;
-        FlowStat& stat = entry.second;
-
-        // 判断是否超过监测周期
-		if (currentTime - stat.timestamp >= MONITOR_PERIOD) {
-            // 计算速率（无论是否有新数据包，都输出以保持时间连续性）
-            double rate = 0.0;
-            if (stat.byteCount > 0) {
-                rate = static_cast<double>(stat.byteCount)*8 / MONITOR_PERIOD;  // Gbps
-            } else if (!stat.rate.empty()) {
-                // 如果没有新数据包，使用上一个周期的速率（保持连续性）
-                rate = stat.rate.back();
-            }
-
-            // 输出到带宽动画文件（改进格式：时间戳 流ID 带宽）
-            if (bandwidthAnimationFile.is_open()) {
-                double time_sec = currentTime / 1e9;  // 转换为秒
-                bandwidthAnimationFile << std::fixed << std::setprecision(9) 
-                                       << time_sec << " " 
-                                       << flow_id << " " 
-                                       << std::setprecision(6) << rate << std::endl;
-                if (bandwidthAnimationFile.fail()) {
-                    std::cout << "[bandwidth_animation] ERROR: write failed!" << std::endl;
-                    bandwidthAnimationFile.clear();
-                }
-                bandwidthAnimationFile.flush();
-                if (bandwidthAnimationFile.fail()) {
-                    std::cout << "[bandwidth_animation] ERROR: flush failed!" << std::endl;
-                    bandwidthAnimationFile.clear();
-                }
-                // 调试输出已删除，减少控制台噪音（保留错误信息用于排查问题）
-            } else {
-                std::cout << "[bandwidth_animation] file not open when writing" << std::endl;
-            }
-
-			if(stat.ifnewpacket){	//在这个周期内是否有这个流的新数据包进入
-				// 计算速率（单位：字节/纳秒）
-				/*for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-			{
-				Ptr<Node> node = *it;
-
-				if(node->GetNodeType()==1){//交换机
-						node->SwitchStatsCount(1);
-				}
-				std::ofstream flowstatsFile;
-				// 根据是否是第一次打开文件来选择文件打开模式
-				std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
-				flowstatsFile.open("flow_stats.txt", mode);	
-				if (!flowstatsFile.is_open()) {
-					throw std::runtime_error("Unable to open file for writing flow statistics.");
-				}
-				// 如果是第一次打开，设置标志为false，后续追加
-				isFirstOpen = false;
-				PrintAllSwitchStats(SwitchStats,flowstatsFile);
-				SwitchStats.clear();
-			}*/
-
-				cout << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << endl;
-				flowstatsFile << "Flow ID: " << flow_id << " - Rate: " << rate << " Gbps" << " currentTime: " << currentTime << std::endl;
-				stat.ifnewpacket =false;
-			stat.rate.push_back(rate);
-			if(stat.rate.size() >= stat.size){
-			stat.rate.erase(stat.rate.begin());
-			// 获取最小值和最大值
-			auto result = std::minmax_element(stat.rate.begin(), stat.rate.end());
-			auto minIt = result.first;
-			auto maxIt = result.second;
-			if(std::fabs(*maxIt - *minIt)  <= 2.22045e-16 ){
-				stat.steadyStateReached = true;//流进入稳态
-				//cout << "进入稳态" << endl;
-			}else {
-				stat.steadyStateReached = false;  // 如果速率波动超过阈值，重置稳态状态
-				allSteadyStateReached = false;   // 任何一个流未进入稳态，系统不再稳态
-			}
-			}
-				
-				// 清空流的统计信息
-				stat.byteCount = 0;
-				stat.timestamp = currentTime;
-				//stat.byteCount +=packetSize;
-			}
-		}
-		if(flow_id == flowid){		
-			stat.ifnewpacket	= true;
-			stat.byteCount +=packetSize;
-		}
-	}
-
-    // 注意：文件保持打开状态，在程序结束时自动关闭
-
-	for (auto& entry_SteadyState : flowStats) {				
-		if (!entry_SteadyState.second.steadyStateReached) {
-			allSteadyStateReached = false;
-			break;  // 一旦发现一个流未进入稳态，直接跳出循环
-		}
-	}
-
-	// if(flow_fin_unack.size()!=0 && flag_ENABLE_JUMP_TRANSITION)
-	// 	allSteadyStateReached=false;
-	// 判断系统是否刚刚进入稳态
-    if (allSteadyStateReached&&flag_steady) {
-		flag_steady=false;
-		steady_state_count++;  // 增加稳态计数
-        steadyStateStartTime = currentTime;
-        
-        cout << "========================================" << endl;
-        cout << "【系统稳态】第 " << steady_state_count << " 次进入稳态" << endl;
-        cout << "稳态时间: " << steadyStateStartTime << " ns" << endl;
-        cout << "当前跃迁次数: " << transition_cnt << endl;
-        cout << "========================================" << endl;
-        
-        cout << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
-		flowstatsFile << "System entered steady state at time: " << steadyStateStartTime << " ns" << endl;
-		
-		// 写入稳态进入标记到单独的标记文件（避免与主数据文件冲突）
-		{
-			const std::string markerPath = "/tmp/bandwidth_markers.txt";
-			double time_sec = steadyStateStartTime / 1e9;
-			
-			FILE* fp = fopen(markerPath.c_str(), "a");
-			if (fp != nullptr) {
-				fprintf(fp, "# STEADY_STATE_ENTER %.9f\n", time_sec);
-				fflush(fp);
-				fclose(fp);
-				std::cout << "[bandwidth_animation] 写入稳态进入标记: " << time_sec << " (第" << steady_state_count << "次)" << std::endl;
-			} else {
-				std::cout << "[bandwidth_animation] ERROR: 无法打开标记文件" << std::endl;
-			}
-		}
-		flowstatsFile << "Steady state count: " << steady_state_count << endl;
-		flowstatsFile << "Current transition count: " << transition_cnt << endl;
-		
-		//计算剩余流量大小除以已测量的速度均值，获取最小流完成时间uu
-		//如果在这里进行，就只计算了接收端这一个节点的，所以我们要在外部计算所有节点的流完成时间
-		calculateMintime();
-		cout << "最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
-		flowstatsFile <<"最小流完成时间: " <<std::fixed << std::setprecision(6)<< flowMinTime <<endl;
-		next_trans_avail=currentTime+flowMinTime;
-		//flowstatsFile <<"判断最小流完成时间的次�?"<<number_test<<endl;
-		transition_delay.push_back(transMinTime);
-		flowMinTime = 1.79769e+308;
+    allSteadyStateReached = !flowStats.empty() && !HasUnobservedFlows() && !pendingJumpToken;
+    for (const auto& entry : flowStats)
+        if (!entry.second.steadyStateReached) { allSteadyStateReached = false; break; }
+    if (allSteadyStateReached && !BuffersAreStationary()) allSteadyStateReached = false;
+    if (allSteadyStateReached && flag_steady) {
+        flag_steady = false;
+        ++steady_state_count;
+        steadyStateStartTime = now;
+        RecordSteadyStateEvent("enter", now);
+        std::cout << "System entered steady state at time: " << now << " ns" << std::endl;
+        flowstatsFile << "System entered steady state at time: " << now << " ns" << std::endl;
+        FILE* marker = fopen(GetSimulationOutputPath("bandwidth_markers.txt").c_str(), "a");
+        if (marker) {
+            fprintf(marker, "# STEADY_STATE_ENTER %.9f\n", now / 1e9);
+            fclose(marker);
+        }
     }
-	
-
-    // 判断系统是否退出稳态
-    
 }
 
 void QbbNetDevice::UpdateSwitchStats(){
@@ -1104,30 +981,10 @@ void QbbNetDevice::UpdateSwitchStats(){
 	}
 }
 
-void QbbNetDevice::TimeDelaySwitchStats(){
-	if((transition_cnt-1)<multiSwitchStats.size()){
-		double max_time = 0;
-		auto& exitStatsMap = multiSwitchStats[transition_cnt - 1].exitStats;
-		for (const auto& [switchId, stat] : exitStatsMap) {
-			auto& normalStatsMap = multiSwitchStats[transition_cnt - 1].normalStats;
-			auto it_2 = normalStatsMap.find(switchId);
-			if (it_2 != normalStatsMap.end()) {
-				uint32_t secondKey = it_2->first;
-				SwitchStat& secondValue = it_2->second;
-				for (int i = 0; i < pCnt; ++i) {
-					for (int j = 0; j < qCnt; ++j) {
-						if(stat.ingress_bytes[i][j]>secondValue.ingress_bytes[i][j]){
-							double time_temp = stat.ingress_bytes[i][j]-secondValue.ingress_bytes[i][j] / (stat.dequeueRateIngress[i][j] * stat.bandwidth[j] / 8);//bytes/s
-							max_time=max(max_time,time_temp);
-						}
-					}
-				}
-			}
-			
-		}
-		//
-        Simulator::Schedule(NanoSeconds(max_time), &QbbNetDevice::ContinueAfterDelay, this,max_time);	
-	}
+void QbbNetDevice::TimeDelaySwitchStats() {
+    // Historical snapshot deltas mix bytes, bps and ns, and are not a validated
+    // buffer evolution model. Real queued packets remain in the event queue.
+    JumpGuard("buffer_compensation_disabled_unvalidated_model");
 }
 
 // 新增：延迟后的逻辑
@@ -1135,200 +992,202 @@ void QbbNetDevice::ContinueAfterDelay(double max_time) {
     std::cout<<"Waited time = " << max_time << " seconds. Continuing...";
 }
 
-void QbbNetDevice::exitSteadyState(){
-	
-    //更新流完成状态
-	for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-    {
-        Ptr<Node> node = *it;
-
-
-        // 遍历�? Node 的所有NetDevice（设备）
-        for (uint32_t i = 0; i < node->GetNDevices(); ++i)
-        {
-            Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
-            if (!qbbDev){
-				continue;
-			}
-			else if(node->GetNodeType()!=0){
-				auto iter = NodeStats.find(node->GetId());
-				if(iter!=NodeStats.end()){
-					DataRate queue_rate(iter->second.rate); //获取节点的队列速率
-					queue_rate-= qbbDev->m_bps; //减去设备的带宽
-					
-					Time latency_fix=qbbDev->m_bps.CalculateBytesTxTime(transition_delay[transition_cnt]*queue_rate.GetBitRate()) ;
-					node_latency_fix[node->GetId()]=latency_fix;
-				}
-				
-			}else{
-				// 获取该设备的 RDMA 事件队列
-				Ptr<RdmaEgressQueue> rdmaEQ = qbbDev->m_rdmaEQ;
-				if (!rdmaEQ) continue;
-	
-				uint32_t qIndex;
-				uint32_t fcount = rdmaEQ->m_qpGrp->GetN();
-				for (qIndex = 0; qIndex < fcount; qIndex++) {
-					uint32_t idx = qIndex ;
-					Ptr<RdmaQueuePair> qp = rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
-	
-				//获取flowid
-					uint32_t srcIp = qp->sip.Get(); // 获取源IP地址
-					uint32_t dstIp = qp->dip.Get(); // 获取目标IP地址
-				//将IP转换成ID
-					uint32_t srcId = ((srcIp >> 8) & 0xffff);
-					uint32_t dstId = ((dstIp >> 8) & 0xffff);
-					uint16_t srcPort = qp->sport; // 源端口号
-					uint16_t dstPort = qp->dport; // 目标端口�?
-					std::ostringstream oss;
-					oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
-					std::string flowid = oss.str();
-	
-					map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
-					if(iter!=flowStats.end()){
-						double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
-						double avg = sum / iter->second.rate.size();
-						//qp->snd_nxt+=
-						qp->snd_nxt+=qp->m_rate.GetBitRate()/8e9*transition_delay[transition_cnt-1]; 
-						//transition_delay[transition_cnt - 1]（上一个稳态周期的持续时间，单位为纳秒），得到稳态期间传输的字节数，累加到 snd_nxt（已发送的下一个字节序号）
-						//即更新所有流的状态（跃迁）
-
-						flowStats.erase(flowid);
-						
-						/*if(qp->IsFinished()){
-							filter.insert(flowid);
-						}*/
-							
-					}
-					
-				}
-			}
-
-        }
-    }
-	allSteadyStateReached=false;
-		cout<<"System exit"<<endl;
-
-	//补偿
-	//UpdateSwitchStats();
-
-	//时延
-	TimeDelaySwitchStats();
-
-	std::ofstream flowstatsFile;
-	// 根据是否是第一次打开文件来选择文件打开模式
-    std::ios_base::openmode mode = isFirstOpen ? std::ios::out : std::ios::app;
-	flowstatsFile.open("flow_stats.txt", mode);	
-	if (!flowstatsFile.is_open()) {
-    	throw std::runtime_error("Unable to open file for writing flow statistics.");
-    }
-	// 如果是第一次打开，设置标志为false，后续追加
-	isFirstOpen = false;
-	flowstatsFile<<"System exit"<<endl;
-	
-		/*for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-		{
-			Ptr<Node> node = *it;
-
-			if(node->GetNodeType()==1){//交换机
-					node->SwitchStatsCount(0);
-			}
-		}
-		flowstatsFile<<"SwitchStats"<<endl;
-		PrintAllSwitchStats(SwitchStats,flowstatsFile);
-		SwitchStats.clear();
-		flowstatsFile<<"exit_SwitchStats"<<endl;
-		PrintAllSwitchStats(exit_SwitchStats,flowstatsFile);
-		exit_SwitchStats.clear();
-		flowstatsFile.close();	*/
-
+void QbbNetDevice::exitSteadyState() {
+    if (!pendingJumpToken || pendingJumpToken != transition_cnt)
+        throw std::runtime_error("Mixed transition exit token does not match its frozen plan");
+    RecordSteadyStateEvent("exit", Simulator::Now().GetNanoSeconds());
+    std::ofstream output(GetSimulationOutputPath("jump_events.jsonl"), std::ios::app);
+    output << "{\"event\":\"jump_complete\",\"transition_index\":" << pendingJumpToken
+           << ",\"time_ns\":" << Simulator::Now().GetNanoSeconds() << "}" << std::endl;
+    if (!output) throw std::runtime_error("Unable to write mixed transition completion");
+    pendingJumpToken = 0;
+    jumpPlan = JumpPlan();
+    allSteadyStateReached = false;
+    flag_steady = true;
 }
 
-//1.新流进入能否，心流进入会不会影响我们的稳态 
-//2.监视交换机上每条队列的延迟更新
-// o---0---o
-//200   100 
-// 100gbps
-//	
-//3.tr 数据包级别的事件观测 混合粒度 fin包
-// 
-//
-
-
-
-//计算剩余流量大小除以已测量的速度均值，获取最小时间
-//每一个设备qbbnetdevice都对应一个m_rdmaEQ，也就是要计算所有设备找出最小流完成时间
-void QbbNetDevice::calculateMintime(){
-	// 遍历所有Node（网络节点）
-    for (NodeList::Iterator it = NodeList::Begin(); it != NodeList::End(); ++it)
-    {
-        Ptr<Node> node = *it;
-
-		if(node->GetNodeType()==1){//交换机
-				node->SwitchStatsCount(1);
-		}
-
-        // 遍历�? Node 的所有 NetDevice（设备）
-        for (uint32_t i = 0; i < node->GetNDevices(); ++i)
-        {
-            Ptr<QbbNetDevice> qbbDev = DynamicCast<QbbNetDevice>(node->GetDevice(i));
-
-
-            if (!qbbDev|| node->GetNodeType()!=0) continue; // 如果不是 QbbNetDevice或者主机端，则跳过
-
-			if (node->GetNodeType()==1){
-				int i=1;
-			}
-
-            // 获取该设备的 RDMA 事件队列
-            Ptr<RdmaEgressQueue> rdmaEQ = qbbDev->m_rdmaEQ;
-            if (!rdmaEQ) continue;
-
-            // 遍历 RDMA 事件队列中的所有流，计算最小流完成时间
-            flowCompletiontime(rdmaEQ);
+void QbbNetDevice::calculateMintime() {
+    if (!flag_ENABLE_JUMP_TRANSITION) return;
+    jumpPlan = JumpPlan();
+    flowMinTime = std::numeric_limits<double>::max();
+    transMinTime = 0;
+    if (pendingJumpToken) { JumpGuard("transition_exit_pending"); return; }
+    if (transition_cnt == std::numeric_limits<int>::max()) { JumpGuard("transition_count_limit"); return; }
+    if (HasPendingExternalReleases()) { JumpGuard("external_release_pending"); return; }
+    if (HasUnobservedFlows()) { JumpGuard("first_packet_pending"); return; }
+    if (!BuffersAreStationary()) return;
+    for (auto it = NodeList::Begin(); it != NodeList::End(); ++it) {
+        if ((*it)->GetNodeType() != 0) continue;
+        for (uint32_t index = 0; index < (*it)->GetNDevices(); ++index) {
+            auto device = DynamicCast<QbbNetDevice>((*it)->GetDevice(index));
+            if (device && device->m_rdmaEQ) device->flowCompletiontime(device->m_rdmaEQ);
         }
+    }
+    if (jumpPlan.blocked) return;
+    if (jumpPlan.flows.empty()) { JumpGuard("no_eligible_flows"); return; }
+    uint64_t duration = std::numeric_limits<uint64_t>::max();
+    for (const auto& flow : jumpPlan.flows) duration = std::min(duration, flow.horizonNs);
+    if (duration < MONITOR_PERIOD) { JumpGuard("tail_boundary_too_close"); return; }
+    jumpPlan.originalHorizonNs = duration;
+    // A common integer-ns service grid removes systematic time credited to a
+    // flow without a matching whole-packet advance (e.g. 335ns vs 167ns NICs).
+    // Bound the LCM by the original safe horizon before multiplying: arbitrary
+    // rational rates need not have a practical common grid, and may fall back
+    // to the existing conservative whole-packet quantization instead.
+    WideUInt commonTick = 1;
+    for (const auto& flow : jumpPlan.flows) {
+        const WideUInt packetDenominator = static_cast<WideUInt>(flow.mtu) * flow.elapsedDenominator;
+        const WideUInt tick = packetDenominator / GreatestCommonDivisor(flow.payloadNumerator, packetDenominator);
+        const WideUInt factor = tick / GreatestCommonDivisor(commonTick, tick);
+        if (factor > duration || commonTick > static_cast<WideUInt>(duration) / factor) {
+            jumpPlan.alignmentFallback = "common_packet_grid_exceeds_horizon";
+            break;
+        }
+        commonTick *= factor;
+    }
+    if (jumpPlan.alignmentFallback.empty()) {
+        const uint64_t tick = static_cast<uint64_t>(commonTick);
+        const uint64_t aligned = duration / tick * tick;
+        jumpPlan.commonPacketTickNs = tick;
+        if (aligned >= MONITOR_PERIOD) {
+            duration = aligned;
+            jumpPlan.packetTimeAligned = true;
+        } else {
+            jumpPlan.alignmentFallback = "aligned_horizon_below_sampling_period";
+        }
+    }
+    for (auto& flow : jumpPlan.flows) {
+        const WideUInt payload = static_cast<WideUInt>(duration) * flow.payloadNumerator / flow.elapsedDenominator;
+        const WideUInt packets = payload / flow.mtu;
+        const WideUInt advance = packets * flow.mtu;
+        if (advance > flow.skipLimit || advance > std::numeric_limits<uint64_t>::max()) {
+            JumpGuard("invalid_progress_boundary", flow.id); return;
+        }
+        flow.skipBytes = static_cast<uint64_t>(advance);
+        if (!flow.skipBytes) { JumpGuard("no_complete_packet_to_skip", flow.id); return; }
+    }
+    jumpPlan.durationNs = duration;
+    jumpPlan.ready = true;
+    flowMinTime = static_cast<double>(duration);
+    transMinTime = static_cast<double>(duration);
+}
+
+void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> queue) {
+    const uint64_t now = Simulator::Now().GetNanoSeconds();
+    auto driver = m_node->GetObject<RdmaDriver>();
+    if (!driver || !driver->m_rdma) { JumpGuard("missing_rdma_hardware"); return; }
+    auto hardware = driver->m_rdma;
+    for (uint32_t index = 0; index < queue->m_qpGrp->GetN(); ++index) {
+        auto qp = queue->m_qpGrp->Get(index);
+        if (qp->IsFinished()) continue;
+        const std::string id = FlowId(qp);
+        if (qp->GetWin() || qp->m_win) { JumpGuard("window_state_not_supported", id); continue; }
+        if (hardware->m_cc_mode != 0) { JumpGuard("dynamic_cc_timestamps_not_supported", id); continue; }
+        if (!m_linkUp || qp->m_pg >= qCnt || m_paused[qp->m_pg]) { JumpGuard("source_paused_or_down", id); continue; }
+        if (qp->stopTime != Simulator::GetMaximumSimulationTime()) { JumpGuard("absolute_flow_deadline", id); continue; }
+        if (qp->snd_nxt > qp->m_size || qp->snd_una > qp->snd_nxt ||
+            qp->m_size > std::numeric_limits<uint32_t>::max()) { JumpGuard("unsupported_sequence_range", id); continue; }
+        const uint64_t remaining = qp->GetBytesLeft();
+        if (!remaining) { JumpGuard("flow_awaiting_final_ack", id); continue; }
+        const auto stat = flowStats.find(id);
+        if (stat == flowStats.end() || !flow_acc::IsFreshSteady(stat->second.sampling, now, SamplingPolicy())) {
+            JumpGuard("flow_sample_not_fresh_steady", id); continue;
+        }
+        auto rate = flow_acc::GetPayloadRate(stat->second.sampling);
+        const uint32_t mtu = hardware->m_mtu;
+        const uint64_t header = static_cast<uint64_t>(PppHeader::GetStaticSize())
+            + Ipv4Header().GetSerializedSize() + UdpHeader().GetSerializedSize() + SeqTsHeader().GetSerializedSize();
+        const uint64_t frame = mtu + header;
+        if (!rate.valid || !mtu || frame > std::numeric_limits<uint32_t>::max() / 8 || qp->lastPktSize != frame) {
+            JumpGuard("unsupported_packet_layout", id); continue;
+        }
+        const DataRate pacing = hardware->m_rateBound ? qp->m_rate : qp->m_max_rate;
+        if (!pacing.GetBitRate() || !m_bps.GetBitRate()) { JumpGuard("zero_sender_rate", id); continue; }
+        const int64_t wireNs = m_bps.CalculateBytesTxTime(static_cast<uint32_t>(frame)).GetNanoSeconds();
+        const int64_t pacingNs = pacing.CalculateBytesTxTime(static_cast<uint32_t>(frame)).GetNanoSeconds();
+        const int64_t gapNs = m_tInterframeGap.GetNanoSeconds();
+        if (wireNs <= 0 || pacingNs <= 0 || gapNs < 0 || std::max(wireNs, pacingNs) > std::numeric_limits<int64_t>::max() - gapNs) {
+            JumpGuard("invalid_packet_service_time", id); continue;
+        }
+        const uint64_t period = static_cast<uint64_t>(std::max(wireNs, pacingNs) + gapNs);
+        // A receive measurement cannot advance payload faster than a real full
+        // frame can be serialized by this source NIC and its configured pacer.
+        if (static_cast<WideUInt>(rate.payload_bytes) * period > static_cast<WideUInt>(mtu) * rate.elapsed_ns) {
+            rate.payload_bytes = mtu; rate.elapsed_ns = period;
+        }
+        const WideUInt rttBytes = (static_cast<WideUInt>(rate.payload_bytes) * qp->m_baseRtt + rate.elapsed_ns - 1) / rate.elapsed_ns;
+        const uint64_t flight = qp->snd_nxt - qp->snd_una;
+        const WideUInt reserve = ((std::max<WideUInt>(flight, rttBytes) + mtu - 1) / mtu + 1) * mtu;
+        if (reserve >= remaining) { JumpGuard("packet_and_flight_tail_boundary", id); continue; }
+        const uint64_t retained = static_cast<uint64_t>(reserve);
+        const uint64_t skipLimit = (remaining - retained) / mtu * mtu;
+        if (!skipLimit) { JumpGuard("no_complete_packet_before_tail", id); continue; }
+        WideUInt horizon = static_cast<WideUInt>(skipLimit) * rate.elapsed_ns / rate.payload_bytes;
+        const int64_t nextAvailSigned = qp->m_nextAvail.GetNanoSeconds();
+        if (nextAvailSigned < 0) { JumpGuard("invalid_pacer_timestamp", id); continue; }
+        const uint64_t nextAvail = static_cast<uint64_t>(nextAvailSigned);
+        const uint64_t absoluteLimit = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+        horizon = std::min<WideUInt>(horizon, absoluteLimit - std::max(now, nextAvail));
+        JumpFlow candidate;
+        candidate.qp = qp; candidate.id = id; candidate.sourceNext = qp->snd_nxt;
+        candidate.remaining = remaining; candidate.inFlight = flight; candidate.reserve = retained;
+        candidate.skipLimit = skipLimit; candidate.horizonNs = static_cast<uint64_t>(horizon);
+        candidate.payloadNumerator = rate.payload_bytes; candidate.elapsedDenominator = rate.elapsed_ns;
+        candidate.packetPeriodNs = period; candidate.mtu = mtu; candidate.wireBytes = static_cast<uint32_t>(frame);
+        jumpPlan.flows.push_back(std::move(candidate));
     }
 }
 
-
-void QbbNetDevice::flowCompletiontime(Ptr<RdmaEgressQueue> rdmaEQ){
-	uint32_t qIndex;
-	uint32_t fcount = rdmaEQ->m_qpGrp->GetN();
-		for (qIndex = 0; qIndex < fcount; qIndex++) {
-			uint32_t idx = qIndex ;
-			Ptr<RdmaQueuePair> qp = rdmaEQ->m_qpGrp->Get(idx);//qp里面也有很多条流
-
-			//获取flowid
-			uint32_t srcIp = qp->sip.Get(); // 获取源IP地址
-			uint32_t dstIp = qp->dip.Get(); // 获取目标IP地址
-			//将IP转换成ID
-			uint32_t srcId = ((srcIp >> 8) & 0xffff);
-			uint32_t dstId = ((dstIp >> 8) & 0xffff);
-			uint16_t srcPort = qp->sport; // 源端口号
-			uint16_t dstPort = qp->dport; // 目标端口号
-			std::ostringstream oss;
-    		oss << srcId << "-" << dstId << "-" << srcPort << "-" << dstPort;
-			std::string flowid = oss.str();
-
-			map<std::string, FlowStat>::iterator iter=flowStats.find(flowid);
-			if(iter!=flowStats.end()){
-				//流的实际速率（FlowStat::rate）是通过测量接收到的数据包（byteCount）计算的，单位为 Gbps
-				//m_rate 是配置速率，反映 RDMA 队列对的分配带宽，通常是稳定的、协议定义的值，适合用于更新发送进度
-				double sum = std::accumulate(iter->second.rate.begin(), iter->second.rate.end(), 0.0); // 计算总和
-    			double avg = sum / iter->second.rate.size();
-				double trans_time=0;
-				if(qp->GetBytesLeft()>1000) //至少还有一个包在发送端
-				//确保流还有足够的剩余数据需要传输，避免将接近完成的流（可能只剩控制包，如 FIN）计入主要传输时间
-					trans_time = static_cast<double>(qp->GetBytesLeft()-1000) / qp->m_rate.GetBitRate()*1e9*8;//bps
-				double time=static_cast<double>(qp->GetBytesLeft())*8 / avg;
-					//number_test++;
-				if(time < flowMinTime){
-					flowMinTime =time;
-					transMinTime=trans_time;
-				}
-					
-			}
-		}
-
+void QbbNetDevice::ApplyJumpPlan() {
+    if (!jumpPlan.ready || pendingJumpToken || !jumpPlan.durationNs)
+        throw std::runtime_error("Cannot apply an unfrozen mixed transition plan");
+    const uint64_t now = Simulator::Now().GetNanoSeconds();
+    std::ofstream output(GetSimulationOutputPath("jump_events.jsonl"), std::ios::app);
+    output << "{\"event\":\"jump_plan\",\"transition_index\":" << transition_cnt + 1
+           << ",\"start_ns\":" << now << ",\"duration_ns\":" << jumpPlan.durationNs
+           << ",\"original_horizon_ns\":" << jumpPlan.originalHorizonNs
+           << ",\"packet_time_aligned\":" << (jumpPlan.packetTimeAligned ? "true" : "false")
+           << ",\"common_packet_tick_ns\":" << jumpPlan.commonPacketTickNs
+           << ",\"alignment_fallback\":\"" << jumpPlan.alignmentFallback << '"'
+           << ",\"resume_ns\":" << now + jumpPlan.durationNs
+           << ",\"buffer_compensation\":\"disabled_unvalidated_model\",\"flows\":[";
+    bool first = true;
+    for (const auto& flow : jumpPlan.flows) {
+        auto qp = flow.qp;
+        if (qp->snd_nxt != flow.sourceNext || flow.skipBytes > qp->GetBytesLeft() ||
+            qp->GetBytesLeft() - flow.skipBytes < flow.reserve)
+            throw std::runtime_error("Flow changed after its mixed transition plan was frozen");
+        if (!first) output << ',';
+        first = false;
+        const WideUInt remainder = static_cast<WideUInt>(jumpPlan.durationNs) * flow.payloadNumerator
+                                 - static_cast<WideUInt>(flow.skipBytes) * flow.elapsedDenominator;
+        output << "{\"flow\":\"" << flow.id << "\",\"remaining_bytes\":" << flow.remaining
+               << ",\"in_flight_bytes\":" << flow.inFlight << ",\"reserved_tail_bytes\":" << flow.reserve
+               << ",\"mtu\":" << flow.mtu << ",\"wire_bytes\":" << flow.wireBytes
+               << ",\"packet_period_ns\":" << flow.packetPeriodNs
+               << ",\"payload_rate_bytes\":" << flow.payloadNumerator
+               << ",\"payload_rate_elapsed_ns\":" << flow.elapsedDenominator
+               << ",\"horizon_ns\":" << flow.horizonNs << ",\"skip_bytes\":" << flow.skipBytes
+               << ",\"time_remainder_numerator\":" << WideIntegerString(remainder)
+               << ",\"time_remainder_denominator\":" << flow.payloadNumerator
+               << ",\"conservative_time_remainder_ns\":"
+               << static_cast<long double>(remainder) / flow.payloadNumerator << '}';
+        qp->snd_nxt += flow.skipBytes;
+        qp->m_ipid = static_cast<uint16_t>(qp->m_ipid + flow.skipBytes / flow.mtu);
+        qp->m_nextAvail += NanoSeconds(jumpPlan.durationNs);
+        for (auto& timestamp : qp->rates) timestamp.second += jumpPlan.durationNs;
+        flowStats.erase(flow.id);
+        RegisterUnobservedFlow(flow.id);
+    }
+    output << "]}" << std::endl;
+    if (!output) throw std::runtime_error("Unable to write mixed transition plan");
+    // These callbacks and buffers are simulated after the same queue-time shift.
+    // Never invent additional delay from the old dimensionally-invalid model.
+    node_latency_fix.clear();
+    bufferHistory.clear();
+    bufferSampleInitialized = false;
+    bufferStationaryCacheValid = false;
+    reportedJumpGuards.clear();
 }
 
 //获取当前 NetDevice 所连接的远端设备的地址
@@ -1473,7 +1332,7 @@ void QbbNetDevice::TakeDown() {
 
 //更新设备的下一次可用发送时�?
 void QbbNetDevice::UpdateNextAvail(Time t) {
-	if (!m_nextSend.IsExpired() && t < Time(m_nextSend.GetTs())) {
+	if (!m_nextSend.IsExpired() && t < Simulator::Now() + Simulator::GetDelayLeft(m_nextSend)) {
 		Simulator::Cancel(m_nextSend);
 		Time delta = t < Simulator::Now() ? Time(0) : t - Simulator::Now();
 		m_nextSend = Simulator::Schedule(delta, &QbbNetDevice::DequeueAndTransmit, this);

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <functional>
+#include <cstdint>
 
 namespace kira {
     // 文件流对象声明

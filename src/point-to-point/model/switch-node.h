@@ -51,6 +51,10 @@ public:
 	static TypeId GetTypeId (void);
 	SwitchNode();
 	void SetEcmpSeed(uint32_t seed);
+	uint32_t GetEcmpSeed() const;
+	const std::vector<int>& GetRouteCandidates(uint32_t destinationIp) const;
+	int GetFlowOutDev(uint32_t sourceIp, uint32_t destinationIp,
+	                  uint16_t sourcePort, uint16_t destinationPort) const;
 	void AddTableEntry(Ipv4Address &dstAddr, uint32_t intf_idx);
 	void ClearTable();
 	//交换机从某个设备收到包的入口，决定转发路径并入队

@@ -42,3 +42,14 @@ task/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+cmake-cache/
+.lock-ns3_*
+**/__pycache__/
+**/.pytest_cache/
+examples/Reverie/dump*/
+
+Traffic Generation/
+rdma_result_large/
+rdma_result_small/
+examples/Reverie/Generator/Generator/workflow_output/

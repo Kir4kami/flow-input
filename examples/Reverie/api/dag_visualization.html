@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>执行分组 · 3D分层可视化</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#25334c;background:#f6f8fc}body{display:flex;flex-direction:column;overflow:hidden}header{padding:14px 18px 10px;background:#fff;border-bottom:1px solid #e2e8f0;flex-shrink:0}.heading{display:flex;gap:10px;align-items:center;flex-wrap:wrap}h1{font-size:19px;letter-spacing:.02em;margin:0}.badge{font-size:12px;padding:3px 9px;border-radius:16px;background:#fff1d9;color:#8c5c13}.badge.final{background:#e3f6ef;color:#20745b}.description{font-size:12px;color:#65748c;margin-top:4px}.counts{display:flex;gap:10px;margin-top:10px}.count{padding:5px 12px;border:1px solid #e1e7f1;border-radius:8px;flex:1;background:#fafcff}.count b{font-size:22px;margin-right:7px;color:#29487f}.count span{font-size:12px;color:#61728d}.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:7px 18px;background:#fff;font-size:12px;color:#596b85;border-bottom:1px solid #e2e8f0}.toolbar label{display:flex;align-items:center;gap:4px;cursor:pointer}button{font:inherit;border:1px solid #cbd7e7;color:#36547c;background:#fff;border-radius:5px;padding:3px 10px;cursor:pointer}button:hover{background:#eef4ff}.hint{margin-left:auto;color:#7b889d}main{display:flex;min-height:0;flex:1;position:relative}#viewport{position:relative;min-width:0;flex:1;background:radial-gradient(ellipse at 45% 35%,#fff,#eef3fb)}canvas{display:block;width:100%;height:100%;touch-action:none}aside{width:220px;padding:12px;background:rgba(255,255,255,.95);border-left:1px solid #e2e8f0;overflow-y:auto;font-size:12px}.section-title{font-size:13px;font-weight:650;margin-bottom:7px;color:#3a5278}#selection{white-space:pre-line;word-break:break-word;min-height:120px;padding:10px;background:#f5f8fd;border-radius:7px;line-height:1.8}.legend{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.legend span{border-radius:4px;padding:2px 6px;background:#f2f5fa;color:#4d617e;border-left:4px solid}.group-list{margin-top:14px}.group-row{border-top:1px solid #edf0f6;padding:7px 0;cursor:pointer;word-break:break-word}.group-row:hover{color:#1f64b8}.group-row small{display:block;color:#8290a5}.layer-label{position:absolute;left:12px;pointer-events:none;padding:3px 7px;border-radius:5px;background:#fff9;font-size:11px;color:#6b7e9b}.loading{position:absolute;left:15px;bottom:12px;color:#788aa5;font-size:12px;pointer-events:none}.fallback{padding:18px;overflow:auto;height:100%;background:#fff}.fallback>p{color:#786636}.fallback-columns{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.fallback h2{font-size:14px}.fallback-item{font-size:12px;padding:6px 8px;margin:5px 0;background:#f3f6fb;border-radius:5px;word-break:break-word}.fallback-item small{display:block;color:#71819a}.empty{padding:14px;color:#6f8099}#candidate-note:empty{display:none}@media(max-width:760px){header{padding:10px 12px}.counts{gap:6px}.count{padding:4px 8px}.count b{font-size:19px}aside{width:180px;padding:8px}.hint{display:none}.toolbar{padding:6px 12px;gap:8px}.fallback-columns{grid-template-columns:1fr}}
+</style>
+<script type="application/json" id="execution-plan-data">__EXECUTION_PLAN_JSON__</script>
+</head>
+<body>
+<header>
+  <div class="heading"><h1>3D分层 · 执行分组</h1><span class="badge" id="source-badge"></span></div>
+  <div class="description" id="source-description"></div>
+  <div class="counts"><div class="count"><b id="stage-count"></b><span>逻辑阶段</span></div><div class="count"><b id="group-count"></b><span>切分子单元</span></div><div class="count"><b id="rep-count"></b><span>去重代表任务</span></div></div>
+  <div class="description" id="candidate-note"></div>
+</header>
+<div class="toolbar"><button id="reset-view">重置视角</button><label><input type="checkbox" id="show-labels" checked>节点名称</label><label><input type="checkbox" id="show-mappings">阶段／单元／代表映射</label><span class="hint">拖动旋转 · 滚轮缩放 · 右键平移 · 点击节点查看</span></div>
+<main><div id="viewport"><div class="loading" id="render-status">正在载入分层视图…</div></div><aside><div class="section-title">节点详情</div><div id="selection">点击节点查看阶段、子单元和代表任务。
+
+上层：完整通信DAG
+中层：切分后的子单元
+下层：去重后的代表任务
+
+相同颜色表示复用同一代表。</div><div class="section-title" style="margin-top:14px">代表任务图例</div><div class="legend" id="legend"></div><div class="group-list"><div class="section-title">全部子单元</div><div id="groups-list"></div></div></aside></main>
+<script src="/three.min.js"></script>
+<script src="/OrbitControls.js"></script>
+<script>
+(function(){
+  'use strict';
+  const plan=JSON.parse(document.getElementById('execution-plan-data').textContent);
+  const byId=(items)=>new Map(items.map(item=>[item.id,item]));
+  const stages=byId(plan.stages),groups=byId(plan.groups),reps=byId(plan.representatives);
+  const colors=new Map(plan.representatives.map((item,index)=>[item.id,'hsl('+((217+index*137.50776405)%360).toFixed(6)+',52%,48%)']));
+  const status=document.getElementById('render-status');
+  const viewport=document.getElementById('viewport');
+  const badge=document.getElementById('source-badge');
+  badge.textContent=plan.is_final?'最终执行分组':'候选执行分组';
+  badge.classList.toggle('final',plan.is_final);
+  document.getElementById('source-description').textContent=plan.is_final?'按本次仿真采用的最终计划显示，包含运行时合并和已接受的复用映射。':'按当前切分计划显示；运行时可能因资源竞争或等价性验证调整分组。';
+  document.getElementById('stage-count').textContent=plan.counts.logical_unit_count;
+  document.getElementById('group-count').textContent=plan.counts.group_count;
+  document.getElementById('rep-count').textContent=plan.counts.representative_count;
+  const candidate=plan.deduplication&&plan.deduplication.candidate_representative_count;
+  if(!plan.is_final&&Number.isInteger(candidate)&&candidate!==plan.counts.representative_count){
+    document.getElementById('candidate-note').textContent='另有待验证的对称映射，验证通过后代表任务可减少至 '+candidate+' 个。';
+  }
+  function describe(kind,id){
+    if(kind==='stage'){
+      if(id==='Root')return '通信起点 Root\n用于显示各入口依赖，不计入逻辑阶段数量。';
+      const s=stages.get(id);return '逻辑阶段 '+s.id+'\n类型：'+(s.type||'—')+'\n前驱：'+(s.predecessors.join('、')||'入口')+'\n操作数量：'+s.operation_count+'\n子单元：'+s.group_id+'\n代表任务：'+s.representative_id;
+    }
+    if(kind==='group'){
+      const g=groups.get(id);return '切分子单元 '+g.id+'\n包含阶段：'+g.stage_ids.join('、')+'\n前驱子单元：'+((g.predecessors||[]).join('、')||'入口')+'\n代表任务：'+plan.group_to_rep[id];
+    }
+    const r=reps.get(id);return '代表任务 '+r.id+'\n实际输入子单元：'+r.group_id+'\n覆盖子单元：'+r.member_group_ids.join('、')+'\n复用单元数：'+Math.max(0,r.member_group_ids.length-1);
+  }
+  function select(kind,id){document.getElementById('selection').textContent=describe(kind,id);}
+  plan.representatives.forEach(rep=>{
+    const span=document.createElement('span');span.textContent=rep.id+' · '+rep.member_group_ids.length;span.style.borderLeftColor=colors.get(rep.id);span.title='覆盖 '+rep.member_group_ids.length+' 个子单元';document.getElementById('legend').appendChild(span);
+  });
+  plan.groups.forEach(group=>{
+    const row=document.createElement('div');row.className='group-row';
+    row.style.borderLeft='3px solid '+colors.get(plan.group_to_rep[group.id]);row.style.paddingLeft='7px';
+    const title=document.createElement('div');title.textContent=group.id+' → '+plan.group_to_rep[group.id];
+    const members=document.createElement('small');members.textContent=group.stage_ids.join('、');
+    row.appendChild(title);row.appendChild(members);row.addEventListener('click',()=>select('group',group.id));
+    document.getElementById('groups-list').appendChild(row);
+  });
+  function fallback(){
+    viewport.replaceChildren();const wrapper=document.createElement('div');wrapper.className='fallback';
+    const note=document.createElement('p');note.textContent='当前浏览器无法显示 3D，已显示同一份执行分组。';wrapper.appendChild(note);
+    const columns=document.createElement('div');columns.className='fallback-columns';wrapper.appendChild(columns);
+    [['完整DAG',plan.stages,'stage'],['切分子单元',plan.groups,'group'],['去重代表任务',plan.representatives,'rep']].forEach(([title,items,kind])=>{
+      const col=document.createElement('section');const heading=document.createElement('h2');heading.textContent=title+' · '+items.length;col.appendChild(heading);
+      items.forEach(item=>{const box=document.createElement('div');box.className='fallback-item';box.textContent=item.id;const sub=document.createElement('small');sub.textContent=kind==='stage'?'前驱：'+(item.predecessors.join('、')||'入口'):kind==='group'?item.stage_ids.join('、')+' → '+plan.group_to_rep[item.id]:item.member_group_ids.join('、');box.appendChild(sub);box.addEventListener('click',()=>select(kind,item.id));col.appendChild(box);});columns.appendChild(col);
+    });viewport.appendChild(wrapper);
+  }
+  try{
+    if(!window.THREE||!THREE.OrbitControls)throw Error('3D components unavailable');
+    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setClearColor(0xffffff,0);viewport.appendChild(renderer.domElement);
+    const scene=new THREE.Scene();const maxDepth=Math.max(...plan.stages.map(stage=>stage.depth),0);
+    const span=Math.max(900,(maxDepth+2)*115);const camera=new THREE.OrthographicCamera(-span/2,span/2,span/2,-span/2,1,12000);camera.position.set(250,1150,1600);
+    const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.12;controls.minZoom=.25;controls.maxZoom=6;controls.target.set(0,0,0);
+    scene.add(new THREE.AmbientLight(0xffffff,.9));const light=new THREE.DirectionalLight(0xffffff,.6);light.position.set(300,900,700);scene.add(light);
+    const labels=[],pickables=[],mappingLayer=new THREE.Group();mappingLayer.visible=false;scene.add(mappingLayer);
+    const levels={stage:310,group:0,rep:-310};const positions={stage:new Map(),group:new Map(),rep:new Map()};
+    const columns=new Map();plan.stages.forEach(stage=>{if(!columns.has(stage.depth))columns.set(stage.depth,[]);columns.get(stage.depth).push(stage);});
+    columns.forEach((items,depth)=>items.forEach((stage,index)=>positions.stage.set(stage.id,new THREE.Vector3((depth-maxDepth/2)*115,levels.stage,(index-(items.length-1)/2)*130))));
+    positions.stage.set('Root',new THREE.Vector3((-1-maxDepth/2)*115,levels.stage,0));
+    const occupiedGroups=[];
+    plan.groups.forEach(group=>{const point=new THREE.Vector3();group.stage_ids.forEach(sid=>point.add(positions.stage.get(sid)));point.divideScalar(group.stage_ids.length);point.y=levels.group;
+      const baseZ=point.z;let offset=0;
+      while(occupiedGroups.some(other=>Math.hypot(point.x-other.x,point.z-other.z)<65)){offset++;point.z=baseZ+(offset%2?1:-1)*Math.ceil(offset/2)*85;}
+      occupiedGroups.push(point.clone());positions.group.set(group.id,point);
+    });
+    plan.representatives.forEach((rep,index)=>positions.rep.set(rep.id,new THREE.Vector3((index-(plan.representatives.length-1)/2)*Math.min(230,span/Math.max(plan.representatives.length,1)),levels.rep,0)));
+    function textLabel(text,width=130,fontSize=40,color='#304a71'){
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');ctx.font='600 '+fontSize+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=color;ctx.fillText(text,256,64,500);
+      const texture=new THREE.CanvasTexture(canvas);const material=new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false});const sprite=new THREE.Sprite(material);sprite.scale.set(width,width/4,1);sprite.renderOrder=10;labels.push(sprite);scene.add(sprite);return sprite;
+    }
+    function node(kind,id,color){
+      const material=new THREE.MeshLambertMaterial({color});const mesh=new THREE.Mesh(kind==='group'?new THREE.BoxGeometry(30,25,30):new THREE.SphereGeometry(kind==='rep'?20:16,20,12),material);mesh.position.copy(positions[kind].get(id));mesh.userData={kind,id};scene.add(mesh);pickables.push(mesh);
+      const name=kind==='group'?id:kind==='rep'?id+' · '+reps.get(id).member_group_ids.length:id;
+      const label=textLabel(name,kind==='rep'?150:125);label.position.copy(mesh.position);label.position.y+=35;
+    }
+    function dependency(source,target,color){
+      const vector=target.clone().sub(source);const length=vector.length();if(length<35)return;const direction=vector.normalize();const start=source.clone().addScaledVector(direction,20);scene.add(new THREE.ArrowHelper(direction,start,length-40,color,12,6));
+    }
+    function mapping(source,target,color){
+      const geometry=new THREE.BufferGeometry().setFromPoints([source,target]);const material=new THREE.LineDashedMaterial({color,transparent:true,opacity:.28,dashSize:9,gapSize:7});const line=new THREE.Line(geometry,material);line.computeLineDistances();mappingLayer.add(line);
+    }
+    [['stage','完整通信 DAG',levels.stage],['group','切分子单元',levels.group],['rep','去重代表任务',levels.rep]].forEach(([kind,title,height])=>{
+      const geometry=new THREE.PlaneGeometry(span+180,350);const material=new THREE.MeshBasicMaterial({color:kind==='stage'?0xcedcf1:kind==='group'?0xd6e9e4:0xe7ddf0,transparent:true,opacity:.22,side:THREE.DoubleSide,depthWrite:false});const plane=new THREE.Mesh(geometry,material);plane.rotation.x=-Math.PI/2;plane.position.y=height-23;scene.add(plane);
+      const name=textLabel(title,200,36,'#526c93');name.position.set(-span/2+40,height+90,0);
+    });
+    node('stage','Root','#97a3b5');
+    plan.stages.forEach(stage=>node('stage',stage.id,colors.get(stage.representative_id)));
+    plan.groups.forEach(group=>node('group',group.id,colors.get(plan.group_to_rep[group.id])));
+    plan.representatives.forEach(rep=>node('rep',rep.id,colors.get(rep.id)));
+    plan.edges.forEach(([a,b])=>dependency(positions.stage.get(a),positions.stage.get(b),0x91a5c2));
+    plan.roots.forEach(sid=>dependency(positions.stage.get('Root'),positions.stage.get(sid),0xabb7c9));
+    plan.group_edges.forEach(([a,b])=>dependency(positions.group.get(a),positions.group.get(b),0x9bb8ae));
+    plan.stages.forEach(stage=>mapping(positions.stage.get(stage.id),positions.group.get(stage.group_id),colors.get(stage.representative_id)));
+    plan.groups.forEach(group=>mapping(positions.group.get(group.id),positions.rep.get(plan.group_to_rep[group.id]),colors.get(plan.group_to_rep[group.id])));
+    function resize(){const width=viewport.clientWidth||900,height=viewport.clientHeight||500;renderer.setSize(width,height);const aspect=width/height;const vertical=Math.max(1050,(span+230)/aspect);camera.left=-vertical*aspect/2;camera.right=vertical*aspect/2;camera.top=vertical/2;camera.bottom=-vertical/2;camera.updateProjectionMatrix();}
+    resize();new ResizeObserver(resize).observe(viewport);
+    const initialPosition=camera.position.clone(),initialTarget=controls.target.clone();document.getElementById('reset-view').addEventListener('click',()=>{camera.position.copy(initialPosition);camera.zoom=1;camera.updateProjectionMatrix();controls.target.copy(initialTarget);controls.update();});
+    document.getElementById('show-labels').addEventListener('change',event=>labels.forEach(label=>{label.visible=event.target.checked;}));
+    document.getElementById('show-mappings').addEventListener('change',event=>{mappingLayer.visible=event.target.checked;});
+    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let down=null;
+    renderer.domElement.addEventListener('pointerdown',event=>{down={x:event.clientX,y:event.clientY};});
+    renderer.domElement.addEventListener('pointerup',event=>{if(!down||Math.hypot(event.clientX-down.x,event.clientY-down.y)>5)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(pickables,false)[0];if(hit)select(hit.object.userData.kind,hit.object.userData.id);});
+    status.textContent='实线箭头：依赖关系；同色：复用同一代表。Root不计入阶段数。';
+    function animate(){if(!document.documentElement.isConnected)return;requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);}animate();
+    window.addEventListener('pagehide',()=>{controls.dispose();renderer.dispose();});
+  }catch(error){console.warn('3D view fallback:',error);fallback();}
+})();
+</script>
+</body>
+</html>

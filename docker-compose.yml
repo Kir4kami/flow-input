@@ -1,81 +1,30 @@
-version: '3.8'
+name: flow-input
 
 services:
-  flow-input:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: release
-    volumes:
-      # 挂载项目目录到容器
-      - .:/workspace
-      # 挂载结果目录到主机
-      - ./results:/workspace/results
-      # 挂载数据目录（如果有）
-      - ./data:/workspace/data
-    ports:
-      # Jupyter 端口
-      - "8888:8888"
-      # 主容器端口（避免与 FastAPI 冲突）
-      - "8001:8000"
-    environment:
-      - NS3_HOME=/workspace
-      - PYTHONPATH=/workspace
-    working_dir: /workspace
-    stdin_open: true
-    tty: true
-    command: >
-      bash -c "
-        echo '🚀 启动 Flow-Input 容器...' &&
-        ./scripts/init-ns3.sh &&
-        echo '✅ 初始化完成！' &&
-        echo '💡 使用方法：' &&
-        echo '  - 运行仿真：cd examples/Reverie && ./sim.sh' &&
-        echo '  - 查看帮助：./ns3 --help' &&
-        echo '  - 退出容器：exit' &&
-        /bin/bash
-      "
-
-  # FastAPI 服务
   fastapi:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fastapi
-    volumes:
-      - .:/workspace
-      - ./results:/workspace/results
+    image: flow-input:local
+    container_name: flow-input-api
+    init: true
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
-      - NS3_HOME=/workspace
-      - PYTHONPATH=/workspace
-    working_dir: /workspace
-    command: >
-      bash -c "
-        echo '🚀 启动 FastAPI 服务...' &&
-        cd examples/Reverie/api &&
-        uvicorn topology_api:app --host 0.0.0.0 --port 8000
-      "
-    profiles:
-      - fastapi
+      NS3_BUILD_JOBS: "2"
+    volumes:
+      - ns3-build:/workspace/build
+      - ns3-cache:/workspace/cmake-cache
+      - simulation-results:/workspace/examples/Reverie/dump
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10m
+      retries: 3
 
-  # 可选：Jupyter 服务
-  jupyter:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: analyse
-    volumes:
-      - .:/workspace
-      - ./results:/workspace/results
-    ports:
-      - "8888:8888"
-    environment:
-      - NS3_HOME=/workspace
-      - PYTHONPATH=/workspace
-    working_dir: /workspace
-    command: >
-      bash -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''"
-    profiles:
-      - jupyter
+volumes:
+  ns3-build:
+  ns3-cache:
+  simulation-results:

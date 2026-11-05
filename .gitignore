@@ -24,3 +24,8 @@ examples/Reverie/dump*
 examples/Reverie/task*
 examples/Reverie/TrafficGenerator/rdma_result*
 examples/Reverie/rdma_result
+
+# Python runtime and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/

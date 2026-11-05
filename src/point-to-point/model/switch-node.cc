@@ -84,9 +84,6 @@ int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch) {
 	if (entry == m_rtTable.end())
 		return -1;
 
-	// entry found
-	auto &nexthops = entry->second;
-
 	// pick one next hop based on hash
 	union {
 		uint8_t u8[4 + 4 + 2 + 2];
@@ -104,9 +101,29 @@ int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch) {
 	else if (ch.l3Prot == 0xFC || ch.l3Prot == 0xFD)
 		buf.u32[2] = ch.ack.sport | ((uint32_t)ch.ack.dport << 16);
 
-	uint32_t idx = EcmpHash(buf.u8, 12, m_ecmpSeed) % nexthops.size();
-	// if (nexthops.size()>1){ std::cout << "selected " << idx << std::endl; }
-	return nexthops[idx];
+	return GetFlowOutDev(buf.u32[0], buf.u32[1], buf.u32[2] & 0xffff,
+	                     buf.u32[2] >> 16);
+}
+
+uint32_t SwitchNode::GetEcmpSeed() const {
+	return m_ecmpSeed;
+}
+
+const std::vector<int>& SwitchNode::GetRouteCandidates(uint32_t destinationIp) const {
+	static const std::vector<int> empty;
+	auto entry = m_rtTable.find(destinationIp);
+	return entry == m_rtTable.end() ? empty : entry->second;
+}
+
+int SwitchNode::GetFlowOutDev(uint32_t sourceIp, uint32_t destinationIp,
+                             uint16_t sourcePort, uint16_t destinationPort) const {
+	const auto& candidates = GetRouteCandidates(destinationIp);
+	if (candidates.empty()) return -1;
+	union { uint8_t u8[12]; uint32_t u32[3]; } key;
+	key.u32[0] = sourceIp;
+	key.u32[1] = destinationIp;
+	key.u32[2] = sourcePort | (static_cast<uint32_t>(destinationPort) << 16);
+	return candidates[EcmpHash(key.u8, 12, m_ecmpSeed) % candidates.size()];
 }
 
 void SwitchNode::CheckAndSendPfc(uint32_t inDev, uint32_t qIndex) {

@@ -1,4 +1,6 @@
 #include "flow-acc.h"
+#include <fstream>
+#include <cstdio>
 #include <iostream>
 #include <thread>  // 用于模拟时间延迟
 #include "ns3/mixed-granularity.h"

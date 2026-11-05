@@ -22,12 +22,13 @@
 #include <deque>
 
 #include "assert.h"
+#include "abort.h"
 #include "log.h"
 #include "scheduler.h"
 #include "simulator.h"
 #include "mixed-granularity.h"
 
-#include <cmath>
+#include <limits>
 
 /**
  * \file
@@ -67,6 +68,7 @@ DefaultSimulatorImpl::DefaultSimulatorImpl()
     m_eventCount = 0;
     m_eventsWithContextEmpty = true;
     m_mainThreadId = std::this_thread::get_id();
+    m_schedulerTransitionStage = transition_cnt;
 }
 
 DefaultSimulatorImpl::~DefaultSimulatorImpl()
@@ -83,6 +85,7 @@ DefaultSimulatorImpl::DoDispose()
     while (!m_events->IsEmpty())
     {
         Scheduler::Event next = m_events->RemoveNext();
+        m_pendingEvents.erase(next.key.m_uid);
         next.impl->Unref();
     }
     m_events = nullptr;
@@ -113,6 +116,7 @@ DefaultSimulatorImpl::SetScheduler(ObjectFactory schedulerFactory)
 
     if (m_events)
     {
+        SynchronizeEventQueue();
         while (!m_events->IsEmpty())
         {
             Scheduler::Event next = m_events->RemoveNext();
@@ -129,42 +133,60 @@ DefaultSimulatorImpl::GetSystemId() const
     return 0;
 }
 
-void
-DefaultSimulatorImpl::ProcessOneEvent()//处理下一个事件
+Scheduler::EventKey
+DefaultSimulatorImpl::EffectiveEventKey(const Scheduler::EventKey& key) const
 {
+    NS_ABORT_MSG_IF(transition_cnt < 0 || key.transition_stage < 0 ||
+                        key.transition_stage > transition_cnt ||
+                        static_cast<std::size_t>(transition_cnt) > transition_delay.size(),
+                    "Invalid mixed-granularity transition history");
+    auto adjusted = key;
+    while (adjusted.transition_stage < transition_cnt)
+    {
+        const auto delay = transition_delay[adjusted.transition_stage];
+        NS_ABORT_MSG_IF(adjusted.m_ts > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) ||
+                            delay > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) - adjusted.m_ts,
+                        "Mixed-granularity event timestamp overflow");
+        adjusted.m_ts += delay;
+        ++adjusted.transition_stage;
+    }
+    return adjusted;
+}
+
+void
+DefaultSimulatorImpl::SynchronizeEventQueue()
+{
+    NS_ABORT_MSG_IF(transition_cnt < m_schedulerTransitionStage,
+                    "Mixed-granularity transition history changed while events were pending");
+    if (m_schedulerTransitionStage == transition_cnt)
+    {
+        return;
+    }
+    std::deque<Scheduler::Event> events;
+    while (!m_events->IsEmpty())
+    {
+        auto event = m_events->RemoveNext();
+        event.key = EffectiveEventKey(event.key);
+        m_pendingEvents[event.key.m_uid] = event;
+        events.push_back(event);
+    }
+    for (const auto& event : events)
+    {
+        m_events->Insert(event);
+    }
+    m_schedulerTransitionStage = transition_cnt;
+}
+
+void
+DefaultSimulatorImpl::ProcessOneEvent()
+{
+    // Old and newly scheduled transition generations can coexist. Rebuild the
+    // complete queue before choosing the next (timestamp, UID), not afterwards.
+    SynchronizeEventQueue();
     Scheduler::Event next = m_events->RemoveNext();
-
     PreEventHook(EventId(next.impl, next.key.m_ts, next.key.m_context, next.key.m_uid));
+    m_pendingEvents.erase(next.key.m_uid);
 
-    bool flag=false;
-    while(next.key.transition_stage<transition_cnt){
-        next.key.m_ts+=transition_delay[next.key.transition_stage];
-        next.key.transition_stage++;
-        if(!flag)
-            flag=true;
-    }
-    //果事件的时间戳被调整（flag == true），则整个事件列表中的所有事件都需要检查和更新其 transition_stage 和 m_ts
-    if(flag){
-        std::deque<Scheduler::Event> l;
-        while(!m_events->IsEmpty()){
-            Scheduler::Event evt= m_events->RemoveNext();
-            while(evt.key.transition_stage<transition_cnt){
-                evt.key.m_ts+=transition_delay[evt.key.transition_stage];
-                evt.key.transition_stage++;
-                if(!flag)
-                    flag=true;
-            }
-            l.push_back(evt);
-        }
-        while (l.size()!=0)
-        {
-            m_events->Insert(l.at(0));
-            l.pop_front();
-        }
-        
-    }
-    
-    
     NS_ASSERT(next.key.m_ts >= m_currentTs);
     m_unscheduledEvents--;
     m_eventCount++;
@@ -209,10 +231,11 @@ DefaultSimulatorImpl::ProcessEventsWithContext()
         ev.key.m_ts = m_currentTs + event.timestamp;
         ev.key.m_context = event.context;
         ev.key.m_uid = m_uid;
-        //ev.key.transition_stage=event.;
+        ev.key.transition_stage = transition_cnt;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
+        m_pendingEvents.emplace(ev.key.m_uid, ev);
     }
 }
 
@@ -272,6 +295,7 @@ DefaultSimulatorImpl::Schedule(const Time& delay, EventImpl* event)
     m_uid++;
     m_unscheduledEvents++;
     m_events->Insert(ev);
+    m_pendingEvents.emplace(ev.key.m_uid, ev);
     return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
 }
 
@@ -292,6 +316,7 @@ DefaultSimulatorImpl::ScheduleWithContext(uint32_t context, const Time& delay, E
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
+        m_pendingEvents.emplace(ev.key.m_uid, ev);
     }
     else
     {
@@ -345,7 +370,13 @@ DefaultSimulatorImpl::GetDelayLeft(const EventId& id) const
     }
     else
     {
-        return TimeStep(id.GetTs() - m_currentTs);
+        if (id.GetUid() == EventId::UID::DESTROY)
+        {
+            return TimeStep(id.GetTs() - m_currentTs);
+        }
+        const auto key = EffectiveEventKey(m_pendingEvents.at(id.GetUid()).key);
+        NS_ASSERT(key.m_ts >= m_currentTs);
+        return TimeStep(key.m_ts - m_currentTs);
     }
 }
 
@@ -369,13 +400,10 @@ DefaultSimulatorImpl::Remove(const EventId& id)
     {
         return;
     }
-    Scheduler::Event event;
-    event.impl = id.PeekEventImpl();
-    event.key.m_ts = id.GetTs();
-    event.key.m_context = id.GetContext();
-    event.key.m_uid = id.GetUid();
-    event.key.transition_stage=transition_cnt;
+    SynchronizeEventQueue();
+    const Scheduler::Event event = m_pendingEvents.at(id.GetUid());
     m_events->Remove(event);
+    m_pendingEvents.erase(id.GetUid());
     event.impl->Cancel();
     // whenever we remove an event from the event list, we have to unref it.
     event.impl->Unref();
@@ -412,9 +440,9 @@ DefaultSimulatorImpl::IsExpired(const EventId& id) const
         }
         return true;
     }
-    return id.PeekEventImpl() == nullptr || id.GetTs() < m_currentTs ||
-           (id.GetTs() == m_currentTs && id.GetUid() <= m_currentUid) ||
-           id.PeekEventImpl()->IsCancelled();
+    const auto pending = m_pendingEvents.find(id.GetUid());
+    return id.PeekEventImpl() == nullptr || pending == m_pendingEvents.end() ||
+           pending->second.impl != id.PeekEventImpl() || id.PeekEventImpl()->IsCancelled();
 }
 
 Time

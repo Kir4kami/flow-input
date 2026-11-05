@@ -5,7 +5,7 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
 import sys
 import subprocess
@@ -22,6 +22,13 @@ from datetime import datetime
 import hashlib
 import zipfile
 import tempfile
+import signal
+import uuid
+
+try:
+    from .simulation_monitor import SteadyStateMonitor
+except ImportError:
+    from simulation_monitor import SteadyStateMonitor
 
 # 路径解析：优先使用环境变量，其次基于当前文件自动定位
 def _detect_reverie_root() -> Path:
@@ -56,7 +63,6 @@ try:
 except ImportError:
     sys.path.insert(0, '/usr/lib/python3/dist-packages')
     import matplotlib.pyplot as plt
-from TreeCut.TreeCut import performTreeCut, visualize3DSplitTreeHTML
 import networkx as nx
 import copy
 from collections import defaultdict
@@ -102,6 +108,12 @@ class SimulationStatus:
         self.simulation_start_time = None
         self.simulation_end_time = None
         self.results = {}
+        self.run_dir = None
+        self.cancelled = False
+        self.error = None
+        self.lock = threading.RLock()
+        self.processes = set()
+        self.execution = {}
 
 simulation_status = SimulationStatus()
 
@@ -114,819 +126,11 @@ class BaselineStatus:
 
 baseline_status = BaselineStatus()
 
-# ==================== TreeCut 完整功能实现 ====================
-
-# 根节点
-root_node = 'Root'
-
-# 切割后树的列表集合
-Tree_list = []
-
-# 切分树组数量（0表示自动切分）
-TASK_NUM = 0
-
-#分别设置DP,PP,TP的rdma_operate数量
-DP = 128
-PP = 1
-TP = 128
-
-out_dependence_list = []
-
-# 定义添加节点的方法
-def addCommunicationEdge(G, layer, comm_type, pre_node):
-    node_name = f"{comm_type}{layer}_{len(G.nodes)}"
-    file_path = f"{node_name}.txt"
-    # huawei主机
-    try:
-        from TreeCut.DocProcess import process_file
-        nodes_passed = process_file(file_path)
-    except:
-        # 如果DocProcess不可用，使用默认值
-        nodes_passed = ['A', 'B', 'C']
-    G.add_node(node_name, name=node_name, type=comm_type, layer=layer, nodes_passed=nodes_passed, children=[]
-               , isBurr=False)
-    G.add_edge(pre_node, node_name)
-    return node_name
-
-# 构建通信树
-def constructTree(G, root_node):
-    DP1 = addCommunicationEdge(G, 1, "DP", root_node)
-    PP1 = addCommunicationEdge(G, 1, "PP", root_node)
-    # TP1 = addCommunicationEdge(G, 2, "TP", PP1)
-    # TP2 = addCommunicationEdge(G, 3, "TP", TP1)
-    # DP2 = addCommunicationEdge(G, 4, "DP", TP2)
-    # PP2 = addCommunicationEdge(G, 4, "PP", TP2)
-    # TP3 = addCommunicationEdge(G, 5, "TP", PP2)
-    # TP4 = addCommunicationEdge(G, 6, "TP", TP3)
-    # DP3 = addCommunicationEdge(G, 7, "DP", TP4)
-    # PP3 = addCommunicationEdge(G, 7, "PP", TP4)
-    # TP5 = addCommunicationEdge(G, 8, "TP", PP3)
-    # TP6 = addCommunicationEdge(G, 9, "TP", TP5)
-    # DP4 = addCommunicationEdge(G, 10, "DP", TP6)
-
-# 从外部数据构建通信树
-def constructTreeFromData(G, root_node, tree_data):
-    """
-    从外部数据构建通信树
-    
-    Args:
-        G: NetworkX有向图对象
-        root_node: 根节点名称
-        tree_data: 包含树结构的字典，格式如下：
-        {
-            "nodes": [
-                {"name": "node1", "type": "DP", "layer": 1, "nodes_passed": ["A", "B"]},
-                {"name": "node2", "type": "PP", "layer": 1, "nodes_passed": ["C", "D"]}
-            ],
-            "edges": [
-                {"from": "Root", "to": "node1"},
-                {"from": "Root", "to": "node2"}
-            ]
-        }
-    """
-    # 添加所有节点
-    for node_data in tree_data.get("nodes", []):
-        # 检查是否是根节点
-        if node_data["name"] == "Root" or node_data["name"] == root_node:
-            G.add_node(
-                root_node,
-                name='Root',
-                type=node_data.get("type", "Root"),
-                layer=node_data.get("layer", 0),
-                nodes_passed=node_data.get("nodes_passed", []),
-                children=[],
-                isBurr=False
-            )
-        else:
-            G.add_node(
-                node_data["name"], 
-                name=node_data["name"], 
-                type=node_data["type"], 
-                layer=node_data["layer"], 
-                nodes_passed=node_data.get("nodes_passed", []), 
-                children=[],
-                isBurr=False
-            )
-    
-    # 添加所有边
-    for edge_data in tree_data.get("edges", []):
-        G.add_edge(edge_data["from"], edge_data["to"])
-    
-    return G
-
-# 合并节点
-def mergeInfo(Tree, remove_list, merge_in_node):
-    # 将所有节点信息merge
-    for node in remove_list:
-        if merge_in_node != node:
-            Tree.nodes[merge_in_node]['nodes_passed'].extend(Tree.nodes[node]['nodes_passed'])
-            Tree.nodes[merge_in_node]['children'].append(Tree.nodes[node]['name'])
-            for item in Tree.nodes[node]['children']:
-                Tree.nodes[merge_in_node]['children'].append(item)
-
-# 将节点从Tree中cut掉，还原节点后添加root节点后插入到Tree_list中
-def recoverTree(node, tree_copy=None):
-    global Tree_copy
-    if tree_copy is None:
-        tree_copy = Tree_copy
-    
-    if node['name'] == 'Root' and len(node['children']) == 0:
-        return 0
-    node_list = [node['name']]
-    node_list.extend(node['children'])
-    cut_tree = tree_copy.subgraph(node_list)
-    cut_tree = nx.DiGraph(cut_tree)
-    if node['name'] != 'Root':
-        cut_tree.add_node(root_node, name='Root')
-        cut_tree.add_edge(root_node, node['name'])
-    Tree_list.append(cut_tree)
-
-def get_parent(graph, node):
-    parents = list(graph.predecessors(node))
-    if parents:
-        return parents[0]
-    else:
-        return None
-
-# 将节点从Tree中cut掉，添加root节点后插入到Tree_list中
-def cutBurrNode(Tree, node):
-    parents = get_parent(Tree, node)
-    out_dependence_list.append((node, parents))
-    Tree.remove_node(node)
-    cut_tree = nx.DiGraph()
-    cut_tree.add_node(root_node, name='Root')
-    cut_tree.add_edge(root_node, node)
-    Tree_list.append(cut_tree)
-
-# 找出所有的叶子节点("毛刺")，将无兄弟节点的叶子节点向上合并（视为"揉球"操作）
-def findBurr(Tree, out_degrees):
-
-    # 找到所有的叶子节点（出度为0的节点）
-    leaves = [n for n, d in out_degrees.items() if d == 0]
-
-    # 查找所有有兄弟的叶子节点
-    leaves_with_siblings = []
-    for leaf in leaves:
-        parents = list(Tree.predecessors(leaf))
-        # 如果父节点的出度等于2，则说明当前叶子节点有兄弟
-        if out_degrees[parents[0]] == 2:
-            leaves_with_siblings.append(Tree.nodes[leaf])
-            Tree.nodes[leaf]['isBurr'] = True
-        # else:
-        #     # 接收merge信息
-        #     leaf_ball = mergeNodes(Tree, leaf, out_degrees)
-        #     leaves_without_siblings.append(leaf_ball)
-    return leaves_with_siblings
-
-# 对通信树进行预处理，修剪"毛刺"节点
-def preTreatment(Tree):
-    # 获取所有节点的出度字典
-    out_degrees = dict(Tree.out_degree())
-    burr_list = findBurr(Tree, out_degrees)
-    double_break = False
-    for burr_node in burr_list:
-        burr_node['checked'] = True
-        path_to_root = nx.shortest_path(Tree, source=root_node, target=burr_node["name"])
-        path_nodes = set(path_to_root)
-        # 获取目标节点的nodes_passed列表
-        target_nodes_passed = set(burr_node.get('nodes_passed', []))
-        for _, other_node in Tree.nodes(data=True):
-            # 排除到时间序列上的节点和自身
-            if other_node['name'] not in path_nodes and other_node != burr_node:
-                other_nodes_passed = set(other_node.get('nodes_passed', []))
-                # 判断是否有交集，有则无法切割，将标记标为相应的
-                if target_nodes_passed.intersection(other_nodes_passed):
-                    double_break = True
-                    break
-        # 若内循环break则说明burr节点不能切割，外循环也要break
-        if double_break:
-            double_break = False
-            continue
-        # 将该节点从Tree中cut掉
-        cutBurrNode(Tree, burr_node['name'])
-    return Tree
-
-# 找到要移除节点的列表
-def getRemoveList(Tree, start_node):
-    """
-    从给定的节点开始，沿着父节点路径向上遍历，
-    直到找到一个有兄弟节点的节点，并返回路径上的所有节点。
-
-    :param G: NetworkX DiGraph, 表示树或DAG的图
-    :param start_node: 起始查找的节点
-    :return: 一个包含路径上所有节点的列表，有兄弟的节点
-    """
-    path = []  # 用于存储路径上的节点
-    current_node = start_node
-    while True:
-        path.append(current_node)  # 将当前节点添加到路径列表
-        # 获取当前节点的所有前驱节点（即父节点）
-        predecessors = list(Tree.predecessors(current_node))
-        if not predecessors:
-            # 如果没有前驱节点，则到达了根节点，停止搜索
-            break
-        parent = predecessors[0]  # 假设每个节点最多只有一个父节点
-        # 获取父节点的所有后继节点（即子节点/兄弟节点）
-        siblings = list(Tree.successors(parent))
-        if len(siblings) > 1:
-            # 如果有多个子节点，则找到了有兄弟节点的节点
-            # path.append(parent)  # 添加这个有兄弟节点的父节点到路径
-            break
-        # 否则继续向上查找
-        current_node = parent
-    return path, current_node
-
-# 对通信树的每个节点判断能否能切
-def oneNodeTreatment(Tree, node, tree_copy=None):
-    # 默认无冲突的标志符，看是否是因为无冲突而裁剪，若是的话需要恢复树形放入Tree_list
-    isConflict = False
-
-    # 找到到根节点路径节点的集合
-    path_to_root = nx.shortest_path(Tree, source=root_node, target=node["name"])
-    path_nodes = set(path_to_root)
-    # 获取目标节点的nodes_passed列表
-    target_nodes_passed = set(node.get('nodes_passed', []))
-    for _, other_node in Tree.nodes(data=True):
-        # 排除到时间序列上的节点和自身
-        if other_node['name'] not in path_nodes and other_node != node:
-            other_nodes_passed = set(other_node.get('nodes_passed', []))
-            # 判断是否有交集，有则无法切割，将标记标为相应的
-            if target_nodes_passed.intersection(other_nodes_passed):
-                # 有交集，有冲突
-                isConflict = True
-                break
-    # 如果没有冲突，将该节点从Tree中cut掉
-    if not isConflict:
-        # 将NetworkX节点数据转换为recoverTree期望的格式
-        node_data = {
-            'name': node['name'],
-            'children': node.get('children', [])
-        }
-        recoverTree(node_data, tree_copy)
-        Tree.remove_node(node['name'])
-    # 如果有冲突，该节点往上到PP都不能切割
-    else:
-        remove_list, merge_in_node = getRemoveList(Tree, node['name'])
-        mergeInfo(Tree, remove_list, merge_in_node)
-        for item in remove_list:
-            if item != merge_in_node:
-                Tree.remove_node(item)
-    return Tree
-
-# 找到所有到根节点最长的路径
-def findAllLongestPathsFromRoot(G):
-    root = root_node
-    # Dictionary to store the longest path length from the root to each node
-    longest_paths = {node: -1 for node in G.nodes}
-    longest_paths[root] = 0  # The distance from the root to itself is 0
-
-    # Dictionary to store all paths from the root to each node
-    all_paths = defaultdict(list)
-    all_paths[root].append([root])
-
-    def dfs(node):
-        for neighbor in G.neighbors(node):
-            if longest_paths[neighbor] == -1:  # If the neighbor has not been visited yet
-                longest_paths[neighbor] = longest_paths[node] + 1
-                for path in all_paths[node]:
-                    new_path = path + [neighbor]
-                    all_paths[neighbor].append(new_path)
-                dfs(neighbor)
-
-    # Start DFS from the root
-    dfs(root)
-
-    # Find the maximum distance from the root
-    max_distance = max(longest_paths.values())
-
-    # Collect all paths that have the maximum distance
-    longest_paths_list = []
-    for node, paths in all_paths.items():
-        if longest_paths[node] == max_distance:
-            longest_paths_list.extend(paths)
-
-    return longest_paths_list
-
-# 分割通信树
-def splitCommunicationTree(Tree, tree_copy=None):
-    global Tree_copy
-    if tree_copy is None:
-        tree_copy = Tree_copy
-
-    # 函数出口,如果图中只剩根节点，那么根节点记录着所有子节点的信息
-    if Tree.number_of_nodes() == 1:
-        root_node_data = {
-            'name': 'Root',
-            'children': Tree.nodes['Root'].get('children', [])
-        }
-        recoverTree(root_node_data, tree_copy)
-        return 0
-    deepest_path_list = findAllLongestPathsFromRoot(Tree)
-    deepest_node_list = []
-    for deepest_path in deepest_path_list:
-        deepest_node_list.append(deepest_path[-1])
-
-    classification = defaultdict(list)
-
-    # 将具有相同父节点的节点分类
-    for leaf in deepest_node_list:
-        # 获取当前叶子节点的所有前驱节点（即父节点）
-        predecessors = list(Tree.predecessors(leaf))
-        if predecessors:
-            parent = predecessors[0]  # 假设每个节点最多只有一个父节点
-            classification[parent].append(leaf)
-        else:
-            # 如果没有前驱节点，则认为该节点是根节点
-            classification[None].append(leaf)
-    # 将分类结果转换为一个大列表，每个元素是一个包含叶子节点的小列表
-    classified_lists = [children for children in classification.values()]
-
-    # 获取最深的叶子节点
-    for deepest_node in classified_lists:
-        # 如果没有兄弟节点
-        if len(deepest_node) == 1:
-            # 对每个节点进行切割和合并处理
-            Tree = oneNodeTreatment(Tree, Tree.nodes[deepest_node[0]], tree_copy)
-        # 如果有兄弟节点
-        else:
-            mergeInfo(Tree, deepest_node, list(Tree.predecessors(deepest_node[0]))[0])
-            for item in deepest_node:
-                Tree.remove_node(item)
-    splitCommunicationTree(Tree, tree_copy)
-
-def genInDependence(item, folder_name):
-    # 初始化temp
-    temp = 0
-    # 存储记录结果的字典
-    record = {}
-    #遍历图中的每个节点
-    for node in item.nodes:
-        # 提取节点名称的前两个字符
-        node_prefix = node[:2]
-        # 检查节点前缀是否与全局变量名称匹配
-        if node_prefix == 'TP':
-            record[node] = (temp,temp + TP - 1)
-            temp += TP
-        elif node_prefix == 'DP':
-            record[node] = (temp,temp + DP - 1)
-            temp += DP
-        elif node_prefix == 'PP':
-            record[node] = (temp,temp + PP - 1)
-            temp += PP
-    #将record写入到G的节点属性中
-    for node,(start,end) in record.items():
-        item.nodes[node]['range'] = f"{start}-{end}"
-        item.nodes[node]['group'] = folder_name
-
-def makeInDependenceInfo(Tree_list, output_dir="TreeGroup"):
-    # 定义目标目录
-    target_directory = output_dir
-    # 如果目标目录不存在，创建
-    if not os.path.exists(target_directory):
-        os.makedirs(target_directory)
-    
-    # 删除旧的group子目录，避免与新结果混淆
-    import glob
-    old_group_dirs = glob.glob(os.path.join(target_directory, "group*"))
-    for old_dir in old_group_dirs:
-        if os.path.isdir(old_dir):
-            try:
-                import shutil
-                shutil.rmtree(old_dir)
-                print(f"[INFO] 已删除旧目录: {os.path.basename(old_dir)}")
-            except Exception as e:
-                print(f"[WARNING] 删除旧目录失败: {old_dir}, 错误: {e}")
-    
-    # 从后向前遍历 Tree_list
-    for index, item in enumerate(reversed(Tree_list), start=1):
-        # 创建子目录,命名规则为group1,group2,...,groupn
-        folder_name = f"group{index}"
-        folder_path = os.path.join(target_directory, folder_name)
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        genInDependence(item, folder_name)
-    # 定义输出文件路径
-    for index, item in enumerate(reversed(Tree_list), start=1):
-        output_file = f"{target_directory}/group{index}/In_dependence_Info.txt"
-        isWrite = False
-        # 打开文件以写入
-        with open(output_file, 'w') as file:
-            # 遍历图中的每条边
-            for u, v in item.edges:
-                # 如果起点是根节点,跳过
-                if u == 'Root':
-                    continue
-                # 检查节点是否有range属性
-                if 'range' in item.nodes[u] and 'range' in item.nodes[v]:
-                    # 获取起点和终点的range属性
-                    start_range = item.nodes[u]['range']
-                    end_range = item.nodes[v]['range']
-                    isWrite = True
-                    # 以指定格式写入文件
-                    file.write(f"({end_range},{start_range})\n")
-            if not isWrite:
-                file.write("Null\n")
-            file.write(f"---------------------------------------------------\n")
-            # 遍历图中的每个节点
-            for node in item.nodes:
-                # 如果起点是根节点, 跳过
-                if node == 'Root':
-                    continue
-                # 检查节点是否有必需的属性
-                node_data = item.nodes[node]
-                if 'name' in node_data and 'range' in node_data:
-                    # 以指定格式写入文件
-                    file.write(f"({node_data['name']}):({node_data['range']})\n")
-
-
-def makeOutDependenceInfo(outdependence_list, Tree_list, output_dir="TreeGroup"):
-    output_file_path = f"{output_dir}/Out_Dependence_Info.txt"
-    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-    # 打开文件准备写入
-    with open(output_file_path, 'w') as file:
-        for name, second_element in out_dependence_list:
-            # 找元组的第二个位置
-            found = False
-            for graph in Tree_list:
-                for node in graph.nodes(data=True):
-                    if node[1].get('name') == second_element:
-                        # 检查节点是否有group属性
-                        if 'group' in node[1]:
-                            file.write(f"{node[1]['group']}:")
-                        break
-                if found:
-                    break
-            # 找元组的第一个位置
-            found = False
-            for graph in Tree_list:
-                for node in graph.nodes(data=True):
-                    if node[1].get('name') == name:
-                        # 检查节点是否有必需的属性
-                        if 'group' in node[1] and 'range' in node[1]:
-                            file.write(f"{node[1]['group']}->{node[1]['range']}\n")
-                        found = True
-                        break
-                if found:
-                    break
-
-# 生成图像
-def ShowGraph(G):
-    pos = nx.spring_layout(G, seed=10)  # 通过Spring布局来展示图
-    nx.draw(G, pos, with_labels=True, node_size=500, node_color='skyblue', font_size=10, font_weight='bold',
-            edge_color='gray')
-    plt.show()
-
-# 将NetworkX图转换为可序列化的格式
-def graphToDict(graph):
-    """将NetworkX图转换为字典格式"""
-    nodes = []
-    for node, data in graph.nodes(data=True):
-        node_dict = {"name": node}  # 使用节点id作为name，保证Root等显示一致
-        # 只保留可序列化的数据（不覆盖name，避免data中的name覆盖节点id）
-        for key, value in data.items():
-            if key == "name":
-                continue
-            if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
-                node_dict[key] = value
-        nodes.append(node_dict)
-    
-    edges = []
-    for u, v in graph.edges():
-        edges.append({"from_node": u, "to_node": v})
-    
-    return {"nodes": nodes, "edges": edges}
-
-# 保存TreeGroup为JSON文件
-def saveTreeGroupToJson(Tree_list, output_dir="TreeGroup"):
-    """将切分后的TreeGroup保存为JSON文件"""
-    import json
-    import os
-    import glob
-    
-    # 确保输出目录存在
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    
-    # 删除旧的树组JSON文件，避免与新结果混淆
-    old_tree_files = glob.glob(os.path.join(output_dir, "tree_group_*.json"))
-    for old_file in old_tree_files:
-        try:
-            os.remove(old_file)
-            print(f"[INFO] 已删除旧文件: {os.path.basename(old_file)}")
-        except Exception as e:
-            print(f"[WARNING] 删除旧文件失败: {old_file}, 错误: {e}")
-    
-    # 删除旧的overview文件
-    old_overview = os.path.join(output_dir, "tree_group_overview.json")
-    if os.path.exists(old_overview):
-        try:
-            os.remove(old_overview)
-            print(f"[INFO] 已删除旧的overview文件")
-        except Exception as e:
-            print(f"[WARNING] 删除旧overview文件失败: {e}")
-    
-    # 保存每个Tree为单独的JSON文件
-    tree_files = []
-    for i, tree in enumerate(Tree_list, 1):
-        tree_data = graphToDict(tree)
-        filename = f"tree_group_{i}.json"
-        filepath = os.path.join(output_dir, filename)
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(tree_data, f, indent=2, ensure_ascii=False)
-        
-        tree_files.append({
-            "group_id": i,
-            "filename": filename,
-            "filepath": filepath,
-            "node_count": len(tree_data["nodes"]),
-            "edge_count": len(tree_data["edges"])
-        })
-    
-    # 保存TreeGroup总览信息
-    overview = {
-        "total_groups": len(Tree_list),
-        "groups": tree_files,
-        "output_directory": output_dir
-    }
-    
-    overview_file = os.path.join(output_dir, "tree_group_overview.json")
-    with open(overview_file, 'w', encoding='utf-8') as f:
-        json.dump(overview, f, indent=2, ensure_ascii=False)
-    
-    return overview
-
-# 将字典格式转换为NetworkX图
-def dictToGraph(data):
-    """将字典格式转换为NetworkX图"""
-    G = nx.DiGraph()
-    
-    # 添加节点
-    for node_data in data.get("nodes", []):
-        node_name = node_data["name"]
-        node_attrs = {k: v for k, v in node_data.items() if k != "name"}
-        G.add_node(node_name, **node_attrs)
-    
-    # 添加边
-    for edge_data in data.get("edges", []):
-        G.add_edge(edge_data["from"], edge_data["to"])
-    
-    return G
-
-def adjustTreeGroupCount(tree_list, target_count):
-    """
-    调整树组数量以匹配目标数量
-    
-    Args:
-        tree_list: 当前的树组列表
-        target_count: 目标树组数量
-    
-    Returns:
-        调整后的树组列表（新列表）
-    """
-    import networkx as nx
-    import copy
-    
-    # 创建副本，避免修改原列表
-    tree_list = copy.copy(tree_list)
-    
-    current_count = len(tree_list)
-    
-    print(f"[INFO] 当前树组数量: {current_count}, 目标数量: {target_count}")
-    
-    # 如果已经匹配，直接返回
-    if current_count == target_count:
-        return tree_list
-    
-    # 如果当前数量少于目标，需要进一步切分
-    while len(tree_list) < target_count:
-        # 找到节点数最多的树组
-        max_size = 0
-        max_index = 0
-        for i, tree in enumerate(tree_list):
-            size = tree.number_of_nodes()
-            if size > max_size and size > 1:  # 只切分节点数>1的树
-                max_size = size
-                max_index = i
-        
-        # 如果所有树都只有1个节点，无法继续切分
-        if max_size <= 1:
-            print(f"[WARNING] 无法继续切分，当前树组数量: {len(tree_list)}")
-            break
-        
-        # 切分最大的树
-        tree_to_split = tree_list[max_index]
-        
-        # 简单切分：找到所有叶节点，分成两组
-        leaves = [node for node in tree_to_split.nodes() if tree_to_split.out_degree(node) == 0]
-        if len(leaves) <= 1:
-            # 如果叶节点<=1，找所有节点
-            all_nodes = list(tree_to_split.nodes())
-            if len(all_nodes) <= 1:
-                print(f"[WARNING] 树组{max_index}只有1个节点，无法切分")
-                break
-            leaves = all_nodes
-        
-        # 分成两半
-        mid = len(leaves) // 2
-        group1_leaves = leaves[:mid]
-        group2_leaves = leaves[mid:]
-        
-        # 创建两个新树
-        tree1 = nx.DiGraph()
-        tree2 = nx.DiGraph()
-        
-        # 将节点分配到两个树中（包括所有祖先节点）
-        def get_ancestors(graph, nodes):
-            """获取所有节点的祖先节点"""
-            ancestors = set(nodes)
-            for node in nodes:
-                for ancestor in nx.ancestors(graph, node):
-                    ancestors.add(ancestor)
-            return ancestors
-        
-        group1_nodes = get_ancestors(tree_to_split, group1_leaves)
-        group2_nodes = get_ancestors(tree_to_split, group2_leaves)
-        
-        for node in tree_to_split.nodes():
-            node_data = dict(tree_to_split.nodes[node])
-            if node in group1_nodes:
-                tree1.add_node(node, **node_data)
-            if node in group2_nodes:
-                tree2.add_node(node, **node_data)
-        
-        # 复制边
-        for u, v in tree_to_split.edges():
-            if tree1.has_node(u) and tree1.has_node(v):
-                tree1.add_edge(u, v, **tree_to_split.edges[u, v])
-            if tree2.has_node(u) and tree2.has_node(v):
-                tree2.add_edge(u, v, **tree_to_split.edges[u, v])
-        
-        # 如果切分成功（两个树都非空）
-        if tree1.number_of_nodes() > 0 and tree2.number_of_nodes() > 0:
-            tree_list[max_index] = tree1
-            tree_list.append(tree2)
-            print(f"[INFO] 已切分树组{max_index}，当前树组数量: {len(tree_list)}")
-        else:
-            print(f"[WARNING] 切分失败，无法继续")
-            break
-    
-    # 如果当前数量多于目标，需要合并
-    while len(tree_list) > target_count:
-        # 找到两个最小的树组并合并
-        sizes = [(i, tree.number_of_nodes()) for i, tree in enumerate(tree_list)]
-        sizes.sort(key=lambda x: x[1])
-        
-        if len(sizes) < 2:
-            break
-        
-        idx1, idx2 = sizes[0][0], sizes[1][0]
-        
-        # 确保idx1 < idx2，方便删除
-        if idx1 > idx2:
-            idx1, idx2 = idx2, idx1
-        
-        # 合并两个树
-        merged_tree = nx.compose(tree_list[idx1], tree_list[idx2])
-        
-        # 先删除索引大的，再删除索引小的，避免索引变化
-        del tree_list[idx2]
-        del tree_list[idx1]
-        tree_list.append(merged_tree)
-        print(f"[INFO] 已合并树组{idx1}和{idx2}，当前树组数量: {len(tree_list)}")
-    
-    final_count = len(tree_list)
-    print(f"[INFO] 最终树组数量: {final_count}")
-    
-    # 验证返回的列表
-    if final_count == 0:
-        print(f"[ERROR] 返回的tree_list为空！这是一个BUG！")
-    
-    return tree_list
-
-# 主要的拓扑切分函数（完整版本）
-def performTreeCutComplete(tree_data=None, output_dir="TreeGroup", num_groups=0, show_graphs=False):
-    """
-    执行拓扑切分的主要函数（基于依赖分析的自动切分）
-    
-    Args:
-        tree_data: 外部通信树数据，如果为None则使用默认构建方式
-        output_dir: 输出目录，默认为"TreeGroup"
-        num_groups: 保留参数（兼容性），实际只使用0（自动切分），不再支持强制指定数量
-        show_graphs: 是否显示图形，默认为False
-    
-    切分算法：
-        1. 预处理阶段 (PreTreatment):
-           - 识别叶子节点（出度为0）
-           - 标记"毛刺"节点（父节点出度为2的叶子节点）
-           - 剪除无冲突的"毛刺"节点（路径信息无交集）
-        
-        2. 递归切割阶段 (SplitCommunicationTree):
-           - 寻找从根节点出发的所有最长路径
-           - 按父节点对路径末端节点分组
-           - 单个子节点：检测冲突并决定剪除或合并
-           - 多个子节点：批量合并到父节点
-           - 递归处理直到只剩根节点
-    
-    Returns:
-        dict: 包含切分结果的字典（保证依赖关系完整）
-    """
-    global Tree_list, out_dependence_list, TASK_NUM
-    
-    # 将output_dir转换为绝对路径（相对于API目录）
-    if not os.path.isabs(output_dir):
-        api_dir = API_DIR
-        output_dir = str((api_dir / output_dir).resolve())
-    
-    # 重置全局变量
-    Tree_list = []
-    out_dependence_list = []
-    
-    # 创建一个有向图
-    T = nx.DiGraph()
-    
-    if tree_data is not None:
-        # 使用外部数据构建通信树
-        T = constructTreeFromData(T, root_node, tree_data)
-    else:
-        # 使用默认方式构建通信树
-        T.add_node(root_node, name='Root', nodes_passed=[], children=[])
-        constructTree(T, root_node)
-    
-    # 保存原始通信树用于3D可视化
-    original_tree_for_viz = copy.deepcopy(T)
-    
-    if show_graphs:
-        ShowGraph(T)
-    
-    # 预处理
-    T = preTreatment(T)
-    Tree_copy = copy.deepcopy(T)
-    
-    # 执行切分（基于依赖分析的自动切分）
-    splitCommunicationTree(T, Tree_copy)
-    
-    # 只使用自动切分，不再支持强制调整数量（避免破坏依赖关系）
-    if num_groups > 0:
-        print(f"[WARNING] 忽略手动指定的切分数量({num_groups})，只使用基于依赖分析的自动切分")
-        print(f"[WARNING] 强制调整数量可能破坏节点间的依赖关系，已禁用此功能")
-    
-    print(f"[INFO] 基于依赖分析的自动切分完成，最终树组数量: {len(Tree_list)}")
-    print(f"[INFO] 切分算法已保证所有依赖关系完整，未被破坏")
-    
-    if show_graphs:
-        for item in Tree_list:
-            print(item.edges())
-            ShowGraph(item)
-    
-    # 生成输出文件
-    makeInDependenceInfo(Tree_list, output_dir)
-    makeOutDependenceInfo(out_dependence_list, Tree_list, output_dir)
-    
-    # 保存TreeGroup为JSON文件
-    json_overview = saveTreeGroupToJson(Tree_list, output_dir)
-    
-    # 生成3D分层可视化HTML（使用TreeCut中的可视化函数）
-    viz_path_relative: Optional[str] = None
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-        viz_output_file = os.path.join(output_dir, "tree_split_3d.html")
-        visualize3DSplitTreeHTML(original_tree_for_viz, Tree_list, viz_output_file)
-        print(f"[INFO] 3D树组可视化HTML已生成: {viz_output_file}")
-        
-        api_dir_for_viz = API_DIR
-        try:
-            viz_path_relative = str(Path(viz_output_file).relative_to(api_dir_for_viz))
-        except ValueError:
-            viz_path_relative = viz_output_file
-    except Exception as e:
-        print(f"[WARNING] 3D树组可视化HTML生成失败: {e}")
-        viz_path_relative = None
-    
-    # 返回结果（output_directory使用相对路径，相对于api目录）
-    api_dir = API_DIR
-    try:
-        output_dir_relative = str(Path(output_dir).relative_to(api_dir))
-    except ValueError:
-        # 如果无法计算相对路径，使用原始值
-        output_dir_relative = output_dir
-    
-    result = {
-        "success": True,
-        "tree_groups": len(Tree_list),
-        "output_directory": output_dir_relative,
-        "json_overview": json_overview,
-        "tree_list": Tree_list,
-        "out_dependence_list": out_dependence_list,
-        "tree_split_3d_html": viz_path_relative,
-    }
-    
-    return result
-
 # ==================== 通信树解析接口 ====================
 # 从模块二（负载）输出中解析通信树，不再重新运行 trafficGen
 
 class GenerateTreeRequest(BaseModel):
+    rdma_root: Optional[str] = None  # 当前负载返回的输出目录
     model: Optional[str] = None  # 保留兼容，不再使用
     load_source: Optional[str] = None  # "custom" 或 "generated"(trafficGen)，用于选择解析来源
 
@@ -939,12 +143,23 @@ class GenerateTreeResponse(BaseModel):
     edges_count: int = 0
     rdma_root: Optional[str] = None  # rdma_result 绝对路径，用于 tree-cut 时计算真实 nodes_passed
 
-def _find_communication_tree_json() -> tuple:
+def _find_communication_tree_json(rdma_root: Optional[str] = None) -> tuple:
     """
     从模块二输出中查找 communication_tree_iter0.json。
     返回 (json_path, rdma_root_path)，未找到则 (None, None)。
     """
+    if rdma_root:
+        candidate = Path(rdma_root)
+        candidate = (candidate if candidate.is_absolute() else REVERIE_ROOT / candidate).resolve()
+        try:
+            candidate.relative_to(REVERIE_ROOT.resolve())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="负载输出目录必须位于项目目录内")
+        json_path = candidate / "communication_tree_iter0.json"
+        return (json_path, candidate) if json_path.is_file() else (None, None)
+
     base_dir = REVERIE_ROOT
+    candidates = []
     # 1. TrafficGenerator/rdma_result（模块二 qwen/deepseek 模式输出）
     traffic_gen_paths = [
         REVERIE_ROOT / "TrafficGenerator",
@@ -954,8 +169,7 @@ def _find_communication_tree_json() -> tuple:
     for tg in traffic_gen_paths:
         json_path = tg / "rdma_result" / "communication_tree_iter0.json"
         if json_path.exists():
-            rdma_root = tg / "rdma_result"
-            return json_path, rdma_root if rdma_root.exists() else None
+            candidates.append(json_path)
 
     # 2. workflow_output 最新目录
     wf_output = REVERIE_ROOT / "Generator" / "Generator" / "workflow_output"
@@ -964,9 +178,11 @@ def _find_communication_tree_json() -> tuple:
         for d in dirs[:5]:
             json_path = d / "2_traffic" / "rdma_result" / "communication_tree_iter0.json"
             if json_path.exists():
-                rdma_root = d / "2_traffic" / "rdma_result"
-                return json_path, rdma_root if rdma_root.exists() else None
+                candidates.append(json_path)
 
+    if candidates:
+        json_path = max(candidates, key=lambda path: path.stat().st_mtime_ns)
+        return json_path, json_path.parent
     return None, None
 
 
@@ -1074,7 +290,7 @@ async def generate_communication_tree(request: GenerateTreeRequest):
                 rdma_root=rdma_root
             )
 
-        json_path, rdma_root_path = _find_communication_tree_json()
+        json_path, rdma_root_path = _find_communication_tree_json(request.rdma_root)
         if json_path is None:
             raise HTTPException(
                 status_code=404,
@@ -1101,6 +317,7 @@ async def generate_communication_tree(request: GenerateTreeRequest):
         raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
 
 class VisualizeTreeRequest(BaseModel):
+    rdma_root: Optional[str] = None
     load_source: Optional[str] = None  # "custom" 或 "generated"
 
 @app.post("/visualize-full-tree")
@@ -1120,7 +337,7 @@ async def visualize_full_tree(request: Optional[VisualizeTreeRequest] = Body(def
             tree_data, _ = _build_communication_tree_from_custom_load(REVERIE_ROOT)
 
         if tree_data is None:
-            json_path, _ = _find_communication_tree_json()
+            json_path, _ = _find_communication_tree_json(request.rdma_root if request else None)
             if json_path is None:
                 raise HTTPException(status_code=404, detail="未找到通信树文件，请先在第二步生成负载")
             with open(json_path, 'r', encoding='utf-8') as f:
@@ -1331,7 +548,7 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
         
         # 检查是否已经生成了3D树组可视化HTML
         viz_html_file = tree_dir / "tree_split_3d.html"
-        has_3d_viz = viz_html_file.exists()
+        has_3d_viz = (tree_dir / "plan.json").is_file()
         
         return {
             "success": True,
@@ -1345,26 +562,35 @@ async def visualize_tree_groups(output_dir: str = "TreeGroup"):
 
 @app.get("/get-tree-groups-3d")
 async def get_tree_groups_3d(output_dir: str = "TreeGroup"):
-    """获取树组3D切分可视化HTML"""
-    api_dir = API_DIR
-    base_dir = REVERIE_ROOT
-    
-    tree_dir = (api_dir / output_dir).resolve()
-    if not tree_dir.exists():
-        tree_dir = (base_dir / output_dir).resolve()
-    if not tree_dir.exists():
-        raise HTTPException(status_code=404, detail=f"树组目录不存在: {output_dir}")
-    
-    html_file = tree_dir / "tree_split_3d.html"
-    if not html_file.exists():
-        raise HTTPException(status_code=404, detail="3D树组可视化HTML不存在，请先执行通信树切分")
-    
-    # 读取并修复模板转义问题：旧版 TreeCut 可能生成 {{ 和 }}，需转为 { 和 }
-    html_content = html_file.read_text(encoding="utf-8")
-    if "}}" in html_content or "{{" in html_content:
-        html_content = html_content.replace("}}", "}").replace("{{", "{")
-    
-    return HTMLResponse(content=html_content)
+    """Render the current saved DAG plan; legacy cached HTML is never authoritative."""
+    from .dag_service import load_plan, plan_projection
+    from .dag_visualization import render_execution_plan
+    try:
+        plan = load_plan(API_DIR, str(Path(output_dir) / "plan.json"))
+        content = render_execution_plan(plan_projection(plan))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="未找到阶段 DAG 执行计划，请先重新切分")
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"执行计划可视化失败: {exc}")
+    return HTMLResponse(content=content, headers={"Cache-Control": "no-store"})
+
+
+class ExecutionPlanVisualizationRequest(BaseModel):
+    execution_plan: Dict[str, Any]
+    is_final: bool = False
+    simulation_id: Optional[str] = None
+
+
+@app.post("/visualize-execution-plan", response_class=HTMLResponse)
+async def visualize_execution_plan(request: ExecutionPlanVisualizationRequest):
+    """Render exactly the candidate/final execution plan currently shown by the UI."""
+    from .dag_visualization import render_execution_plan
+    try:
+        content = render_execution_plan(request.execution_plan, is_final=request.is_final,
+                                        simulation_id=request.simulation_id)
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"执行计划可视化失败: {exc}")
+    return HTMLResponse(content=content, headers={"Cache-Control": "no-store"})
 
 @app.get("/get-tree-image/{group_id}")
 async def get_tree_image(group_id: int):
@@ -2320,9 +1546,11 @@ def _generate_ecmp_paths_and_update_nodes_passed(rdma_root: Path, tree_data: dic
 class TreeCutRequest(BaseModel):
     tree_data: Dict[str, Any]
     output_dir: str = "TreeGroup"
-    num_groups: int = 0  # 保留参数（兼容性），实际只支持0（自动切分）
+    num_groups: int = 0  # 旧参数兼容，代表数量始终自动计算
     show_graphs: bool = False
-    rdma_root: Optional[str] = None  # rdma_result 路径，提供则用真实流量计算 nodes_passed
+    rdma_root: Optional[str] = None  # 当前阶段流量目录
+    enable_cut: bool = True
+    deduplicate: bool = True
 
 class TreeCutResponse(BaseModel):
     success: bool
@@ -2332,86 +1560,41 @@ class TreeCutResponse(BaseModel):
     json_overview: Dict[str, Any]
     result_files: List[str]
     tree_split_3d_html: Optional[str] = None
+    plan_file: Optional[str] = None
+    execution_plan: Dict[str, Any] = {}
 
 @app.post("/tree-cut", response_model=TreeCutResponse)
 async def tree_cut(request: TreeCutRequest):
     """
-    拓扑切分接口（基于依赖分析的自动切分）
-    
-    使用智能算法自动切分通信树，保证依赖关系不被破坏：
-    - 预处理：识别并剪除无冲突的"毛刺"节点
-    - 递归切割：基于最长路径和依赖分析进行切分
-    - 冲突检测：确保切分不破坏节点间的依赖关系
-    
-    若提供 rdma_root，则从真实流量计算 ECMP 路径，用实际流经的网络节点更新 nodes_passed。
+    冻结完整阶段 DAG、真实 RDMA 输入和共同网络配置。
+
+    默认按阶段建立子单元，保留所有前驱；仅复用能证明输入等价的代表。
+    仿真时还会根据真实时间窗检测跨单元资源竞争，必要时合并后重跑。
     """
     try:
-        api_dir = API_DIR
-        base_dir = REVERIE_ROOT
-        tree_data = request.tree_data.copy()
-        # 若提供 rdma_root，用真实流量更新 nodes_passed
-        if request.rdma_root:
-            rdma_path = Path(request.rdma_root)
-            if not rdma_path.is_absolute():
-                rdma_path = (base_dir / request.rdma_root.replace("\\", "/")).resolve()
-            if rdma_path.exists() and rdma_path.is_dir():
-                tree_data = _generate_ecmp_paths_and_update_nodes_passed(rdma_path, tree_data, base_dir)
-            else:
-                print(f"[tree-cut] rdma_root 不存在: {rdma_path}，使用原始 nodes_passed")
-        # 转换edge格式
-        if "edges" in tree_data:
-            converted_edges = []
-            for edge in tree_data["edges"]:
-                if "from_node" in edge and "to_node" in edge:
-                    converted_edges.append({
-                        "from": edge["from_node"],
-                        "to": edge["to_node"]
-                    })
-                else:
-                    converted_edges.append(edge)
-            tree_data["edges"] = converted_edges
-        
-        # 使用完整的TreeCut功能
-        result = performTreeCutComplete(
-            tree_data=tree_data,
-            output_dir=request.output_dir,
-            num_groups=request.num_groups,
-            show_graphs=request.show_graphs
-        )
-        
-        result_files = []
-        # 尝试多个可能的路径查找结果文件
-        api_dir = API_DIR
-        base_dir = REVERIE_ROOT
-        possible_output_dirs = [
-            api_dir / request.output_dir,  # examples/Reverie/api/TreeGroup
-            base_dir / request.output_dir,  # examples/Reverie/TreeGroup
-            Path(request.output_dir),  # 相对路径或绝对路径
-        ]
-        
-        found_dir = None
-        for dir_path in possible_output_dirs:
-            if dir_path.exists() and dir_path.is_dir():
-                found_dir = dir_path
-                break
-        
-        if found_dir:
-            for root, dirs, files in os.walk(str(found_dir)):
-                for file in files:
-                    result_files.append(os.path.join(root, file))
-        
+        from .dag_service import save_plan, plan_projection
+        rdma_root = request.rdma_root
+        if not rdma_root:
+            _, candidate = _find_communication_tree_json()
+            rdma_root = str(candidate) if candidate else str(REVERIE_ROOT / "rdma_result")
+        plan, overview, plan_file, directory = save_plan(
+            request.tree_data, rdma_root, REVERIE_ROOT, API_DIR, request.output_dir,
+            enable_cut=request.enable_cut, deduplicate=request.deduplicate)
         return TreeCutResponse(
-            success=result["success"],
-            message=f"成功切分通信树，生成了{result['tree_groups']}个树组",
-            tree_groups=result["tree_groups"],
-            output_directory=result["output_directory"],
-            json_overview=result["json_overview"],
-            result_files=result_files,
-            tree_split_3d_html=result.get("tree_split_3d_html")
-        )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"拓扑切分时出错: {str(e)}")
+            success=True,
+            message=f"已建立 {len(plan['stages'])} 个逻辑阶段、{len(plan['groups'])} 个候选子单元、{len(plan['representatives'])} 个代表任务；运行时校验跨单元竞争",
+            tree_groups=len(plan['groups']), output_directory=request.output_dir,
+            json_overview=overview,
+            result_files=[str(p.relative_to(API_DIR)) for p in directory.glob('*.json')],
+            plan_file=plan_file, execution_plan=plan_projection(plan),
+            tree_split_3d_html=str((directory / 'tree_split_3d.html').relative_to(API_DIR)))
+    except (ValueError, FileNotFoundError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"DAG 计划生成失败: {exc}")
+
 
 # ==================== 负载设置接口相关 ====================
 
@@ -2440,6 +1623,7 @@ class LoadResponse(BaseModel):
     ecmp_preview: Optional[Dict[str, Any]] = None
     host_num: Optional[int] = None
     load_directory: Optional[str] = None  # 查看负载文件时使用的目录（trafficGen 用 Generator/.../task1）
+    rdma_root: Optional[str] = None  # 通信树必须与本次负载使用同一个输出目录
 
 
 def _parse_msg_len_expr(msg_len_expr: str) -> int:
@@ -2583,7 +1767,7 @@ def _write_task_inputs_from_all_rdma_files(base_dir: Path,
 
 def _copy_dump_files(src_dir: Path, dst_dir: Path) -> None:
     dst_dir.mkdir(parents=True, exist_ok=True)
-    for filename in ["evaluation.fct1", "evaluation.out", "system1.log"]:
+    for filename in ["evaluation.fct1", "evaluation.out", "system1.log", "steady_state_history.json", "flow_stats.txt"]:
         src_file = src_dir / filename
         if src_file.exists():
             shutil.copyfile(src_file, dst_dir / filename)
@@ -2802,6 +1986,16 @@ def _collect_analysis_from_dump(dump_dir: Path, analysis_type: str) -> Dict[str,
                 "file_path": str(evaluation_out),
                 "file_found": False
             }
+
+    history_file = dump_dir / "steady_state_history.json"
+    if analysis_type in ["all", "steady_state"] and history_file.exists():
+        snapshot = json.loads(history_file.read_text(encoding="utf-8"))
+        history = snapshot.get("history", [])
+        results["steady_state_analysis"] = {
+            "file_found": True, "steady_state_count": len(history),
+            "steady_times_ns": [event["sim_time_ns"] for event in history],
+            "steady_wall_times": history, "is_system_steady": bool(history),
+            "task_summaries": snapshot.get("details", [])}
 
     if analysis_type in ["all", "performance"]:
         log_file = dump_dir / "system1.log"
@@ -3581,6 +2775,9 @@ async def generate_load(request: LoadRequest):
 
             # _write_task_inputs_from_all_rdma_files 需要包含 rdma_result 的 base_dir
             # rdma_result 在 traffic_gen_dir 下，所以使用 traffic_gen_dir 作为 base_dir
+            tree_path = traffic_gen_dir / "rdma_result" / "communication_tree_iter0.json"
+            if not tree_path.is_file():
+                raise RuntimeError("trafficGen.py 未导出通信树，无法继续生成负载")
             task_summaries = _write_task_inputs_from_all_rdma_files(
                 base_dir=traffic_gen_dir,
                 task_num=request.task_num
@@ -3610,12 +2807,14 @@ async def generate_load(request: LoadRequest):
             load_filename = f"{request.model_name}_load.txt"
             load_mode_text = "simple"
 
+        load_rdma_root = (traffic_gen_dir / "rdma_result" if model_key in {"deepseek", "qwen"}
+                          else base_dir / "rdma_result")
         ecmp_preview_payload: Optional[Dict[str, Any]] = None
         if is_ecmp_module_ready():
             try:
                 ecmp_preview_payload = compute_and_cache_ecmp(
                     mode="expected",
-                    rdma_root=base_dir / "rdma_result"
+                    rdma_root=load_rdma_root
                 )
             except Exception as compute_exc:
                 print(f"[WARNING] ECMP预览生成失败: {compute_exc}")
@@ -3625,7 +2824,7 @@ async def generate_load(request: LoadRequest):
 
         # 将流量复制到仿真执行目录 flow-input-repo/examples/Reverie/task1/
         task_sources = [base_dir]
-        if traffic_gen_dir is not None:
+        if model_key in {"deepseek", "qwen"} and traffic_gen_dir is not None:
             task_sources.insert(0, traffic_gen_dir)
         _sync_task_to_reverie_exec_dir(task_sources, request.task_num)
 
@@ -3644,7 +2843,8 @@ async def generate_load(request: LoadRequest):
             task_summary=task_summaries,
             ecmp_preview=ecmp_preview_payload,
             host_num=request.host_num,
-            load_directory=load_directory
+            load_directory=load_directory,
+            rdma_root=str(load_rdma_root.resolve())
         )
         
     except HTTPException:
@@ -4019,7 +3219,11 @@ async def get_workflow_status(workflow_id: str):
 # ==================== 仿真控制接口相关 ====================
 
 class SimulationRequest(BaseModel):
-    task_num: int = 1  # 1=不开启切分，4=开启切分
+    task_num: int = 1  # 旧接口兼容，新DAG执行使用plan_file
+    use_dag: bool = False
+    plan_file: Optional[str] = None
+    deduplicate: bool = True
+    workers: int = 2
     llm_model: str = "deepseek"  # 模型名称
     enable_mixed_granularity: bool = True  # 是否启用混合粒度
     simulation_time: float = 10.0  # 仿真时间（秒）
@@ -4053,52 +3257,38 @@ def modify_sim_script(task_num: int, llm_model: str):
     with open(sim_script_path, 'w', encoding='utf-8') as f:
         f.write(content)
 
-def modify_qbb_device(enable_mixed_granularity: bool):
-    """修改qbb-net-device.cc中的混合粒度设置"""
-    # qbb-net-device.cc 在 flow-input-repo 中
-    # 尝试多个可能的路径
-    possible_qbb_paths = [
-        SRC_ROOT / "point-to-point" / "model" / "qbb-net-device.cc",
-        REVERIE_ROOT.parent.parent / "src" / "point-to-point" / "model" / "qbb-net-device.cc",
-    ]
-    
-    qbb_file_path = None
-    for path in possible_qbb_paths:
-        if path.exists():
-            qbb_file_path = path
-            break
-    
-    print(f"[DEBUG] modify_qbb_device: qbb_file_path={qbb_file_path}, exists={qbb_file_path.exists() if qbb_file_path else False}")
-    
-    if qbb_file_path is None or not qbb_file_path.exists():
-        raise FileNotFoundError(f"qbb-net-device.cc文件不存在，尝试的路径: {[str(p) for p in possible_qbb_paths]}")
-    
-    # 读取原文件
-    with open(qbb_file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # 修改ENABLE_JUMP_TRANSITION宏定义
-    if enable_mixed_granularity:
-        content = re.sub(r'//\s*#define\s+ENABLE_JUMP_TRANSITION', '#define ENABLE_JUMP_TRANSITION', content)
-        if '#define ENABLE_JUMP_TRANSITION' not in content:
-            # 如果不存在，在第61行附近添加
-            lines = content.split('\n')
-            for i, line in enumerate(lines):
-                if i >= 60 and 'ENABLE_JUMP_TRANSITION' in line:
-                    lines[i] = '#define ENABLE_JUMP_TRANSITION  // 启用跃迁功能'
-                    break
-            content = '\n'.join(lines)
+def _terminate_simulation_process(process):
+    if process is None or process.poll() is not None:
+        return
+    if os.name == "posix":
+        os.killpg(process.pid, signal.SIGTERM)
     else:
-        content = re.sub(r'#define\s+ENABLE_JUMP_TRANSITION', '// #define ENABLE_JUMP_TRANSITION', content)
-    
-    # 写回文件
-    with open(qbb_file_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+        process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        if os.name == "posix":
+            os.killpg(process.pid, signal.SIGKILL)
+        else:
+            process.kill()
+        process.wait(timeout=5)
+
 
 def run_simulation(simulation_id: str, task_num: int, llm_model: str, 
                   enable_mixed_granularity: bool, simulation_time: float,
-                  use_custom_config: bool, load_source: Optional[str] = None):
+                  use_custom_config: bool, load_source: Optional[str] = None,
+                  run_state=None, run_monitor=None):
     """运行仿真（后台任务）"""
+    # Baseline analysis has its own monitor and must not replace the live run.
+    status = run_state or (simulation_status if simulation_status.current_task == simulation_id else SimulationStatus())
+    monitor = run_monitor or (steady_state_monitor if status is simulation_status else SteadyStateMonitor())
+    if status.cancelled:
+        return {"success": False, "simulation_id": simulation_id, "error": "仿真已停止"}
+    if status.run_dir is None:
+        status.run_dir = REVERIE_ROOT / "dump" / "runs" / f"{simulation_id}-{uuid.uuid4().hex[:8]}"
+    status.run_dir.mkdir(parents=True, exist_ok=True)
+    if monitor.simulation_id != simulation_id:
+        monitor.reset(status.run_dir, task_num, simulation_id)
     # 创建日志目录
     api_dir = API_DIR
     logs_dir = api_dir / "logs"
@@ -4110,8 +3300,6 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
     log_file_path = logs_dir / log_filename
     
     try:
-        # 修改配置文件
-        modify_qbb_device(enable_mixed_granularity)
         
         # 切换到Reverie目录（NS3代码在flow-input-repo中）
         # 尝试多个可能的路径
@@ -4199,9 +3387,9 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
                     raise RuntimeError(f"自定义任务 {task_index} 缺少必要文件 rdma_operate0.txt 或 dependence.txt")
         
         # 设置运行状态
-        simulation_status.is_running = True
-        simulation_status.current_task = simulation_id
-        simulation_status.simulation_start_time = time.time()
+        status.is_running = True
+        status.current_task = simulation_id
+        status.simulation_start_time = time.time()
         
         # 使用Popen启动仿真进程（非阻塞）
         sim_script_path = reverie_dir / "sim.sh"
@@ -4226,6 +3414,8 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         env["LC_ALL"] = "C.UTF-8"
         env["LLM_OVERRIDE"] = llm_model
         env["TASKNUM_OVERRIDE"] = str(task_num)
+        env["FLOW_INPUT_MIXED_GRANULARITY"] = "1" if enable_mixed_granularity else "0"
+        env["FLOW_INPUT_RUN_DIR"] = str(status.run_dir)
         if use_custom_config:
             env["USE_CUSTOM_LOAD"] = "1"
         else:
@@ -4247,18 +3437,20 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             log_file.write(f"  SIM_FLOW_LAUNCH_END_SEC_OVERRIDE={env.get('SIM_FLOW_LAUNCH_END_SEC_OVERRIDE')}\n\n")
             log_file.write(f"开始执行仿真脚本...\n")
         
-        process = subprocess.Popen(
-            ['bash', str(sim_script_path)],
-            cwd=str(reverie_dir),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            env=env
-        )
-        
-        # 保存进程信息
-        simulation_status.current_process = process
-        
+        with status.lock:
+            if status.cancelled:
+                raise RuntimeError("仿真已停止")
+            process = subprocess.Popen(
+                ['bash', str(sim_script_path)],
+                cwd=str(reverie_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
+                start_new_session=(os.name == "posix")
+            )
+            status.current_process = process
+
         # 等待进程完成（在后台任务中）；仿真为“跑完为止”，预留至少 2 倍 sim 上限时间
         timeout_duration = max(sim_time_seconds * 2, 86400.0 * 2)  # 至少 2 天，避免提前杀进程
         with open(log_file_path, 'a', encoding='utf-8') as log_file:
@@ -4272,7 +3464,7 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             log_file.write("仿真执行结果\n")
             log_file.write("=" * 80 + "\n")
             log_file.write(f"返回码: {process.returncode}\n")
-            log_file.write(f"执行时间: {time.time() - simulation_status.simulation_start_time:.2f}秒\n")
+            log_file.write(f"执行时间: {time.time() - status.simulation_start_time:.2f}秒\n")
             log_file.write("\n" + "=" * 80 + "\n")
             log_file.write("STDOUT 输出:\n")
             log_file.write("=" * 80 + "\n")
@@ -4288,10 +3480,13 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             else:
                 log_file.write("(无错误输出)\n")
         
+        if process.returncode != 0:
+            raise RuntimeError(f"仿真脚本失败，返回码 {process.returncode}: {stderr[-2000:]}")
+        monitor.finish()
+        status.steady_state = False
         # 仿真完成
-        simulation_status.simulation_end_time = time.time()
-        simulation_status.is_running = False
-        simulation_status.current_process = None
+        status.simulation_end_time = time.time()
+        status.current_process = None
 
         # 确保 evaluation.fct1 与前端期望一致
         try:
@@ -4326,52 +3521,16 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         except Exception as ecmp_exc:
             print(f"[WARNING] ECMP实际路径计算失败: {ecmp_exc}")
 
-        # 增强稳态信息（包含仿真时间和挂钟时间）
-        steady_times_ns: List[float] = []
-        evaluation_out_path = reverie_dir / "dump" / "evaluation.out"
-        if evaluation_out_path.exists():
-            try:
-                with open(evaluation_out_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    eval_log_content = f.read()
-                steady_analysis = analyze_steady_state_from_evaluation(eval_log_content)
-                results["steady_state_analysis"] = steady_analysis
-                steady_times_ns = steady_analysis.get("steady_times_ns", []) or []
-            except Exception as eval_err:
-                print(f"[WARNING] Failed to analyze evaluation.out for steady state: {eval_err}")
+        # Use actual simulator events and wall-clock timestamps, never sim-time
+        # offsets added to the wall-clock start time.
+        snapshot = monitor.snapshot()
+        results["steady_state_analysis"] = monitor.analysis()
+        results["steady_state_wall_times"] = snapshot["history"]
+        results["steady_state_info"] = {"steady_wall_times": snapshot["history"]}
+        (reverie_dir / "dump" / "steady_state_history.json").write_text(
+            json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
 
-        steady_events: List[Dict[str, Any]] = []
-        simulation_start_wall = simulation_status.simulation_start_time
-        for ns_value in steady_times_ns:
-            try:
-                ns_float = float(ns_value)
-            except (TypeError, ValueError):
-                continue
-            if not simulation_start_wall:
-                wall_clock_ts = None
-            else:
-                wall_clock_ts = simulation_start_wall + (ns_float / 1e9)
-            steady_events.append({
-                "sim_time_ns": ns_float,
-                "wall_clock_ts": wall_clock_ts,
-                "wall_clock_iso": datetime.fromtimestamp(wall_clock_ts).isoformat() if wall_clock_ts else None
-            })
-        steady_events = sorted(steady_events, key=lambda x: x["sim_time_ns"])
-        deduped_events: List[Dict[str, Any]] = []
-        last_ns = None
-        epsilon_ns = 1.0  # 1ns tolerance
-        for event in steady_events:
-            ns_float = event.get("sim_time_ns")
-            if last_ns is not None and ns_float is not None and abs(ns_float - last_ns) <= epsilon_ns:
-                continue
-            deduped_events.append(event)
-            last_ns = ns_float
-
-        if deduped_events:
-            results.setdefault("steady_state_info", {}).setdefault("steady_times_ns", steady_times_ns)
-            results["steady_state_wall_times"] = deduped_events
-            results["steady_state_info"]["steady_wall_times"] = deduped_events
-
-        simulation_status.results[simulation_id] = results
+        status.results[simulation_id] = results
         
         # 检查输出文件
         dump_dir = reverie_dir / "dump"
@@ -4387,12 +3546,13 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             else:
                 log_file.write(f"警告: dump目录不存在: {dump_dir}\n")
         
-        print(f"仿真完成: {simulation_id}, 耗时: {simulation_status.simulation_end_time - simulation_status.simulation_start_time:.2f}秒, 日志: {log_file_path}")
+        status.is_running = False
+        print(f"仿真完成: {simulation_id}, 耗时: {status.simulation_end_time - status.simulation_start_time:.2f}秒, 日志: {log_file_path}")
         
         return {
             "success": True,
             "simulation_id": simulation_id,
-            "execution_time": simulation_status.simulation_end_time - simulation_status.simulation_start_time,
+            "execution_time": status.simulation_end_time - status.simulation_start_time,
             "results": results,
             "stdout": stdout,
             "stderr": stderr,
@@ -4400,9 +3560,14 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
         }
         
     except subprocess.TimeoutExpired:
-        simulation_status.is_running = False
-        simulation_status.current_process = None
+        _terminate_simulation_process(status.current_process)
+        monitor.finish()
+        status.simulation_end_time = time.time()
+        status.steady_state = False
+        status.is_running = False
+        status.current_process = None
         error_msg = "仿真超时"
+        status.error = error_msg
         with open(log_file_path, 'a', encoding='utf-8') as log_file:
             log_file.write(f"\n错误: {error_msg}\n")
         print(f"[仿真超时] {simulation_id}, 日志: {log_file_path}")
@@ -4413,9 +3578,14 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             "log_file": str(log_file_path)
         }
     except Exception as e:
-        simulation_status.is_running = False
-        simulation_status.current_process = None
+        _terminate_simulation_process(status.current_process)
+        monitor.finish()
+        status.simulation_end_time = time.time()
+        status.steady_state = False
+        status.is_running = False
+        status.current_process = None
         error_msg = str(e)
+        status.error = error_msg
         import traceback
         error_trace = traceback.format_exc()
         
@@ -4434,6 +3604,32 @@ def run_simulation(simulation_id: str, task_num: int, llm_model: str,
             "simulation_id": simulation_id,
             "log_file": str(log_file_path)
         }
+
+def run_dag_execution(simulation_id, plan, mixed, workers, validate, deduplicate, state, monitor):
+    try:
+        from .dag_runner import run_dag_simulation
+        state.run_dir.mkdir(parents=True, exist_ok=True)
+        result = run_dag_simulation(plan, PROJECT_ROOT, state.run_dir,
+                                    mixed=mixed, workers=workers, monitor=monitor,
+                                    state=state, validate=False, verify_dedup=True,
+                                    deduplicate=deduplicate)
+        result['mode'] = 'dag'
+        from .dag_analysis import _atomic_json
+        _atomic_json(state.run_dir / 'results.json', result)
+        state.results[simulation_id] = result
+        state.error = None if result.get('success', True) else result.get('error', 'DAG 验证未通过，查看结果中的差异')
+    except Exception as exc:
+        import traceback
+        state.error = str(exc)
+        state.run_dir.mkdir(parents=True, exist_ok=True)
+        (state.run_dir / 'error.log').write_text(traceback.format_exc(), encoding='utf-8')
+    finally:
+        monitor.finish()
+        state.steady_state = False
+        state.is_running = False
+        state.current_process = None
+        state.simulation_end_time = time.time()
+
 
 def analyze_simulation_results():
     """分析仿真结果"""
@@ -4460,7 +3656,7 @@ def analyze_simulation_results():
             results["performance_metrics"] = parse_performance_metrics(log_content)
         
         # 分析流统计
-        flow_stats_file = REVERIE_ROOT / "flow_stats.txt"
+        flow_stats_file = REVERIE_ROOT / "dump" / "flow_stats.txt"
         if flow_stats_file.exists():
             with open(flow_stats_file, 'r') as f:
                 flow_content = f.read()
@@ -4558,14 +3754,45 @@ async def check_task_dirs(task_num: int = 4):
 @app.post("/run-simulation", response_model=SimulationResponse)
 async def run_simulation_endpoint(request: SimulationRequest, background_tasks: BackgroundTasks):
     """运行仿真"""
+    global simulation_status, steady_state_monitor
     if simulation_status.is_running:
         raise HTTPException(status_code=400, detail="仿真正在运行中，请等待完成")
-    
-    if request.task_num not in [1, 4]:
-        raise HTTPException(status_code=400, detail="task_num必须是1或4")
-    
-    simulation_id = f"sim_{int(time.time())}"
-    
+    if _dag_baseline_manager().any_running():
+        raise HTTPException(status_code=409, detail="包级基线正在运行，请等待分析完成或先取消分析")
+
+    plan = None
+    if request.use_dag:
+        from .dag_service import load_plan
+        if not request.plan_file:
+            raise HTTPException(status_code=400, detail="请先生成阶段 DAG 执行计划")
+        if not 1 <= request.workers <= 16:
+            raise HTTPException(status_code=400, detail="并行进程数须在 1 到 16 之间")
+        try:
+            plan = load_plan(API_DIR, request.plan_file)
+        except (ValueError, OSError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+    elif request.task_num not in [1, 4]:
+        raise HTTPException(status_code=400, detail="旧接口task_num必须是1或4")
+
+    simulation_id = f"sim_{int(time.time())}_{uuid.uuid4().hex[:8]}"
+    simulation_status = SimulationStatus()
+    steady_state_monitor = SteadyStateMonitor()
+    simulation_status.is_running = True
+    simulation_status.current_task = simulation_id
+    simulation_status.steady_state = False
+    simulation_status.simulation_start_time = time.time()
+    simulation_status.simulation_end_time = None
+    simulation_status.run_dir = REVERIE_ROOT / "dump" / "runs" / simulation_id
+    steady_state_monitor.reset(simulation_status.run_dir, 0 if request.use_dag else request.task_num, simulation_id)
+    if request.use_dag:
+        simulation_status.execution = {'phase': 'queued', **plan.get('counts', {})}
+        background_tasks.add_task(run_dag_execution, simulation_id, plan,
+                                  request.enable_mixed_granularity, request.workers,
+                                  False, request.deduplicate,
+                                  simulation_status, steady_state_monitor)
+        return SimulationResponse(success=True, message="DAG 执行已启动", simulation_id=simulation_id,
+                                  status="running", results={})
+
     # 在后台运行仿真
     background_tasks.add_task(
         run_simulation,
@@ -4575,7 +3802,9 @@ async def run_simulation_endpoint(request: SimulationRequest, background_tasks: 
         request.enable_mixed_granularity,
         request.simulation_time,
         request.use_custom_config,
-        request.load_source
+        request.load_source,
+        run_state=simulation_status,
+        run_monitor=steady_state_monitor
     )
     
     return SimulationResponse(
@@ -4594,6 +3823,12 @@ class StatusResponse(BaseModel):
     steady_state: bool
     simulation_time: Optional[float]
     results: Dict[str, Any]
+    simulation_id: Optional[str] = None
+    simulation_start_time: Optional[float] = None
+    simulation_end_time: Optional[float] = None
+    monitor: Dict[str, Any] = {}
+    error: Optional[str] = None
+    execution: Dict[str, Any] = {}
 
 @app.get("/simulation-status", response_model=StatusResponse)
 async def get_simulation_status():
@@ -4604,7 +3839,15 @@ async def get_simulation_status():
     elif simulation_status.simulation_start_time:
         simulation_time = time.time() - simulation_status.simulation_start_time
     
+    snapshot = steady_state_monitor.snapshot()
+    simulation_status.steady_state = snapshot["is_steady"]
     return StatusResponse(
+        simulation_id=simulation_status.current_task,
+        simulation_start_time=simulation_status.simulation_start_time,
+        simulation_end_time=simulation_status.simulation_end_time,
+        monitor=snapshot,
+        error=simulation_status.error,
+        execution=simulation_status.execution,
         is_running=simulation_status.is_running,
         current_task=simulation_status.current_task,
         steady_state=simulation_status.steady_state,
@@ -4616,236 +3859,55 @@ async def get_simulation_status():
 # ==================== 稳态监控功能（基于已有实现） ====================
 
 # 稳态状态管理类
-class SteadyStateMonitor:
-    """稳态状态管理类（基于qbb-net-device.cc的日志输出）"""
-    def __init__(self):
-        self.is_monitoring = False
-        self.is_in_steady_state = False
-        self.steady_state_count = 0
-        self.steady_state_history = []
-        self.last_check_time = None
-        self.last_log_position = 0
-        
-    def reset(self):
-        """重置状态"""
-        self.is_monitoring = False
-        self.is_in_steady_state = False
-        self.steady_state_count = 0
-        self.steady_state_history = []
-        self.last_check_time = None
-        self.last_log_position = 0
-
 steady_state_monitor = SteadyStateMonitor()
-
-def analyze_flow_rates_for_steady_state(flow_stats_file: Path) -> dict:
-    """
-    分析flow_stats.txt中的流速率,判断是否达到稳态
-    稳态条件: 每个流的速率在连续10个周期内保持稳定(变化 < 1e-6 Gbps)
-    """
-    flow_rates = {}  # {flow_id: [rate1, rate2, ...]}
-    
-    with open(flow_stats_file, 'r', encoding='utf-8', errors='ignore') as f:
-        for line in f:
-            # 解析: Flow ID: 0-1-1000-1000 - Rate: 24.336 Gbps currentTime: 14689
-            match = re.search(r'Flow ID:\s+([\d\-]+)\s+-\s+Rate:\s+([\d.]+)\s+Gbps', line)
-            if match:
-                flow_id = match.group(1)
-                rate = float(match.group(2))
-                
-                if flow_id not in flow_rates:
-                    flow_rates[flow_id] = []
-                flow_rates[flow_id].append(rate)
-    
-    # 判断每个流是否稳态(最近10个点速率变化 < 1e-6)
-    steady_flows = 0
-    total_flows = len(flow_rates)
-    flow_details = []
-    
-    for flow_id, rates in flow_rates.items():
-        if len(rates) >= 10:
-            recent_rates = rates[-10:]
-            rate_diff = max(recent_rates) - min(recent_rates)
-            is_flow_steady = rate_diff < 1e-6
-            
-            if is_flow_steady:
-                steady_flows += 1
-            
-            flow_details.append({
-                "flow_id": flow_id,
-                "rate_count": len(rates),
-                "recent_avg": sum(recent_rates) / len(recent_rates),
-                "rate_variation": rate_diff,
-                "is_steady": is_flow_steady
-            })
-    
-    # 系统稳态: 所有流都稳态
-    is_system_steady = (total_flows > 0 and steady_flows == total_flows)
-    
-    return {
-        "is_steady": is_system_steady,
-        "steady_count": 1 if is_system_steady else 0,
-        "message": f"系统稳态: {steady_flows}/{total_flows} 个流达到稳态" if total_flows > 0 else "无流数据",
-        "details": flow_details[:20],  # 只返回前20个流的详情
-        "flow_stats": {
-            "total_flows": total_flows,
-            "steady_flows": steady_flows,
-            "unstable_flows": total_flows - steady_flows
-        }
-    }
-
-def parse_steady_state_from_log(log_file: Path, last_position: int = 0) -> tuple:
-    """
-    从日志文件中解析稳态信息（基于qbb-net-device.cc的输出）
-    
-    参数:
-        log_file: 日志文件路径
-        last_position: 上次读取的文件位置
-    
-    返回:
-        (is_steady, steady_time, new_position, exit_detected)
-    """
-    if not log_file.exists():
-        return False, None, last_position, False
-    
-    try:
-        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-            # 从上次读取的位置开始
-            f.seek(last_position)
-            new_content = f.read()
-            new_position = f.tell()
-            
-            if not new_content:
-                return False, None, last_position, False
-            
-            # 检查是否进入稳态（基于qbb-net-device.cc的输出格式）
-            steady_pattern = r"System entered steady state at time:\s+(\d+(?:\.\d+)?)\s*ns"
-            steady_match = re.search(steady_pattern, new_content)
-            
-            # 检查是否退出稳态
-            exit_pattern = r"System exit"
-            exit_match = re.search(exit_pattern, new_content)
-            
-            is_steady = steady_match is not None
-            steady_time = float(steady_match.group(1)) if is_steady else None
-            exit_detected = exit_match is not None
-            
-            return is_steady, steady_time, new_position, exit_detected
-            
-    except Exception as e:
-        print(f"解析日志文件时出错: {e}")
-        return False, None, last_position, False
 
 @app.post("/start-steady-state-monitor")
 async def start_steady_state_monitor():
-    """启动稳态监控（基于qbb-net-device.cc的实现）"""
-    if steady_state_monitor.is_monitoring:
-        return {
-            "success": False,
-            "message": "监控已在运行中"
-        }
-    
-    steady_state_monitor.reset()
+    # The run endpoint resets offsets/history once, using its unique run ID.
     steady_state_monitor.is_monitoring = True
-    
-    return {
-        "success": True,
-        "message": "稳态监控已启动",
-        "monitoring": True
-    }
+    return {"success": True, "monitoring": True}
+
 
 @app.post("/stop-steady-state-monitor")
 async def stop_steady_state_monitor():
-    """停止稳态监控"""
     steady_state_monitor.is_monitoring = False
-    
-    # 保存历史记录
+    snapshot = steady_state_monitor.snapshot()
     dump_dir = REVERIE_ROOT / "dump"
     dump_dir.mkdir(parents=True, exist_ok=True)
-    history_file = dump_dir / "steady_state_history.json"
-    
-    import json
-    with open(history_file, 'w', encoding='utf-8') as f:
-        json.dump({
-            "stop_time": time.time(),
-            "total_count": steady_state_monitor.steady_state_count,
-            "history": steady_state_monitor.steady_state_history
-        }, f, indent=2, ensure_ascii=False)
-    
-    return {
-        "success": True,
-        "message": "稳态监控已停止",
-        "total_count": steady_state_monitor.steady_state_count,
-        "history_saved": str(history_file)
-    }
+    (dump_dir / "steady_state_history.json").write_text(
+        json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
+    return {"success": True, "total_count": snapshot["steady_state_count"]}
+
 
 @app.get("/steady-state-monitor")
 async def get_steady_state_status():
-    """
-    获取稳态状态（通过分析flow_stats.txt中的流速率数据来判断稳态）
-    不再依赖C++代码输出,而是Python自己分析
-    """
-    # 使用相对路径查找 flow_stats.txt
-    base_dir = REVERIE_ROOT
-    flow_stats_file = base_dir / "flow_stats.txt"
-    
-    if not flow_stats_file.exists():
-        # 尝试其他可能的路径
-        flow_stats_file = REVERIE_ROOT.parent / "flow_stats.txt"
-    
-    if not flow_stats_file.exists():
-        return {
-            "is_steady": False,
-            "message": "flow_stats.txt 文件不存在",
-            "timestamp": time.time(),
-            "details": []
-        }
-    
-    try:
-        # 分析流速率数据来判断稳态
-        steady_info = analyze_flow_rates_for_steady_state(flow_stats_file)
-        
-        return {
-            "is_monitoring": True,
-            "is_steady": steady_info["is_steady"],
-            "steady_state_count": steady_info["steady_count"],
-            "timestamp": time.time(),
-            "message": steady_info["message"],
-            "details": steady_info["details"],
-            "flow_analysis": steady_info["flow_stats"]
-        }
-    except Exception as e:
-        return {
-            "is_steady": False,
-            "message": f"分析失败: {str(e)}",
-            "timestamp": time.time(),
-            "details": []
-        }
-
-
-# 服务器上 flow_stats.txt 路径（供河流图一键导入）
-FLOW_STATS_PATH_SERVER = Path("/home/admins/Desktop/flow-input-repo/flow_stats.txt")
+    snapshot = steady_state_monitor.snapshot()
+    simulation_status.steady_state = snapshot["is_steady"]
+    return snapshot
 
 
 @app.get("/flow_stats_txt")
-async def get_flow_stats_txt():
-    """返回服务器上 flow_stats.txt 的完整内容，供河流图直接导入并绘图。"""
-    if not FLOW_STATS_PATH_SERVER.exists():
-        raise HTTPException(status_code=404, detail="flow_stats.txt 不存在: " + str(FLOW_STATS_PATH_SERVER))
-    try:
-        content = FLOW_STATS_PATH_SERVER.read_text(encoding="utf-8", errors="ignore")
-        return Response(content=content, media_type="text/plain; charset=utf-8")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+async def get_flow_stats_txt(task_id: int = 1):
+    if task_id not in steady_state_monitor.tasks:
+        raise HTTPException(status_code=400, detail="无效的任务编号")
+    if steady_state_monitor.run_dir:
+        candidates = [steady_state_monitor.run_dir / f"task{task_id}" / "flow_stats.txt"]
+    else:
+        candidates = [REVERIE_ROOT / "dump" / "flow_stats.txt",
+                      PROJECT_ROOT / "flow_stats.txt", REVERIE_ROOT / "flow_stats.txt"]
+    for path in candidates:
+        if path.exists():
+            return Response(content=path.read_text(encoding="utf-8", errors="ignore"),
+                            media_type="text/plain; charset=utf-8")
+    raise HTTPException(status_code=404, detail=f"任务 {task_id} 的流统计文件尚未生成")
 
 
 @app.get("/steady-state-history")
 async def get_steady_state_history():
-    """获取稳态历史记录"""
-    return {
-        "success": True,
-        "total_count": steady_state_monitor.steady_state_count,
-        "history": steady_state_monitor.steady_state_history
-    }
+    snapshot = steady_state_monitor.snapshot()
+    return {"success": True, "total_count": snapshot["steady_state_count"],
+            "history": snapshot["history"], "simulation_id": snapshot["simulation_id"]}
+
 
 # ==================== 负载文件修改接口 ====================
 
@@ -4908,111 +3970,94 @@ class AnalysisResponse(BaseModel):
     results: Dict[str, Any]
     summary: str
 
+
+_dag_baseline_managers = {}
+_dag_baseline_managers_lock = threading.RLock()
+
+
+def _dag_baseline_manager():
+    from .dag_analysis import BaselineManager
+    identity = (str(REVERIE_ROOT.resolve()), str(PROJECT_ROOT.resolve()))
+    with _dag_baseline_managers_lock:
+        if identity not in _dag_baseline_managers:
+            _dag_baseline_managers[identity] = BaselineManager(
+                REVERIE_ROOT / "dump" / "baselines", PROJECT_ROOT)
+        return _dag_baseline_managers[identity]
+
+
+def _finished_dag_experiment(simulation_id=None):
+    selected = simulation_id or simulation_status.current_task
+    if not selected or not re.fullmatch(r"[A-Za-z0-9_-]+", selected):
+        raise HTTPException(status_code=404, detail="请先完成一次实验后再分析结果")
+    run_dir = (REVERIE_ROOT / "dump" / "runs" / selected).resolve()
+    run_dir.relative_to((REVERIE_ROOT / "dump" / "runs").resolve())
+    result = simulation_status.results.get(selected)
+    if result is None:
+        saved = run_dir / "results.json"
+        if not saved.is_file():
+            raise HTTPException(status_code=404, detail="找不到该实验结果")
+        try:
+            result = json.loads(saved.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=f"实验结果无法读取: {exc}")
+    # Older completed DAG runs saved the mode only in memory. Recognize their
+    # complete persisted schema; runtime/input evidence is still checked below.
+    if (result.get("mode") is None and isinstance(result.get("plan"), dict)
+            and result.get("execution_plan") and result.get("representative_results")):
+        result = {**result, "mode": "dag"}
+    if result.get("mode") != "dag":
+        raise HTTPException(status_code=400, detail="该实验没有冻结的 DAG 输入，请重新运行实验")
+    if result.get("success") is not True:
+        raise HTTPException(status_code=400, detail="请先成功完成当前实验后再分析")
+    return selected, copy.deepcopy(result), run_dir
+
+
+async def _analyze_dag_experiment(request):
+    from .dag_analysis import analyze_dag_results
+    from .dag_runner import DagCancelled
+    selected, experiment, run_dir = _finished_dag_experiment(request.simulation_id)
+    manager = _dag_baseline_manager()
+    try:
+        future = await asyncio.to_thread(manager.get_or_run, experiment, run_dir)
+        payload = await asyncio.shield(asyncio.wrap_future(future))
+        results = await asyncio.to_thread(analyze_dag_results, experiment,
+                                         payload["baseline"], payload["baseline_status"])
+        results["simulation_id"] = selected
+        comparison = results["comparison"]
+        reuse = "复用已有匹配基线" if payload["baseline_status"]["reused"] else "已完成完整 DAG 包级基线"
+        summary = (f"{reuse}。逐流集合{'一致' if comparison['flow_population_match'] else '存在差异'}；"
+                   f"最大 FCT 绝对误差 {comparison['max_abs_fct_error_ns']} ns；"
+                   f"整体完成时间差 {comparison['makespan_delta_ns']} ns。")
+        response = AnalysisResponse(success=True, analysis_type=request.analysis_type,
+                                    results=results, summary=summary)
+        from .dag_analysis import _atomic_json
+        await asyncio.to_thread(_atomic_json, run_dir / "analysis.json", response.model_dump())
+        return response
+    except (DagCancelled, asyncio.CancelledError):
+        raise HTTPException(status_code=409, detail="包级基线已取消，未生成分析结果")
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"基线分析失败: {exc}")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"包级基线运行失败: {exc}")
+
+
+@app.post("/cancel-baseline")
+async def cancel_dag_baseline(request: AnalysisRequest):
+    _, experiment, run_dir = _finished_dag_experiment(request.simulation_id)
+    try:
+        cancelled = await asyncio.to_thread(_dag_baseline_manager().cancel, experiment, run_dir)
+        return {"success": True, "cancelled": cancelled,
+                "message": "已请求取消包级基线" if cancelled else "当前没有运行中的包级基线"}
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"取消基线失败: {exc}")
+
 @app.post("/analyze-results", response_model=AnalysisResponse)
 async def analyze_results(request: AnalysisRequest):
-    """分析仿真结果"""
-    try:
-        # 尝试多个可能的路径找到Reverie目录
-        possible_reverie_paths = [
-            REVERIE_ROOT,
-            REVERIE_ROOT / "examples" / "Reverie",
-            REVERIE_ROOT,
-        ]
-        
-        reverie_dir = None
-        for path in possible_reverie_paths:
-            if path.exists():
-                reverie_dir = path
-                break
-        
-        if reverie_dir is None:
-            reverie_dir = REVERIE_ROOT  # 默认路径
-        
-        base_dir = reverie_dir
-        exp_dump = reverie_dir / "dump"
-        baseline_dump = reverie_dir / "dump_baseline"
-        exp_backup = reverie_dir / "dump_experiment"
-        baseline_meta_path = baseline_dump / "metadata.json"
+    """Run/reuse the matching packet baseline, then analyze this frozen experiment."""
+    if simulation_status.is_running:
+        raise HTTPException(status_code=409, detail="请等待当前仿真结束后再分析结果")
+    return await _analyze_dag_experiment(request)
 
-        current_signature = _compute_load_signature(base_dir)
-        current_task_flow_count = _count_task_flow_records(base_dir)
-        baseline_meta = _read_baseline_meta(baseline_meta_path)
-        baseline_signature = baseline_meta.get("load_signature")
-        baseline_strategy = "task_backup_v2"
-        baseline_strategy_meta = baseline_meta.get("baseline_strategy")
-        baseline_task_flow_count_meta = int(baseline_meta.get("task_flow_count", -1))
-        baseline_needs_refresh = (
-            (not _has_dump_payload(baseline_dump))
-            or (current_signature and current_signature != baseline_signature)
-            or (baseline_strategy_meta != baseline_strategy)
-            or (baseline_task_flow_count_meta != current_task_flow_count)
-        )
-
-        if not exp_dump.exists():
-            raise HTTPException(status_code=404, detail="实验dump目录不存在，请先运行仿真")
-
-        if baseline_needs_refresh:
-            # 保存当前实验结果
-            if _has_dump_payload(exp_dump):
-                _copy_dump_files(exp_dump, exp_backup)
-            task_backup_root = None
-            # 运行包粒度基线（不开切分 + 不开混合粒度）
-            baseline_status.is_running = True
-            baseline_status.last_started = time.time()
-            try:
-                # 基线应使用与当前实验完全一致的流量集合（仅关闭切分/混合粒度）。
-                # 直接从实验任务备份聚合到单任务，避免 all_rdma_files 来源不一致导致流数偏差。
-                task_backup_root = _backup_task_dirs(base_dir)
-                _prepare_single_baseline_task_from_backup(base_dir=base_dir, backup_root=task_backup_root)
-                run_simulation(
-                    simulation_id="baseline_packet",
-                    task_num=1,
-                    llm_model="deepseek",
-                    enable_mixed_granularity=False,
-                    simulation_time=10.0,
-                    use_custom_config=True
-                )
-                _copy_dump_files(exp_dump, baseline_dump)
-            finally:
-                # 恢复实验任务目录与结果
-                _restore_task_dirs(base_dir, task_backup_root)
-                if _has_dump_payload(exp_backup):
-                    _copy_dump_files(exp_backup, exp_dump)
-                baseline_status.is_running = False
-                baseline_status.last_finished = time.time()
-            _write_baseline_meta(baseline_meta_path, {
-                "load_signature": current_signature,
-                "generated_at": time.time(),
-                "baseline_strategy": baseline_strategy,
-                "task_flow_count": current_task_flow_count
-            })
-
-        results = _collect_analysis_from_dump(exp_dump, request.analysis_type)
-        baseline_results = _collect_analysis_from_dump(baseline_dump, request.analysis_type)
-        results["baseline_analysis"] = baseline_results
-        results["baseline_status"] = {
-            "load_signature": baseline_signature,
-            "current_signature": current_signature,
-            "needs_refresh": baseline_needs_refresh
-        }
-        results["comparison"] = _compute_comparison(results, baseline_results)
-
-        summary = generate_analysis_summary(results)
-        
-        return AnalysisResponse(
-            success=True,
-            analysis_type=request.analysis_type,
-            results=results,
-            summary=summary
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print(f"[ERROR] 分析结果时发生异常: {str(e)}\n{error_trace}")
-        raise HTTPException(status_code=500, detail=f"分析结果时出错: {str(e)}")
 
 def analyze_fct_metrics(content):
     """分析FCT指标"""
@@ -5378,21 +4423,18 @@ async def health_check():
     }
 
 @app.get("/baseline-status")
-async def baseline_status_check():
-    """检查包粒度基线结果是否存在"""
-    base_dir = REVERIE_ROOT
-    baseline_dump = base_dir / "dump_baseline"
-    current_signature = _compute_load_signature(base_dir)
-    baseline_meta = _read_baseline_meta(baseline_dump / "metadata.json")
-    baseline_signature = baseline_meta.get("load_signature")
-    return {
-        "success": True,
-        "has_baseline": _has_dump_payload(baseline_dump),
-        "is_running": baseline_status.is_running,
-        "last_started": baseline_status.last_started,
-        "last_finished": baseline_status.last_finished,
-        "needs_refresh": bool(current_signature and current_signature != baseline_signature)
-    }
+async def baseline_status_check(simulation_id: Optional[str] = None):
+    """Inspect the matching frozen-input baseline without starting a job."""
+    selected = simulation_id or simulation_status.current_task
+    if not selected:
+        return {"success": True, "status": "not_started", "has_baseline": False,
+                "is_running": False, "needs_refresh": True, "reused": False}
+    _, experiment, run_dir = _finished_dag_experiment(selected)
+    try:
+        return await asyncio.to_thread(_dag_baseline_manager().status, experiment, run_dir)
+    except (ValueError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"基线状态不可用: {exc}")
+
 
 # ==================== 文件访问接口 ====================
 
@@ -5675,16 +4717,14 @@ async def stop_simulation():
                 "message": "当前没有运行中的仿真"
             }
         
-        # 终止仿真进程
-        if simulation_status.current_process:
-            try:
-                simulation_status.current_process.terminate()
-                simulation_status.current_process.wait(timeout=5)
-                print(f"仿真进程已终止: {simulation_status.current_task}")
-            except:
-                simulation_status.current_process.kill()
-                print(f"仿真进程已强制终止: {simulation_status.current_task}")
-        
+        with simulation_status.lock:
+            simulation_status.cancelled = True
+            _terminate_simulation_process(simulation_status.current_process)
+            for process in list(simulation_status.processes):
+                _terminate_simulation_process(process)
+        steady_state_monitor.finish()
+        simulation_status.steady_state = False
+        simulation_status.simulation_end_time = time.time()
         simulation_status.is_running = False
         simulation_status.current_process = None
         

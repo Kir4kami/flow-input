@@ -1,0 +1,11 @@
+fastapi>=0.100,<1
+uvicorn>=0.23,<1
+python-multipart>=0.0.9
+networkx>=2.8,<4
+numpy>=1.24,<3
+matplotlib>=3.7,<4
+scipy>=1.10,<2
+pandas>=2,<3
+seaborn>=0.13,<1
+pytest>=7,<10
+httpx>=0.24,<1

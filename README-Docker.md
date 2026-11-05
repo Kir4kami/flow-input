@@ -1,102 +1,79 @@
-# Flow-Input Docker 运行环境
+# Flow-Input Docker 部署
 
-这个文档说明如何在 Docker 中运行 Flow-Input 项目。
+需要 Docker Desktop 启动 Linux 容器引擎。Windows PowerShell 中在仓库根目录执行：
 
-## 环境要求
-
-- Docker
-- Docker Compose
-
-## 快速开始
-
-### 1. 构建 Docker 环境
-
-```bash
-./scripts/build.sh
+```powershell
+docker compose build fastapi
+docker compose up -d --force-recreate fastapi
+docker compose logs -f fastapi
 ```
 
-### 2. 启动容器
+首次启动会在容器里配置并编译 ns-3 的 sim 程序，看到 Uvicorn 启动日志后访问：
 
-```bash
-./scripts/run.sh
+- 前端：http://localhost:8000/complete_frontend.html
+- API 文档：http://localhost:8000/docs
+- 健康检查：http://localhost:8000/health
+
+容器名为 `flow-input-api`，以普通 Linux 用户运行。服务仅绑定本机的 8000 端口。
+代码通过镜像复制；构建时自动转换脚本换行，避免 Windows 的 CRLF 影响运行。
+修改本地代码后重新构建镜像并强制重建服务容器更新。
+
+编译产物、CMake 缓存和仿真结果分别保存在 Docker 命名卷中，不依赖 Windows
+目录的执行权限。每次启动会检查并增量构建 sim。每次仿真按运行 ID 和任务编号
+分目录保存日志及稳态事件，前端可同时开启任务切分和混合粒度。
+
+```powershell
+# 查看状态
+docker compose ps
+# 进入容器
+docker compose exec fastapi bash
+# 停止服务，保留结果和编译缓存
+docker compose stop
+# 容器内运行完整回归测试
+docker compose exec fastapi python3 -m pytest examples/Reverie/api/tests -p no:cacheprovider -q
+docker compose exec fastapi node --test examples/Reverie/api/tests/frontend_monitor.test.cjs
 ```
 
-### 3. 进入容器
+原始任务和输入数据仍保留在镜像中。页面生成的新配置位于容器可写层，更新镜像
+或重建容器前应导出需要保存的自定义输入；`dump` 内的仿真结果会持续保留。
 
-```bash
-docker exec -it flow-input-container bash
-```
+页面按阶段建立完整 DAG，自动计算等价代表，并按设置的并发数运行。仿真阶段
+保留必要的去重见证校验和混合模式局部包级参考；不再预先运行完整 DAG 基线。
+共享资源的并发阶段会在运行中合并后重新仿真，最终组数和映射以执行计划为准。
 
-### 4. 运行仿真
+完整包级基线统一放在“结果分析 → 分析结果”。首次分析自动使用已完成实验的
+冻结输入运行一个完整 DAG 任务，关闭切分、混合粒度和去重；结束后自动分析。
+已有流量、依赖、拓扑、协议和原生运行时均匹配的成功基线时直接复用。缓存保存
+在结果卷的 `dump/baselines/`，重启后仍可复用。已有严格匹配的完整包级参考也
+可直接采用。失败或取消不发布成功缓存，可重新点击分析重试。
 
-在容器内执行：
+等待基线期间页面显示进度并可取消，不会改写原实验结果和监控。逐流误差、整体
+完成时间以及原生计算／完整流程加速比分开呈现；分析基线的等待时间属于分析
+开销。仿真程序变化后，需要重新运行实验以获得可比的运行时证据。
 
-```bash
-# 进入 Reverie 目录
-cd examples/Reverie/
+每次运行在 `dump/runs/<run-id>/` 保存 manifest、冻结拓扑/协议/流量、逐流与
+逐操作时间戳、全部代表的稳态记录和最终汇总。复用阶段的稳态事件携带代表来源，
+不伪造其实际运行时间。短流未进入稳态时会明确显示没有跃迁。
 
-# 运行完整仿真
-./sim.sh
+去重统一使用带标记的输入与路由图同构，不依赖 TP/EP/PP 类型名或固定代表数量。
+对称映射会同时还原阶段、操作、phase、flow、主机和端口。原生 sim 导出实际
+数据及 ACK 路由，每个正式任务再核对冻结的路由证据；证据绑定可执行文件和动态库。
+同刻发起顺序可能影响排队，涉及重排的映射需先验证，未通过会回退并保存差异。
+混合模式的非原样输入复用会另做同模式验证，包含稳态事件和跃迁次数。
+关闭基线校验时，这些尚需验证的映射保留独立仿真。页面区分候选代表、最终代表
+以及包级/混合模式各自的验收与回退状态。
 
-# 或者分步运行
-cd TrafficGenerator/
-./trafficGen.py --input_file deepseek.txt
-./merge_dependency.sh
-./merge_rdma.sh
-cd ../
-./kira-parallel.sh
-```
+3D 分层可视化直接读取页面当前的执行计划，分别展示完整 DAG、切分子单元和
+去重代表任务。运行结束后，已打开的视图会更新为最终分组，包含运行时合并和
+实际采用的复用映射；候选文件目录仍保存初始计划。旧的静态三组 HTML 不再作为
+可视化数据来源。浏览器无法启用 3D 时，同一计划会显示为分组列表。
 
-## 可选：使用 Jupyter
+稳态判定使用连续十个完整采样区间的实际有效载荷字节数和实际经过时间，区分
+payload 与包含协议头的链路字节，并检查所有活动流的新鲜样本及交换机队列变化。
+跃迁使用同一份冻结的逐流进度计划，保留在途数据和包级收尾；队列持续增长、窗口
+限制、动态拥塞控制或尚未到达的外部释放时刻会阻止跃迁。恢复后重新采样。
+这仍是混合粒度近似模型，任意流量/协议的逐流零误差需要独立包级对照确认。
 
-启动 Jupyter 服务：
-
-```bash
-./scripts/run-jupyter.sh
-```
-
-然后访问 http://localhost:8888
-
-## 管理命令
-
-### 停止服务
-
-```bash
-./scripts/stop.sh
-```
-
-### 清理环境
-
-```bash
-./scripts/clean.sh
-```
-
-## 目录结构
-
-- `results/` - 仿真结果输出目录
-- `data/` - 数据文件目录
-- `scripts/` - 管理脚本
-
-## 故障排除
-
-### 构建失败
-
-1. 检查 Docker 是否正常运行
-2. 检查网络连接（需要下载依赖）
-3. 清理后重新构建：`./scripts/clean.sh && ./scripts/build.sh`
-
-### 运行失败
-
-1. 检查容器日志：`docker-compose logs`
-2. 检查 NS-3 是否正确构建：`./ns3 --version`
-3. 检查 Python 依赖：`pip3 list`
-
-## 开发模式
-
-如果需要修改代码，容器会自动挂载项目目录，修改会实时生效。
-
-## 性能优化
-
-- 使用 `--depth 1` 进行浅克隆
-- 使用 `--filter=blob:none` 减少数据传输
-- 在容器内使用 `ccache` 加速编译
+`jump_events.jsonl` 保存跃迁时长、实际跳过字节、保留尾部和暂缓原因；
+`execution_metadata.json` 保存原生仿真事件数和计算耗时。旧的
+`flow_SwitchStats.txt` 只保留空兼容文件，跃迁不再读取或生成大型交换机状态矩阵。

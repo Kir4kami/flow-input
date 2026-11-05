@@ -886,20 +886,20 @@
     .tree-visualization-container {
       width: 100%;
       height: 100%;
+      flex: 1;
+      min-height: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    
-    /* 放大树组可视化中的图例字体 */
-    .tree-visualization-container img {
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-    }
-    
-    /* 尝试影响iframe内的图例（如果同源） */
+
     .tree-visualization-container iframe {
-      zoom: 1;
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      min-height: 0;
+      border: 0;
+      display: block;
     }
     
     .modal-content:has(.tree-visualization-container) {
@@ -945,7 +945,7 @@
     
     /* 树可视化时，modal-body需要填满高度，保持overflow: hidden */
     .modal-body:has(.tree-visualization-container) {
-      padding: 24px;
+      padding: 0;
       height: 100%;
       min-height: 0;
       overflow: hidden;
@@ -2081,7 +2081,7 @@
               <label>输出目录：</label>
               <input v-model="treeCut.output_dir" type="text" placeholder="TreeGroup">
               <p class="info-text" style="color: #ff9800;">
-                ⚠️ 使用智能算法自动切分，保证依赖关系不被破坏
+                按阶段建立子单元，自动判等去重；运行后依据资源和时间重叠校验切分
               </p>
             </div>
             
@@ -2090,19 +2090,30 @@
                 {{ isCutting ? '切分中...' : '切分通信树' }}
               </button>
               <button class="btn btn-secondary" @click="viewCutResults" :disabled="!cutResult">
-                查看切分结果
+                查看候选计划文件
               </button>
               <button class="btn btn-secondary" @click="visualizeTreeGroups" :disabled="!cutResult">
-                可视化树组
+                {{ executionPlanIsFinal ? '可视化最终分组' : '可视化候选分组' }}
               </button>
             </div>
             
             <div v-if="cutResult" class="result-box" style="margin-top: 10px;">
               <p><strong>切分完成</strong></p>
-              <p class="info-text">树组数量: {{ cutResult.tree_groups }}</p>
-              <p class="info-text">输出目录: {{ cutResult.output_directory }}</p>
+              <p class="info-text">初始候选子单元数量: {{ cutResult.tree_groups }}</p>
+              <template v-if="cutResult.execution_plan">
+                <p><strong>{{ executionPlanIsFinal ? '最终执行分组' : '候选执行分组' }}</strong></p>
+                <p class="info-text">逻辑阶段: {{ cutResult.execution_plan.counts.logical_unit_count }}；子单元: {{ cutResult.execution_plan.counts.group_count }}；代表任务: {{ cutResult.execution_plan.counts.representative_count }}；复用单元: {{ cutResult.execution_plan.counts.reused_unit_count }}</p>
+                <p v-if="!executionPlanIsFinal && cutResult.execution_plan.deduplication && cutResult.execution_plan.deduplication.candidate_representative_count != null" class="info-text">包含待验证的对称映射时，候选代表数: {{ cutResult.execution_plan.deduplication.candidate_representative_count }}。仿真时会独立验证这些映射，通过后才复用。</p>
+                <table style="width:100%;font-size:13px;text-align:left;margin-top:8px;">
+                  <thead><tr><th>阶段</th><th>前驱</th><th>子单元</th><th>代表任务</th></tr></thead>
+                  <tbody><tr v-for="stage in cutResult.execution_plan.stages" :key="stage.id">
+                    <td>{{ stage.id }}</td><td>{{ stage.predecessors.join(', ') || '入口' }}</td><td>{{ stage.group_id }}</td><td>{{ stage.representative_id }}</td>
+                  </tr></tbody>
+                </table>
+              </template>
+              <p class="info-text">初始候选计划目录: {{ cutResult.output_directory }}（目录文件保留初始候选计划；可视化使用上方当前执行分组）</p>
               <p class="info-text" style="color: #52c41a;">
-                ✓ 已保证所有依赖关系完整
+                已保留完整 DAG 依赖，执行时检查跨单元竞争并自动调整
               </p>
             </div>
           </div>
@@ -2203,9 +2214,21 @@
             <span class="info-text">{{ simulation.enableMixedGranularity ? '已开启' : '已关闭' }}</span>
           </div>
 
+          <div class="switch-group">
+            <label>等价单元去重:</label><input type="checkbox" v-model="simulation.deduplicate">
+          </div>
+          <div class="input-group"><label>并行进程数：</label>
+            <input type="number" min="1" max="16" v-model.number="simulation.workers">
+          </div>
+          <p class="info-text">每个子单元从空网络开始；执行数量由等价类自动确定。</p>
+          <div v-if="executionSummary" class="result-box">
+            <p>执行阶段: {{ executionSummary.phase }}；轮次: {{ executionSummary.round || 1 }}</p>
+            <p>逻辑单元: {{ executionSummary.logical_unit_count }}；子单元: {{ executionSummary.group_count }}；代表: {{ executionSummary.representative_count }}；复用: {{ executionSummary.reused_unit_count }}</p>
+            <p>已完成任务: {{ executionSummary.completed_jobs || 0 }}/{{ executionSummary.job_count || 0 }}</p>
+          </div>
           <div class="button-row">
-            <button class="btn btn-success" @click="startSimulation" :disabled="simulationStatus.is_running">
-              开始仿真
+            <button class="btn btn-success" @click="startSimulation" :disabled="simulationStatus.is_running || isStartingSimulation || isAnalyzing || isCancellingAnalysis">
+              {{ isStartingSimulation ? '准备输入中...' : '开始仿真' }}
             </button>
             <button class="btn btn-danger" @click="stopSimulation" :disabled="!simulationStatus.is_running">
               停止仿真
@@ -2217,6 +2240,7 @@
 
           <div v-if="simulationResult" class="result-box">
             <p><strong>仿真状态:</strong> {{ simulationResult.status }}</p>
+            <p v-if="simulationError" style="color: #dc2626;">{{ simulationError }}</p>
             <p class="info-text">ID: {{ simulationResult.simulation_id }}</p>
             <p v-if="simulationStartTimeText" class="info-text">开始时间: {{ simulationStartTimeText }}</p>
             <p v-if="simulationEndTimeText" class="info-text">结束时间: {{ simulationEndTimeText }}</p>
@@ -2240,7 +2264,11 @@
             示例数据展示
           </button>
           <div v-if="steadyStateInfo" class="result-box">
-            <p><strong>稳态状态:</strong> {{ steadyStateInfo.is_steady ? '已进入稳态' : '未进入稳态' }}</p>
+            <p><strong>稳态状态:</strong> {{ steadyStateInfo.is_steady ? '有任务处于稳态' : '当前无任务处于稳态' }}</p>
+            <p class="info-text">当前稳态任务: {{ steadyStateInfo.steady_task_count || 0 }}/{{ steadyStateInfo.task_count || 1 }}；累计进入稳态: {{ steadyStateHistory.length }} 次</p>
+            <p v-for="task in (steadyStateInfo.details || [])" :key="task.task_id" class="info-text">
+              任务 {{ task.task_id }} {{ task.representative_id || task.group_id || '' }} {{ task.run_role || '' }}：{{ task.completed ? (task.exit_code === 0 ? '已完成' : '运行失败') : (task.is_steady ? '稳态中' : '非稳态') }}，累计进入 {{ task.steady_state_count }} 次
+            </p>
             <p class="info-text">挂钟检查时间: {{ steadyStateInfo.wallClockFull || '未记录' }}</p>
             <div v-if="steadyStateHistory.length > 0">
               <p><strong>详细信息:</strong></p>
@@ -2248,6 +2276,29 @@
             </div>
             <p v-else class="info-text">暂无稳态捕捉记录</p>
           </div>
+        </div>
+
+        <div v-if="dagResult" class="section">
+          <h3 class="section-title">阶段 DAG 汇总</h3>
+          <p>逻辑单元: {{ dagResult.summary.logical_unit_count }}；代表任务: {{ dagResult.summary.representative_count }}；完整模型仿真完成时间: {{ dagResult.summary.makespan_ns }} ns</p>
+          <p>流量记录: {{ dagResult.summary.total_flows }}；总字节: {{ dagResult.summary.total_bytes }}；实际执行耗时: {{ dagResult.summary.wall_time_seconds }} s</p>
+          <p class="info-text">完整包级基线及保真度对照在下方“结果分析”中按需执行。</p>
+          <template v-if="dagResult.deduplication_validation">
+            <p v-if="dagResult.deduplication_validation.packet">包级去重验证: {{ deduplicationValidationText(dagResult.deduplication_validation.packet) }}</p>
+            <p v-if="dagResult.deduplication_validation.mixed && dagResult.deduplication_validation.mixed.performed">混合粒度去重验证: {{ deduplicationValidationText(dagResult.deduplication_validation.mixed) }}</p>
+          </template>
+          <template v-if="dagResult.mixed_comparison && dagResult.mixed_comparison.performed">
+            <p>发生跃迁的代表: {{ dagResult.mixed_comparison.representatives_with_transitions }}；仿真计算加速比: {{ dagResult.mixed_comparison.runtime_speedup == null ? '无法计算' : dagResult.mixed_comparison.runtime_speedup.toFixed(3) + '×' }}</p>
+            <p>混合粒度完成时间差: {{ dagResult.mixed_comparison.makespan_delta_ns }} ns；最大流 FCT 绝对误差: {{ dagResult.mixed_comparison.max_fct_error_ns }} ns</p>
+            <p class="info-text">加速比按相同代表的原生仿真计算耗时之和计算；包含对照验收的总耗时另列。</p>
+          </template>
+          <table style="width:100%;font-size:13px;text-align:left;margin-top:8px;">
+            <thead><tr><th>原始阶段</th><th>全局开始/ns</th><th>全局完成/ns</th><th>代表</th></tr></thead>
+            <tbody><tr v-for="row in dagScheduleRows" :key="row.id"><td>{{ row.id }}</td><td>{{ row.start_ns }}</td><td>{{ row.finish_ns }}</td><td>{{ row.representative_id || '' }}</td></tr></tbody>
+          </table>
+          <p class="info-text">下列时间线为映射回原始 DAG 的仿真事件；复用事件标明来源，真实运行时间保留在代表任务记录中。</p>
+          <pre style="max-height:260px;overflow:auto;">{{ dagTimelineText }}</pre>
+          <pre v-if="dagResult.mixed_comparison" style="max-height:260px;overflow:auto;">{{ JSON.stringify(dagResult.mixed_comparison, null, 2) }}</pre>
         </div>
 
         <!-- 6. 结果分析 -->
@@ -2262,12 +2313,15 @@
               <option value="performance">性能分析</option>
             </select>
           </div>
-          <button class="btn btn-primary" @click="analyzeResults" :disabled="isAnalyzing">
-            {{ isAnalyzing ? '分析中...' : '分析结果' }}
+          <p class="info-text">首次分析会自动运行与当前实验输入一致的完整包级基线（关闭切分与混合粒度），完成后继续分析；已有匹配基线时直接复用。</p>
+          <button class="btn btn-primary" @click="analyzeResults" :disabled="isAnalyzing || isCancellingAnalysis || isStartingSimulation || simulationStatus.is_running">
+            {{ isCancellingAnalysis ? '正在取消...' : (isAnalyzing ? (analysisPhase === 'baseline_running' ? '基线仿真中...' : '分析中...') : '分析结果') }}
           </button>
+          <button v-if="isAnalyzing" class="btn btn-secondary" @click="cancelAnalysis" :disabled="analysisPhase !== 'baseline_running'">取消分析</button>
           <button class="btn btn-secondary" @click="viewAnalysisDetails">
             放大查看（实验/基线/对比）
           </button>
+          <p v-if="analysisProgress" class="info-text" :style="{ color: analysisPhase === 'failed' ? '#dc2626' : '#64748b' }">{{ analysisProgress }}</p>
           <div v-if="analysisResult" class="result-box">
             <p><strong>分析摘要:</strong></p>
             <pre>{{ analysisResult.summary || '暂无数据' }}</pre>
@@ -2280,7 +2334,7 @@
                     <strong>总流数:</strong> {{ analysisResult.results.fct_analysis.total_flows }}<br>
                     <strong>平均FCT:</strong> {{ analysisResult.results.fct_analysis.average_fct_us?.toFixed(2) || 0 }} μs 
                     ({{ analysisResult.results.fct_analysis.average_fct_ms?.toFixed(2) || 0 }} ms)<br>
-                    <strong>平均Slowdown:</strong> {{ analysisResult.results.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                    <strong>平均Slowdown:</strong> {{ Number.isFinite(analysisResult.results.fct_analysis.average_slowdown) ? analysisResult.results.fct_analysis.average_slowdown.toFixed(4) : '未计算' }}<br>
                     <strong>最小FCT:</strong> {{ analysisResult.results.fct_analysis.min_fct_us?.toFixed(2) || 0 }} μs<br>
                     <strong>最大FCT:</strong> {{ analysisResult.results.fct_analysis.max_fct_us?.toFixed(2) || 0 }} μs
                   </p>
@@ -2338,6 +2392,19 @@
               
               <div v-if="analysisResult.results.comparison" style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
                 <h4 style="margin-top: 0; color: #667eea;">对比指标（实验 vs 包粒度）</h4>
+                <template v-if="analysisResult.results.dag_result">
+                  <p><strong>完整包级基线:</strong> {{ analysisResult.results.baseline_status?.reused ? '已复用匹配基线' : '本次分析新运行' }}</p>
+                  <p>
+                    <strong>基线完成时间:</strong> {{ analysisMetric(analysisResult.results.comparison.packet_makespan_ns, 0) }} ns<br>
+                    <strong>实验完成时间:</strong> {{ analysisMetric(analysisResult.results.comparison.experiment_makespan_ns, 0) }} ns<br>
+                    <strong>最大流 FCT 绝对误差:</strong> {{ analysisMetric(analysisResult.results.comparison.max_abs_fct_error_ns, 0) }} ns<br>
+                    <strong>FCT 相对误差（最大／平均／P95）:</strong> {{ analysisMetric(analysisResult.results.comparison.max_abs_relative_fct_error_percent, 6) }}% ／ {{ analysisMetric(analysisResult.results.comparison.mean_abs_relative_fct_error_percent, 6) }}% ／ {{ analysisMetric(analysisResult.results.comparison.p95_abs_relative_fct_error_percent, 6) }}%<br>
+                    <strong>原生计算加速比（基线／实验）:</strong> {{ analysisMetric(analysisResult.results.comparison.runtime_speedup, 3) }}×<br>
+                    <strong>完整流程加速比（含实验自身验证开销）:</strong> {{ analysisMetric(analysisResult.results.comparison.total_runtime_speedup, 3) }}×
+                  </p>
+                  <p v-if="analysisResult.results.comparison.flow_population_match === false" style="color:#dc2626;">流量记录不一致：缺少 {{ analysisResult.results.comparison.missing_flows }} 条，多出 {{ analysisResult.results.comparison.extra_flows }} 条，不能据此认定保真。</p>
+                  <p class="info-text">误差按原始流记录逐条对齐计算。原生计算与完整流程耗时分别比较；本次按需运行基线的等待时间单独计入分析耗时。</p>
+                </template>
                 
                 <!-- FCT对比折线图 -->
                 <div v-if="analysisResult.results.fct_analysis && analysisResult.results.baseline_analysis && 
@@ -2346,12 +2413,12 @@
                      style="margin-bottom: 20px;">
                   <h5 style="margin-bottom: 10px; color: #333;">FCT对比（实验 vs 基线）</h5>
                   <div id="fct-comparison-chart" style="width: 100%; height: 300px; margin-bottom: 10px;"></div>
-                  <p style="text-align: center; color: #666; font-size: 12px;">
+                  <p v-if="!analysisResult.results.dag_result" style="text-align: center; color: #666; font-size: 12px;">
                     FCT保真度: {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}
                   </p>
                 </div>
                 
-                <p>
+                <p v-if="!analysisResult.results.dag_result">
                   <strong>FCT保真度:</strong> {{ analysisResult.results.comparison.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
                   <strong>运行时间加速比（基线/实验）:</strong> {{ analysisResult.results.comparison.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
                   <strong>运行时间差值（基线-实验）:</strong> {{ analysisResult.results.comparison.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
@@ -2420,7 +2487,7 @@
                     <p v-if="modal.data?.fct_analysis?.file_found && modal.data?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
                       <strong>总流数:</strong> {{ modal.data.fct_analysis.total_flows }}<br>
                       <strong>平均FCT:</strong> {{ modal.data.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
-                      <strong>平均Slowdown:</strong> {{ modal.data.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>平均Slowdown:</strong> {{ Number.isFinite(modal.data.fct_analysis.average_slowdown) ? modal.data.fct_analysis.average_slowdown.toFixed(4) : '未计算' }}<br>
                       <strong>最小FCT:</strong> {{ modal.data.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
                       <strong>最大FCT:</strong> {{ modal.data.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
                     </p>
@@ -2440,7 +2507,7 @@
                     <p v-if="modal.data?.baseline_analysis?.fct_analysis?.file_found && modal.data?.baseline_analysis?.fct_analysis?.total_flows > 0" style="margin: 0; color: #475569; line-height: 1.7;">
                       <strong>总流数:</strong> {{ modal.data.baseline_analysis.fct_analysis.total_flows }}<br>
                       <strong>平均FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_fct_us?.toFixed(2) || 0 }} us<br>
-                      <strong>平均Slowdown:</strong> {{ modal.data.baseline_analysis.fct_analysis.average_slowdown?.toFixed(4) || 0 }}<br>
+                      <strong>平均Slowdown:</strong> {{ Number.isFinite(modal.data.baseline_analysis.fct_analysis.average_slowdown) ? modal.data.baseline_analysis.fct_analysis.average_slowdown.toFixed(4) : '未计算' }}<br>
                       <strong>最小FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.min_fct_us?.toFixed(2) || 0 }} us<br>
                       <strong>最大FCT:</strong> {{ modal.data.baseline_analysis.fct_analysis.max_fct_us?.toFixed(2) || 0 }} us
                     </p>
@@ -2451,7 +2518,16 @@
                   </div>
                   <div class="analysis-modal-card">
                     <h4>对比数据</h4>
-                    <p style="margin: 0; color: #475569; line-height: 1.8;">
+                    <p v-if="modal.data?.dag_result" style="margin: 0; color: #475569; line-height: 1.8;">
+                      <strong>完整包级基线:</strong> {{ modal.data.baseline_status?.reused ? '已复用匹配基线' : '本次分析新运行' }}<br>
+                      <strong>基线完成时间:</strong> {{ analysisMetric(modal.data.comparison?.packet_makespan_ns, 0) }} ns<br>
+                      <strong>实验完成时间:</strong> {{ analysisMetric(modal.data.comparison?.experiment_makespan_ns, 0) }} ns<br>
+                      <strong>最大 FCT 绝对误差:</strong> {{ analysisMetric(modal.data.comparison?.max_abs_fct_error_ns, 0) }} ns<br>
+                      <strong>FCT 相对误差（最大／平均／P95）:</strong> {{ analysisMetric(modal.data.comparison?.max_abs_relative_fct_error_percent, 6) }}% ／ {{ analysisMetric(modal.data.comparison?.mean_abs_relative_fct_error_percent, 6) }}% ／ {{ analysisMetric(modal.data.comparison?.p95_abs_relative_fct_error_percent, 6) }}%<br>
+                      <strong>原生计算加速比:</strong> {{ analysisMetric(modal.data.comparison?.runtime_speedup, 3) }}×<br>
+                      <strong>完整流程加速比:</strong> {{ analysisMetric(modal.data.comparison?.total_runtime_speedup, 3) }}×
+                    </p>
+                    <p v-else style="margin: 0; color: #475569; line-height: 1.8;">
                       <strong>FCT保真度:</strong> {{ modal.data?.comparison?.fct_fidelity?.toFixed(6) || 'N/A' }}<br>
                       <strong>运行时间加速比（基线/实验）:</strong> {{ modal.data?.comparison?.runtime_speedup?.toFixed(6) || 'N/A' }}<br>
                       <strong>运行时间差值（基线-实验）:</strong> {{ modal.data?.comparison?.runtime_delta_ms?.toFixed(2) || 'N/A' }} ms<br>
@@ -2905,11 +2981,16 @@
           isCutting: false,
           cutResult: null,
           cutCompleted: false,
+          executionPlanIsFinal: false,
+          executionVisualizationRequestId: 0,
+          executionVisualizationRequestKey: '',
 
           // 仿真控制
           simulation: {
             enableCut: false,
-            enableMixedGranularity: true,
+            enableMixedGranularity: false,
+            deduplicate: true,
+            workers: 2,
             simulation_time: 10.0
           },
           simulationStatus: {
@@ -2917,6 +2998,10 @@
             steady_state: false
           },
           simulationResult: null,
+          isStartingSimulation: false,
+          simulationError: null,
+          executionSummary: null,
+          dagResult: null,
           simulationWallClockStart: null,
           simulationWallClockEnd: null,
           simulationWallClockDuration: null,
@@ -2926,14 +3011,23 @@
           autoMonitoring: false,
           monitorInterval: null,
           steadyStateHistory: [],
-          lastSteadyStateCaptureTs: null,
+          steadySnapshotRevision: -1,
+          statusPollPending: false,
 
           // 结果分析
           analysis: {
             type: 'all'
           },
           isAnalyzing: false,
+          isCancellingAnalysis: false,
           analysisResult: null,
+          analysisRequestId: 0,
+          analysisRunId: null,
+          analysisPhase: 'idle',
+          analysisProgress: '',
+          analysisBaselineStatus: null,
+          analysisPollInterval: null,
+          analysisStatusPollPending: false,
 
           // 模态框
           modal: {
@@ -3091,13 +3185,28 @@
           const perTor = this.topologyResult.num_hosts / this.topologyResult.num_tor
           return Number.isFinite(perTor) ? Math.round(perTor) : null
         },
+        dagScheduleRows() {
+          const schedule = this.dagResult && this.dagResult.schedule
+          if (!schedule) return []
+          return Array.isArray(schedule) ? schedule : Object.entries(schedule).map(([id, row]) => ({ id, ...row }))
+        },
+        dagTimelineText() {
+          const events = this.dagResult && this.dagResult.steady_state_timeline || []
+          return events.map(event => {
+            const stages = Array.isArray(event.stage_ids) ? event.stage_ids.join(', ') : ''
+            const label = event.stage_id || event.logical_unit_id || stages || event.group_id || ''
+            const source = event.reused || event.source === 'reused' ? '复用' : (event.source || '实测')
+            return `${label} | ${event.global_time_ns ?? event.global_sim_time_ns ?? event.sim_time_ns} ns | ${event.event || 'enter'} | ${source} | 代表 ${event.representative_id || ''}`
+          }).join('\n')
+        },
         steadyStateCaptureLogs() {
           if (!this.steadyStateHistory || this.steadyStateHistory.length === 0) {
             return []
           }
           return this.steadyStateHistory.map((entry, index) => {
             const label = entry.wallClockFull || this.formatWallClock(entry.timestamp, { includeDate: true })
-            return `#${index + 1} ${label}`
+            const simTime = Number.isFinite(entry.simTimeNs) ? `${entry.simTimeNs} ns` : '未记录'
+            return `#${index + 1} 任务 ${entry.taskId || 1} 进入稳态 | 仿真时间 ${simTime} | 实际发生时间 ${label}`
           })
         },
         simulationStartTimeText() {
@@ -3170,6 +3279,22 @@
         }
       },
       watch: {
+        'simulationResult.simulation_id'(newId) {
+          if (this.analysisRunId && newId !== this.analysisRunId) {
+            this.invalidateAnalysisRequest('实验已变更，请重新分析')
+          }
+        },
+        'cutResult.execution_plan': {
+          deep: true,
+          handler() {
+            if (!this.cutResult || !this.cutResult.execution_plan) {
+              this.invalidateExecutionPlanVisualization(true)
+              return
+            }
+            this.refreshExecutionPlanVisualization()
+          }
+        },
+        executionPlanIsFinal() { this.refreshExecutionPlanVisualization() },
         'topology.torSwitches'(newVal) {
           const torCount = Number(newVal)
           if (!Number.isFinite(torCount) || torCount <= 0) {
@@ -3213,12 +3338,23 @@
         document.addEventListener('click', this.globalFlowClickHandler, true)
       },
       beforeUnmount() {
+        this.invalidateExecutionPlanVisualization()
+        this.invalidateAnalysisRequest()
         if (this.globalFlowClickHandler) {
           document.removeEventListener('click', this.globalFlowClickHandler, true)
           this.globalFlowClickHandler = null
         }
       },
       methods: {
+        deduplicationValidationText(check) {
+          if (!check) return '未记录'
+          const count = check.final_representative_count
+          const detail = Number.isInteger(count) ? `；实际代表 ${count} 个` : ''
+          if (check.fallback) return `候选映射未通过，已使用保守分组${detail}`
+          if (check.passed === true) return `通过${detail}`
+          if (check.performed) return `未通过${detail}`
+          return `未验证重排候选，使用保守分组${detail}`
+        },
         formatWallClock(timestamp, options = {}) {
           const { includeDate = true } = options
           const tsNumber = Number(timestamp)
@@ -3241,30 +3377,6 @@
             minute: '2-digit',
             second: '2-digit'
           })
-        },
-        recordSteadyStateCapture(timestamp, wallClockFull) {
-          const tsNumber = Number(timestamp)
-          if (!Number.isFinite(tsNumber)) {
-            return
-          }
-          if (this.lastSteadyStateCaptureTs !== null) {
-            const diff = Math.abs(tsNumber - this.lastSteadyStateCaptureTs)
-            if (diff < 0.5) {
-              return
-            }
-          }
-          this.lastSteadyStateCaptureTs = tsNumber
-          this.steadyStateHistory.push({
-            timestamp: tsNumber,
-            wallClockFull
-          })
-          if (this.steadyStateHistory.length > 50) {
-            this.steadyStateHistory.shift()
-          }
-          const entryIndex = this.steadyStateHistory.length
-          const message = `稳态捕捉 #${entryIndex}: ${wallClockFull}`
-          console.info(`[SteadyState] ${message}`)
-          this.showToast(message, 'info')
         },
         formatDuration(secondsInput) {
           if (!Number.isFinite(secondsInput) || secondsInput < 0) {
@@ -3336,6 +3448,9 @@
             })
             
             const result = await response.json()
+            if (!response.ok || !result.success) {
+              throw new Error(result.detail || result.message || '拓扑生成失败')
+            }
             if (result.success) {
               this.topologyResult = result
               this.topologyGenerated = true
@@ -3352,10 +3467,7 @@
                 }
                 this.load.host_num = expectedHostNum
               }
-            } else {
-              if (!silent) {
-                this.showToast('拓扑生成失败', 'error')
-              }
+              return result
             }
           } catch (error) {
             if (!silent) {
@@ -3537,13 +3649,14 @@
           const { silent = false } = options
           if (this.load.model_name === 'custom') {
             if (this.customTrafficResult) {
-              return
+              return this.customTrafficResult
             }
             if (!silent) {
               this.showToast('请先上传并解析自定义流量文件', 'error')
             } else {
               throw new Error('自定义模式下请先上传并解析自定义流量文件')
             }
+            return null
           }
           this.isGeneratingLoad = true
           try {
@@ -3551,7 +3664,7 @@
             const payload = {
               ...this.load,
               host_num: ensuredHostNum,
-              task_num: this.simulation.enableCut ? 4 : 1
+              task_num: 1
             }
             const response = await fetch(`${this.apiUrl}/generate-load`, {
               method: 'POST',
@@ -3560,11 +3673,18 @@
             })
             
             const result = await response.json()
+            if (!response.ok || !result.success) {
+              throw new Error(result.detail || result.message || '负载生成失败')
+            }
             if (result.success) {
               this.loadResult = result
               this.loadGenerated = true
               this.loadCompleted = true
               this.loadSource = 'generated'
+              this.treeGenResult = null
+              this.cutResult = null
+              this.cutCompleted = false
+              this.executionPlanIsFinal = false
               this.customTrafficResult = null
               this.customTrafficFile = null
               // 清除文件输入框的值（需要通过DOM操作）
@@ -3582,10 +3702,7 @@
               if (!silent) {
                 this.showToast(`负载生成成功！已生成 ${this.load.host_num} 个节点的流量`, 'success')
               }
-            } else {
-              if (!silent) {
-                this.showToast('负载生成失败', 'error')
-              }
+              return result
             }
           } catch (error) {
             if (!silent) {
@@ -3644,7 +3761,7 @@
           try {
             const formData = new FormData()
             formData.append('traffic_file', this.customTrafficFile)
-            formData.append('task_num', this.simulation.enableCut ? 4 : 1)
+            formData.append('task_num', 1)
 
             const response = await fetch(`${this.apiUrl}/generate-load-from-file`, {
               method: 'POST',
@@ -5828,10 +5945,22 @@
           this.ecmpPlaybackTimer = setTimeout(() => this.playNextEcmpFlow(), interval)
         },
 
+        communicationTreeRequest() {
+          return {
+            load_source: this.loadSource === 'custom' ? 'custom' : 'generated',
+            rdma_root: this.loadResult && this.loadResult.rdma_root ? this.loadResult.rdma_root : null
+          }
+        },
+
         // 只生成通信树（不切分）
-        async generateTreeOnly() {
+        async generateTreeOnly(options = {}) {
+          const { silent = false } = options
           this.isGeneratingTree = true
+          this.invalidateExecutionPlanVisualization(true)
+          this.treeGenResult = null
           this.cutResult = null  // 清空切分结果
+          this.cutCompleted = false
+          this.executionPlanIsFinal = false
           
           try {
             this.showToast('正在解析通信树...', 'info')
@@ -5839,7 +5968,7 @@
             const response = await fetch(`${this.apiUrl}/generate-communication-tree`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
+              body: JSON.stringify(this.communicationTreeRequest())
             })
             
             if (!response.ok) {
@@ -5848,10 +5977,12 @@
             }
             
             const result = await response.json()
+            if (!result.success) throw new Error(result.detail || result.message || '生成通信树失败')
             this.treeGenResult = result
             this.showToast(`通信树解析成功！${result.nodes_count}个节点`, 'success')
             
           } catch (error) {
+            if (silent) throw error
             this.showToast(`错误: ${error.message}`, 'error')
             console.error('生成通信树失败:', error)
           } finally {
@@ -5867,7 +5998,7 @@
             const response = await fetch(`${this.apiUrl}/visualize-full-tree`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
+              body: JSON.stringify(this.communicationTreeRequest())
             })
             let result = {}
             try {
@@ -5912,7 +6043,9 @@
             const payload = {
                 tree_data: this.treeGenResult.tree_data,
                 output_dir: this.treeCut.output_dir,
-                num_groups: 0,  // 强制使用自动切分（0表示自动）
+                num_groups: 0,
+                enable_cut: true,
+                deduplicate: this.simulation.deduplicate,
                 show_graphs: false
             }
             if (this.treeGenResult.rdma_root) {
@@ -5932,6 +6065,8 @@
             const result = await response.json()
             this.cutResult = result
             this.cutCompleted = true
+            this.executionPlanIsFinal = false
+            await this.refreshExecutionPlanVisualization()
             this.showToast(`切分完成！生成了${result.tree_groups}个树组`, 'success')
             
           } catch (error) {
@@ -5971,192 +6106,108 @@
           }
         },
 
-        // 可视化树组
-        async visualizeTreeGroups() {
+        executionVisualizationPayload() {
+          return {
+            execution_plan: this.cutResult && this.cutResult.execution_plan,
+            is_final: this.executionPlanIsFinal,
+            simulation_id: this.simulationResult ? this.simulationResult.simulation_id : null
+          }
+        },
+
+        escapeHtmlAttribute(value) {
+          return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        },
+
+        invalidateExecutionPlanVisualization(close = false) {
+          ++this.executionVisualizationRequestId
+          this.executionVisualizationRequestKey = ''
+          if (close && this.modal.type === 'tree-visualization') this.modal.show = false
+        },
+
+        async refreshExecutionPlanVisualization() {
+          if (!this.modal.show || this.modal.type !== 'tree-visualization') return
+          const key = JSON.stringify(this.executionVisualizationPayload())
+          if (key !== this.executionVisualizationRequestKey) {
+            await this.visualizeTreeGroups({ refresh: true })
+          }
+        },
+
+        // Render the current plan directly; legacy directory HTML is never a source.
+        async visualizeTreeGroups({ refresh = false } = {}) {
+          const payload = this.executionVisualizationPayload()
+          if (!payload.execution_plan) {
+            if (!refresh) this.showToast('请先生成当前执行计划', 'info')
+            return
+          }
+          if (refresh && (!this.modal.show || this.modal.type !== 'tree-visualization')) return
+          const counts = payload.execution_plan.counts || {}
+          const label = payload.is_final ? '最终执行分组' : '候选执行分组'
+          const title = `${label} · 子单元 ${counts.group_count} · 代表任务 ${counts.representative_count}`
+          if (!refresh) {
+            this.browseHistory = []
+            this.modal = { show: true, title, type: 'tree-visualization', content: '' }
+          }
+          const activeModal = this.modal
+          activeModal.title = title
+          activeModal.content = '<p style="padding:24px;">正在生成当前分组的 3D 可视化...</p>'
+          const requestId = ++this.executionVisualizationRequestId
+          const key = JSON.stringify(payload)
+          this.executionVisualizationRequestKey = key
+          const isCurrent = () => requestId === this.executionVisualizationRequestId
+            && this.modal === activeModal && activeModal.show && activeModal.type === 'tree-visualization'
+            && key === JSON.stringify(this.executionVisualizationPayload())
           try {
-            this.showToast('正在生成树组可视化...', 'info')
-            
-            // output_dir现在是TreeGroup，API会在api/TreeGroup查找
-            const response = await fetch(`${this.apiUrl}/visualize-tree-groups?output_dir=${encodeURIComponent(this.treeCut.output_dir)}`, {
-              method: 'POST'
+            const response = await fetch(`${this.apiUrl}/visualize-execution-plan`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: key
             })
-            
-            const result = await response.json()
-            
-            if (result.success) {
-              // 构建HTML内容，显示所有树组的图片
-              const groups = result.groups
-              const has3D = result.has_3d_viz
-              
-              // 3D可视化HTML的访问地址（右侧显示）
-              const outputDir = (this.cutResult && this.cutResult.output_directory) || this.treeCut.output_dir || 'TreeGroup'
-              const viz3DUrl = `${this.apiUrl}/get-tree-groups-3d?output_dir=${encodeURIComponent(outputDir)}&t=${Date.now()}`
-              
-              // 使用左右两栏布局：左边树组PNG（可滚动），右边3D切分可视化（固定画布）
-              let htmlContent = `<style>
-                .tree-viz-legend { font-size: 18px !important; }
-                .tree-viz-legend * { font-size: 18px !important; }
-                iframe { zoom: 1.2; }
-              </style>
-              <div style="display: flex; gap: 32px; align-items: stretch; height: 100%; min-height: 0; overflow: hidden; flex: 1;">
-                <div style="flex: 0 0 45%; overflow-y: scroll; overflow-x: hidden; min-height: 0; padding-right: 8px; text-align: center;">
-                  <p style="color: #999; font-size: 12px; margin-bottom: 20px;">💡 提示：左侧树组图片可双击全屏查看</p>`
-              
-              groups.forEach((group, index) => {
-                const imageUrl = `${this.apiUrl}/get-tree-image/${group.group_id}?t=${Date.now()}`
-                htmlContent += `
-                  <div style="margin-bottom: 30px;">
-                    <h3 style="color: #667eea; margin-bottom: 10px;">Tree Group ${group.group_id}</h3>
-                    <p style="color: #666; font-size: 14px;">Nodes: ${group.node_count} | Edges: ${group.edge_count}</p>
-                    <img src="${imageUrl}" 
-                         class="topology-image" 
-                         data-fullscreen-url="${imageUrl}"
-                         style="max-width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer;"
-                         title="双击查看大图">
-                  </div>
-                `
-                
-                if (index < groups.length - 1) {
-                  htmlContent += `<hr style="margin: 20px 0; border: 1px dashed #e8e8e8;">`
-                }
-              })
-              
-              htmlContent += `</div>` // 结束左侧列
-              
-              // 右侧3D切分可视化区域 - 直接使用iframe，无多余包装
-              if (has3D) {
-                htmlContent += `
-                  <div style="flex: 1; min-width: 0; min-height: 500px; position: relative; overflow: hidden;">
-                    <iframe 
-                      src="${viz3DUrl}" 
-                      style="width: 100%; height: 100%; min-height: 500px; border: none; background: #ffffff; overflow: hidden; display: block; margin: 0; padding: 0; transform: scale(1.1) translateX(-60px); transform-origin: top left;"
-                      scrolling="no"
-                      frameborder="0"
-                      title="3D分层切分可视化">
-                    </iframe>
-                  </div>`
-              } else {
-                htmlContent += `
-                  <div style="flex: 1; min-width: 0; padding-left: 16px; height: 100%; overflow: hidden;">
-                    <p style="color: #999; font-size: 14px; text-align: center; margin-top: 40px;">
-                      尚未生成3D切分可视化，请先执行一次通信树切分。
-                    </p>
-                  </div>`
-              }
-              
-              htmlContent += `</div>` // 结束整体容器
-              
-              this.modal = {
-                show: true,
-                title: `Tree Group Visualization (Total: ${result.total_groups})`,
-                type: 'tree-visualization',
-                content: htmlContent
-              }
-              
-              // 等待DOM更新后，为所有图片添加双击事件
-              this.$nextTick(() => {
-                const images = document.querySelectorAll('.modal-body img[data-fullscreen-url]')
-                images.forEach(img => {
-                  img.addEventListener('dblclick', (e) => {
-                    const url = e.target.getAttribute('data-fullscreen-url')
-                    this.openFullscreenImage(url)
-                  })
-                })
-              })
-              
-              this.showToast(`成功生成${groups.length}个树组的可视化图`, 'success')
-            } else {
-              this.showToast('可视化失败', 'error')
+            const markup = await response.text()
+            if (!isCurrent()) return
+            if (!response.ok) {
+              let detail = '执行分组可视化失败'
+              try { detail = JSON.parse(markup).detail || detail } catch (error) {}
+              throw new Error(detail)
             }
+            activeModal.content = `<iframe title="${this.escapeHtmlAttribute(title)}" srcdoc="${this.escapeHtmlAttribute(markup)}"></iframe>`
+            if (!refresh) this.showToast(`已显示${label}：${counts.group_count} 个子单元，${counts.representative_count} 个代表任务`, 'success')
           } catch (error) {
+            if (!isCurrent()) return
+            this.executionVisualizationRequestKey = ''
+            activeModal.content = `<p style="padding:24px;">${this.escapeHtmlAttribute(error.message)}</p>`
             this.showToast(`错误: ${error.message}`, 'error')
           }
         },
 
         async prepareSimulationInputs() {
-          // 1. 生成拓扑（使用最新的拓扑设置）
           await this.generateTopology({ silent: true })
-          
-          // 2. 生成负载（使用最新的负载设置）
           await this.generateLoad({ silent: true })
-          
-          // 3. 如果开启了切分，确保通信树已生成并切分
-          if (this.simulation.enableCut) {
-            // 检查是否已有切分结果
-            const hasCutResult = this.cutCompleted && this.cutResult
-            
-            if (!hasCutResult) {
-              // 如果没有切分结果，需要先生成通信树，然后切分
-              if (!this.treeGenResult) {
-                // 生成通信树（使用最新的LLM模型设置，静默模式）
-                this.isGeneratingTree = true
-                try {
-                  const treeResponse = await fetch(`${this.apiUrl}/generate-communication-tree`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ load_source: this.loadSource === 'custom' ? 'custom' : 'generated' })
-                  })
-                  
-                  if (!treeResponse.ok) {
-                    const errorData = await treeResponse.json()
-                    throw new Error(errorData.detail || '生成通信树失败')
-                  }
-                  
-                  const treeResult = await treeResponse.json()
-                  this.treeGenResult = treeResult
-                } finally {
-                  this.isGeneratingTree = false
-                }
-              }
-              
-              // 执行切分（使用基于依赖分析的自动切分，静默模式）
-              this.isCutting = true
-              try {
-                const cutPayload = {
-                    tree_data: this.treeGenResult.tree_data,
-                    output_dir: this.treeCut.output_dir,
-                    num_groups: 0,  // 强制使用自动切分（0表示自动）
-                    show_graphs: false
-                }
-                if (this.treeGenResult.rdma_root) {
-                  cutPayload.rdma_root = this.treeGenResult.rdma_root
-                }
-                const cutResponse = await fetch(`${this.apiUrl}/tree-cut`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(cutPayload)
-                })
-                
-                if (!cutResponse.ok) {
-                  const errorData = await cutResponse.json()
-                  throw new Error(errorData.detail || '切分失败')
-                }
-                
-                const cutResult = await cutResponse.json()
-                this.cutResult = cutResult
-                this.cutCompleted = true
-              } finally {
-                this.isCutting = false
-              }
-            }
-            
-            // 验证切分结果：检查 task1 到 task4 目录是否存在
-            try {
-              const checkResponse = await fetch(`${this.apiUrl}/check-task-dirs?task_num=4`)
-              const checkResult = await checkResponse.json()
-              
-              if (!checkResult.success || !checkResult.all_exist) {
-                throw new Error(`切分结果不完整：缺少必要的 task 目录。请先手动执行"切分通信树"`)
-              }
-            } catch (error) {
-              // 如果检查失败，抛出错误
-              throw new Error(`切分验证失败: ${error.message}`)
-            }
-          }
+          await this.generateTreeOnly({ silent: true })
+          if (!this.treeGenResult || !this.treeGenResult.success) throw new Error('通信 DAG 生成失败')
+          const response = await fetch(`${this.apiUrl}/tree-cut`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tree_data: this.treeGenResult.tree_data, rdma_root: this.treeGenResult.rdma_root,
+              output_dir: this.treeCut.output_dir, enable_cut: this.simulation.enableCut,
+              deduplicate: this.simulation.deduplicate
+            })
+          })
+          const result = await response.json()
+          if (!response.ok || !result.success) throw new Error(result.detail || 'DAG 执行计划生成失败')
+          this.cutResult = result
+          this.cutCompleted = true
+          this.executionPlanIsFinal = false
         },
 
         // 开始仿真
         async startSimulation() {
+          if (this.isStartingSimulation || this.simulationStatus.is_running || this.isAnalyzing || this.isCancellingAnalysis) return
+          this.isStartingSimulation = true
+          this.invalidateAnalysisRequest()
+          this.analysisResult = null
+          this.analysisBaselineStatus = null
+          this.analysisPhase = 'idle'
+          this.analysisProgress = ''
           try {
             await this.prepareSimulationInputs()
             // 先启动稳态监控
@@ -6168,7 +6219,11 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                task_num: this.simulation.enableCut ? 4 : 1,
+                task_num: 1,
+                use_dag: true,
+                plan_file: this.cutResult && this.cutResult.plan_file,
+                deduplicate: this.simulation.deduplicate,
+                workers: this.simulation.workers,
                 llm_model: (this.load.model_name === 'custom' ? 'deepseek' : this.load.model_name) || 'deepseek',
                 enable_mixed_granularity: this.simulation.enableMixedGranularity,
                 simulation_time: this.simulation.simulation_time,
@@ -6178,15 +6233,21 @@
             })
             
             const result = await response.json()
+            if (!response.ok || !result.success) {
+              throw new Error(result.detail || result.message || '仿真启动失败')
+            }
             if (result.success) {
               this.simulationResult = result
+              this.simulationError = null
+              this.executionSummary = null
+              this.dagResult = null
               this.simulationStatus.is_running = true
               this.showToast('仿真已启动，稳态监控已开启', 'success')
               this.simulationWallClockStart = Date.now() / 1000
               this.simulationWallClockEnd = null
               this.simulationWallClockDuration = null
               this.steadyStateHistory = []
-              this.lastSteadyStateCaptureTs = null
+              this.steadySnapshotRevision = -1
               this.steadyStateInfo = null
               
               // 开始自动监控
@@ -6196,166 +6257,64 @@
             }
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
+          } finally {
+            this.isStartingSimulation = false
           }
+        },
+
+        applySteadySnapshot(snapshot) {
+          if (!snapshot) return
+          const currentId = this.simulationResult && this.simulationResult.simulation_id
+          if (currentId && snapshot.simulation_id !== currentId) return
+          if (Number(snapshot.revision) < this.steadySnapshotRevision) return
+          this.steadySnapshotRevision = Number(snapshot.revision)
+          const timestamp = Number(snapshot.timestamp)
+          this.steadyStateInfo = {
+            ...snapshot,
+            wallClockFull: this.formatWallClock(timestamp, { includeDate: true })
+          }
+          ;(snapshot.history || []).forEach(event => this.pushSteadyEvent(event, 'simulator'))
+          // Current state is authoritative. Historical entry events never turn
+          // an already exited/completed task back into a steady task.
+          this.simulationStatus.steady_state = !!snapshot.is_steady
         },
 
         syncSteadyStateFromStatus(statusPayload) {
-          try {
-            if (!statusPayload || !statusPayload.results) {
-              return
-            }
-            const entries = Object.entries(statusPayload.results)
-            if (!entries || entries.length === 0) {
-              return
-            }
-            let targetResult = null
-            const currentId = this.simulationResult && this.simulationResult.simulation_id
-            if (currentId && statusPayload.results[currentId]) {
-              targetResult = statusPayload.results[currentId]
-            } else {
-              const lastEntry = entries[entries.length - 1]
-              targetResult = lastEntry ? lastEntry[1] : null
-            }
-            if (!targetResult) {
-              return
-            }
-            const events = targetResult.steady_state_wall_times
-              || (targetResult.steady_state_info && targetResult.steady_state_info.steady_wall_times)
-              || []
-            if (!Array.isArray(events) || events.length === 0) {
-              return
-            }
-            let updated = false
-            const seenNs = new Set()
-            events.forEach((event) => {
-              const ns = event && Number(event.sim_time_ns)
-              if (Number.isFinite(ns)) {
-                const key = ns.toFixed(0)
-                if (seenNs.has(key)) {
-                  return
-                }
-                seenNs.add(key)
-              }
-              if (this.pushSteadyEvent(event, event && event.source ? event.source : 'status')) {
-                updated = true
-              }
-            })
-            if (updated && targetResult.steady_state_analysis && targetResult.steady_state_analysis.is_system_steady !== undefined) {
-              this.simulationStatus.steady_state = !!targetResult.steady_state_analysis.is_system_steady
-            }
-          } catch (err) {
-            console.warn('[SteadyState] 同步稳态历史失败:', err)
+          if (statusPayload && statusPayload.monitor) {
+            this.applySteadySnapshot(statusPayload.monitor)
           }
-        },
-
-        resolveSimulationStart() {
-          const fromState = Number(this.simulationWallClockStart)
-          if (Number.isFinite(fromState)) return fromState
-          const fromResult = this.simulationResult && Number(this.simulationResult.simulation_start_time)
-          if (Number.isFinite(fromResult)) return fromResult
-          const fallback = Date.now() / 1000 - Number(this.simulation.simulation_time || 0)
-          return fallback
         },
 
         pushSteadyEvent(eventPayload, source = 'status') {
-          let simTimeNs
-          let wallClockRaw = eventPayload
-          if (eventPayload && typeof eventPayload === 'object') {
-            if (eventPayload.sim_time_ns !== undefined) {
-              const parsedSim = Number(eventPayload.sim_time_ns)
-              if (Number.isFinite(parsedSim)) {
-                simTimeNs = parsedSim
-              }
-            }
-            wallClockRaw = eventPayload.wall_clock_ts ?? eventPayload.wall_clock ?? eventPayload.timestamp
-          }
-
-          let ts = Number(wallClockRaw)
-          const hasValidTs = Number.isFinite(ts) && ts > 0
-          if (!hasValidTs) {
-            ts = null
-          }
-
-          const EPS = 1e-4
-          const exists = this.steadyStateHistory.some(item => {
-            if (ts !== null && item.timestamp !== null && item.timestamp !== undefined) {
-              return Math.abs(item.timestamp - ts) < EPS
-            }
-            if (simTimeNs !== undefined && item.simTimeNs !== undefined) {
-              return Math.abs(item.simTimeNs - simTimeNs) < 1
-            }
-            return false
+          if (!eventPayload || typeof eventPayload !== 'object') return false
+          const taskId = Number(eventPayload.task_id || 1)
+          const simTimeNs = Number(eventPayload.sim_time_ns)
+          if (!Number.isFinite(simTimeNs)) return false
+          const currentId = this.simulationResult && this.simulationResult.simulation_id
+          if (currentId && eventPayload.simulation_id && eventPayload.simulation_id !== currentId) return false
+          const eventId = eventPayload.event_id
+            || `${eventPayload.simulation_id || currentId || 'legacy'}:${taskId}:${simTimeNs}`
+          if (this.steadyStateHistory.some(item => item.eventId === eventId)) return false
+          const wall = Number(eventPayload.wall_clock_ts)
+          const timestamp = Number.isFinite(wall) && wall > 0 ? wall : null
+          this.steadyStateHistory.push({
+            eventId, taskId, simTimeNs, timestamp, source,
+            wallClockFull: timestamp === null ? '未记录' : this.formatWallClock(timestamp, { includeDate: true })
           })
-          if (exists) {
-            return false
-          }
-
-          let label = ''
-          if (ts !== null) {
-            label = this.formatWallClock(ts, { includeDate: true })
-          } else if (simTimeNs !== undefined) {
-            label = `仿真时间 ${simTimeNs}ns (挂钟未记录)`
-          } else {
-            label = '挂钟未记录'
-          }
-
-          const entry = {
-            timestamp: ts,
-            simTimeNs,
-            wallClockFull: label,
-            source
-          }
-          this.steadyStateHistory.push(entry)
-          this.steadyStateHistory.sort((a, b) => {
-            const keyA = Number.isFinite(a.timestamp) ? a.timestamp : (Number.isFinite(a.simTimeNs) ? a.simTimeNs / 1e9 : Number.MAX_VALUE)
-            const keyB = Number.isFinite(b.timestamp) ? b.timestamp : (Number.isFinite(b.simTimeNs) ? b.simTimeNs / 1e9 : Number.MAX_VALUE)
-            return keyA - keyB
-          })
-
-          this.lastSteadyStateCaptureTs = ts ?? (Number.isFinite(simTimeNs) ? simTimeNs / 1e9 : null)
-          this.steadyStateInfo = {
-            ...(this.steadyStateInfo || {}),
-            is_steady: true,
-            wallClockFull: label,
-            timestamp: ts
-          }
-          this.simulationStatus.steady_state = true
+          this.steadyStateHistory.sort((a, b) =>
+            (a.timestamp ?? Infinity) - (b.timestamp ?? Infinity) || a.taskId - b.taskId || a.simTimeNs - b.simTimeNs)
           return true
         },
 
         applySteadyEventsFromAnalysis(analysisResults, source = 'analysis') {
-          if (!analysisResults) return
-          const steady = analysisResults.steady_state_analysis
+          const steady = analysisResults && analysisResults.steady_state_analysis
           if (!steady) return
-          let updated = false
-          if (Array.isArray(steady.steady_wall_times) && steady.steady_wall_times.length > 0) {
-            const seenNs = new Set()
-            steady.steady_wall_times.forEach(event => {
-              const ns = event && Number(event.sim_time_ns)
-              if (Number.isFinite(ns)) {
-                const key = ns.toFixed(0)
-                if (seenNs.has(key)) {
-                  return
-                }
-                seenNs.add(key)
-              }
-              if (this.pushSteadyEvent(event, source)) {
-                updated = true
-              }
-            })
-          } else if (Array.isArray(steady.steady_times_ns) && steady.steady_times_ns.length > 0) {
-            const simStart = this.resolveSimulationStart()
-            steady.steady_times_ns.forEach(nsValue => {
-              const ns = Number(nsValue)
-              if (!Number.isFinite(ns)) return
-              const wallClockTs = Number.isFinite(simStart) ? simStart + ns / 1e9 : null
-              if (this.pushSteadyEvent({ wall_clock_ts: wallClockTs, sim_time_ns: ns }, source)) {
-                updated = true
-              }
-            })
-          }
-          if (updated && steady.is_system_steady !== undefined) {
-            this.simulationStatus.steady_state = !!steady.is_system_steady
+          if (Array.isArray(steady.steady_wall_times)) {
+            steady.steady_wall_times.forEach(event => this.pushSteadyEvent(event, source))
+          } else {
+            // Legacy logs have simulation timestamps only; do not invent wall time.
+            ;(steady.steady_times_ns || []).forEach(ns =>
+              this.pushSteadyEvent({ sim_time_ns: ns, wall_clock_ts: null }, source))
           }
         },
 
@@ -6388,25 +6347,44 @@
 
         // 静默更新仿真状态（不弹窗）
         async updateSimulationStatusSilently() {
+          if (this.statusPollPending) return
+          this.statusPollPending = true
           try {
             const response = await fetch(`${this.apiUrl}/simulation-status`)
+            if (!response.ok) throw new Error(`状态查询失败: ${response.status}`)
             const result = await response.json()
-            
-            this.simulationStatus = {
-              is_running: result.is_running,
-              steady_state: result.steady_state
+            const currentId = this.simulationResult && this.simulationResult.simulation_id
+            if (currentId && result.simulation_id !== currentId) return
+            if (!this.simulationResult && result.simulation_id) {
+              this.simulationResult = { simulation_id: result.simulation_id }
+            }
+            this.simulationStatus.is_running = result.is_running
+            this.simulationError = result.error || null
+            if (this.simulationResult) {
+              this.simulationResult.status = result.error ? 'failed' : (result.is_running ? 'running' : 'completed')
             }
             if (!this.simulationWallClockStart && Number.isFinite(result.simulation_start_time)) {
               this.simulationWallClockStart = result.simulation_start_time
             }
             if (!result.is_running && this.simulationWallClockStart && !this.simulationWallClockEnd) {
-              const endTs = Number.isFinite(result.simulation_end_time) ? result.simulation_end_time : Date.now() / 1000
-              this.simulationWallClockEnd = endTs
-              this.simulationWallClockDuration = endTs - this.simulationWallClockStart
+              this.simulationWallClockEnd = result.simulation_end_time || Date.now() / 1000
+              this.simulationWallClockDuration = this.simulationWallClockEnd - this.simulationWallClockStart
             }
-        this.syncSteadyStateFromStatus(result)
+            this.executionSummary = result.execution && result.execution.phase ? result.execution : null
+            const currentResult = result.results && result.results[currentId || result.simulation_id]
+            if (currentResult && currentResult.mode === 'dag') {
+              this.dagResult = currentResult
+              if (this.cutResult && currentResult.execution_plan) {
+                this.cutResult.execution_plan = currentResult.execution_plan
+                this.executionPlanIsFinal = true
+                await this.refreshExecutionPlanVisualization()
+              }
+            }
+            this.syncSteadyStateFromStatus(result)
           } catch (error) {
             console.error('检查状态失败:', error)
+          } finally {
+            this.statusPollPending = false
           }
         },
 
@@ -6416,9 +6394,12 @@
             const response = await fetch(`${this.apiUrl}/simulation-status`)
             const result = await response.json()
             
-            this.simulationStatus = {
-              is_running: result.is_running,
-              steady_state: result.steady_state
+            const currentId = this.simulationResult && this.simulationResult.simulation_id
+            if (currentId && result.simulation_id !== currentId) return
+            this.simulationStatus.is_running = result.is_running
+            this.simulationError = result.error || null
+            if (this.simulationResult) {
+              this.simulationResult.status = result.error ? 'failed' : (result.is_running ? 'running' : 'completed')
             }
             if (!this.simulationWallClockStart && Number.isFinite(result.simulation_start_time)) {
               this.simulationWallClockStart = result.simulation_start_time
@@ -6455,42 +6436,19 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
         async monitorSteadyState() {
           try {
             const response = await fetch(`${this.apiUrl}/steady-state-monitor`)
-            const result = await response.json()
-            
-            let timestampSeconds = Number(result.timestamp)
-            if (!Number.isFinite(timestampSeconds)) {
-              timestampSeconds = Date.now() / 1000
-            }
-            const wallClockFull = this.formatWallClock(timestampSeconds, { includeDate: true })
-            const wallClockTime = this.formatWallClock(timestampSeconds, { includeDate: false })
-            const normalizedDetails = Array.isArray(result.details) ? result.details : []
-
-            this.steadyStateInfo = {
-              ...result,
-              timestamp: timestampSeconds,
-              details: normalizedDetails,
-              wallClockFull,
-              wallClockTime
-            }
-            this.simulationStatus.steady_state = !!result.is_steady
-
-            if (result.is_steady) {
-              this.recordSteadyStateCapture(timestampSeconds, wallClockFull)
-            }
+            if (!response.ok) throw new Error(`稳态查询失败: ${response.status}`)
+            this.applySteadySnapshot(await response.json())
           } catch (error) {
             this.showToast(`错误: ${error.message}`, 'error')
           }
         },
 
-        // 开始自动监控
         startAutoMonitor() {
           if (this.autoMonitoring) return
-          
           this.autoMonitoring = true
-          this.monitorInterval = setInterval(() => {
-            this.monitorSteadyState()
-            this.updateSimulationStatusSilently()  // 静默更新，不弹窗
-          }, 2000)
+          this.updateSimulationStatusSilently()
+          // Status and monitor data arrive in one snapshot, without competing polls.
+          this.monitorInterval = setInterval(() => this.updateSimulationStatusSilently(), 2000)
         },
 
         // 停止自动监控
@@ -6502,52 +6460,149 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           this.autoMonitoring = false
         },
 
-        // 分析结果
-        async analyzeResults() {
-          this.isAnalyzing = true
-          try {
-            const response = await fetch(`${this.apiUrl}/analyze-results`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                analysis_type: this.analysis.type
-              })
-            })
-            
-            const result = await response.json()
-            if (result.success) {
-              this.analysisResult = result
-              if (result.results) {
-                this.applySteadyEventsFromAnalysis(result.results, 'analysis')
-                // 绘制 FCT 对比柱状图
-                this.$nextTick(() => {
-                  this.drawFctComparisonChart(result.results)
-                })
-              }
-              const fctFlows = result.results && result.results.fct_analysis && Number(result.results.fct_analysis.total_flows)
-              const hasFctData = Number.isFinite(fctFlows) && fctFlows > 0
-              const hasSystemData = !!(result.results && result.results.performance_analysis && result.results.performance_analysis.has_data)
-              const steadyCount = result.results && result.results.steady_state_analysis && Number(result.results.steady_state_analysis.steady_state_count)
-              const hasSteadyData = Number.isFinite(steadyCount) && steadyCount > 0
+        analysisMetric(value, digits = 3) {
+          return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : '无法计算'
+        },
 
-              if (hasFctData || hasSystemData || hasSteadyData) {
-                this.simulationStatus.is_running = false
-                if (result.results && result.results.steady_state_analysis) {
-                  this.simulationStatus.steady_state = !!result.results.steady_state_analysis.is_system_steady
-                }
-                this.stopAutoMonitor()
-                this.showToast('分析完成', 'success')
-              } else {
-                this.simulationStatus.is_running = true
-                this.showToast('分析完成，但仍未检测到仿真结果，可能仍在运行中', 'info')
-              }
+        stopAnalysisStatusPolling() {
+          if (this.analysisPollInterval !== null) clearInterval(this.analysisPollInterval)
+          this.analysisPollInterval = null
+        },
+
+        invalidateAnalysisRequest(message = '') {
+          ++this.analysisRequestId
+          this.stopAnalysisStatusPolling()
+          this.analysisStatusPollPending = false
+          this.analysisRunId = null
+          this.isAnalyzing = false
+          this.isCancellingAnalysis = false
+          if (message) {
+            this.analysisPhase = 'idle'
+            this.analysisProgress = message
+          }
+        },
+
+        async pollAnalysisBaseline(requestId, runId) {
+          const isCurrent = () => requestId === this.analysisRequestId && this.isAnalyzing
+            && this.analysisRunId === runId
+            && this.simulationResult && this.simulationResult.simulation_id === runId
+          if (!isCurrent() || this.analysisStatusPollPending) return
+          this.analysisStatusPollPending = true
+          try {
+            const response = await fetch(`${this.apiUrl}/baseline-status?simulation_id=${encodeURIComponent(runId)}`)
+            const status = await response.json()
+            if (!isCurrent()) return
+            if (!response.ok || !status.success) return
+            this.analysisBaselineStatus = status
+            if (status.status === 'running' || status.is_running) {
+              this.analysisPhase = 'baseline_running'
+              this.analysisProgress = '正在运行完整包级基线，结束后将自动分析结果…'
+            } else if (status.status === 'completed' || status.has_baseline) {
+              this.analysisPhase = 'analyzing'
+              this.analysisProgress = '已有匹配包级基线，正在分析结果…'
+            } else if (status.status === 'failed' || status.status === 'cancelled') {
+              this.analysisProgress = status.error || (status.status === 'cancelled' ? '基线已取消' : '基线运行失败')
             } else {
-              this.showToast('分析失败', 'error')
+              this.analysisPhase = 'checking'
+              this.analysisProgress = '正在检查匹配基线，首次分析会自动运行基线…'
             }
           } catch (error) {
+            // The analysis request is authoritative; transient status reads do
+            // not cancel a baseline already running on the server.
+            if (isCurrent()) console.warn('基线状态暂时无法读取:', error)
+          } finally {
+            if (requestId === this.analysisRequestId) this.analysisStatusPollPending = false
+          }
+        },
+
+        async cancelAnalysis() {
+          if (!this.isAnalyzing || this.analysisPhase !== 'baseline_running' || !this.analysisRunId) return
+          const runId = this.analysisRunId
+          this.invalidateAnalysisRequest()
+          const cancellationId = this.analysisRequestId
+          this.isCancellingAnalysis = true
+          this.analysisPhase = 'cancelled'
+          this.analysisProgress = '正在取消基线分析…'
+          try {
+            const response = await fetch(`${this.apiUrl}/cancel-baseline`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ simulation_id: runId })
+            })
+            const result = await response.json()
+            if (cancellationId !== this.analysisRequestId) return
+            if (!response.ok || !result.success) throw new Error(result.detail || result.error || '取消基线失败')
+            this.analysisProgress = '分析已取消；已有成功基线仍可在下次分析时复用。'
+          } catch (error) {
+            if (cancellationId !== this.analysisRequestId) return
+            this.analysisPhase = 'failed'
+            this.analysisProgress = error.message
             this.showToast(`错误: ${error.message}`, 'error')
           } finally {
-            this.isAnalyzing = false
+            if (cancellationId === this.analysisRequestId) this.isCancellingAnalysis = false
+          }
+        },
+
+        // A completed experiment is analyzed against its matching frozen-input
+        // baseline; the POST waits for the server's single shared baseline job.
+        async analyzeResults() {
+          if (this.isAnalyzing || this.isCancellingAnalysis || this.isStartingSimulation) return
+          this.isAnalyzing = true
+          const requestId = ++this.analysisRequestId
+          this.analysisRunId = this.simulationResult ? this.simulationResult.simulation_id : null
+          this.analysisPhase = 'checking'
+          this.analysisProgress = '正在检查实验状态与包级基线…'
+          this.analysisBaselineStatus = null
+          try {
+            await this.updateSimulationStatusSilently()
+            if (requestId !== this.analysisRequestId) return
+            const runId = this.simulationResult && this.simulationResult.simulation_id
+            if (!runId) throw new Error('请先完成一次实验仿真，再分析结果')
+            if (this.simulationStatus.is_running) throw new Error('请等待当前实验仿真结束后再分析结果')
+            if (this.simulationResult.status === 'failed' || this.simulationError) {
+              throw new Error(this.simulationError || '当前实验未成功完成，请先检查仿真结果')
+            }
+            this.analysisRunId = runId
+            this.analysisResult = null
+            const isCurrent = () => requestId === this.analysisRequestId && this.analysisRunId === runId
+              && this.simulationResult && this.simulationResult.simulation_id === runId
+            this.pollAnalysisBaseline(requestId, runId)
+            this.analysisPollInterval = setInterval(() => this.pollAnalysisBaseline(requestId, runId), 1000)
+            const response = await fetch(`${this.apiUrl}/analyze-results`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ simulation_id: runId, analysis_type: this.analysis.type })
+            })
+            const result = await response.json()
+            if (!isCurrent()) return
+            if (!response.ok || !result.success) throw new Error(result.detail || result.error || result.summary || '分析失败')
+            this.analysisResult = result
+            const acceptedAnalysis = this.analysisResult
+            const results = result.results || {}
+            this.analysisBaselineStatus = results.baseline_status || this.analysisBaselineStatus
+            if (results.dag_result) this.dagResult = results.dag_result
+            this.applySteadyEventsFromAnalysis(results, 'analysis')
+            this.$nextTick(() => {
+              if (requestId === this.analysisRequestId && this.analysisResult === acceptedAnalysis
+                  && this.simulationResult && this.simulationResult.simulation_id === runId) {
+                this.drawFctComparisonChart(results)
+              }
+            })
+            this.analysisPhase = 'completed'
+            this.analysisProgress = results.baseline_status && results.baseline_status.reused
+              ? '分析完成，已复用与当前实验匹配的包级基线。'
+              : '包级基线已完成，结果分析已自动完成。'
+            this.showToast('分析完成', 'success')
+          } catch (error) {
+            if (requestId !== this.analysisRequestId) return
+            this.analysisPhase = 'failed'
+            this.analysisProgress = error.message
+            this.showToast(`错误: ${error.message}`, 'error')
+          } finally {
+            if (requestId === this.analysisRequestId) {
+              this.stopAnalysisStatusPolling()
+              this.isAnalyzing = false
+              this.analysisRunId = null
+              this.analysisStatusPollPending = false
+            }
           }
         },
 
@@ -6885,6 +6940,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
 
         // 关闭模态框（智能返回）
         closeModal() {
+          if (this.modal.type === 'tree-visualization') this.invalidateExecutionPlanVisualization()
           // 如果有浏览历史，返回上一级
           if (this.browseHistory.length > 0) {
             const previousState = this.browseHistory.pop()
@@ -6920,6 +6976,7 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
 
         // 直接关闭模态框（不返回）
         closeModalDirectly() {
+          if (this.modal.type === 'tree-visualization') this.invalidateExecutionPlanVisualization()
           // 如果关闭的是流量可视化，停止动画
           if (this.modal.type === 'flow-visualization') {
             this.stopFlowAnimation()
@@ -7786,10 +7843,10 @@ ${result.simulation_end_time ? '结束时间: ' + new Date(result.simulation_end
           }
         },
 
-        // 从服务器直接导入 flow_stats.txt 并画河流图（服务器路径：/home/admins/Desktop/flow-input-repo/flow_stats.txt）
+        // 从当前运行的任务读取流统计并画河流图
         async loadServerFlowStats() {
           try {
-            const res = await fetch('/flow_stats_txt')
+            const res = await fetch(`${this.apiUrl}/flow_stats_txt`)
             if (!res.ok) {
               this.showToast(res.status === 404 ? '服务器上 flow_stats.txt 不存在' : '获取失败: ' + res.status, 'error')
               return

@@ -21,10 +21,12 @@
 #define DEFAULT_SIMULATOR_IMPL_H
 
 #include "simulator-impl.h"
+#include "scheduler.h"
 
 #include <list>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
 
 /**
  * \file
@@ -85,6 +87,10 @@ class DefaultSimulatorImpl : public SimulatorImpl
     void ProcessOneEvent();
     /** Move events from a different context into the main event queue. */
     void ProcessEventsWithContext();
+    /** Apply pending transition delays before selecting/removing queue events. */
+    void SynchronizeEventQueue();
+    /** Resolve a queued key without changing EventId's historical timestamp. */
+    Scheduler::EventKey EffectiveEventKey(const Scheduler::EventKey& key) const;
 
     /** Wrap an event with its execution context. */
     struct EventWithContext
@@ -117,6 +123,10 @@ class DefaultSimulatorImpl : public SimulatorImpl
     bool m_stop;
     /** The event priority queue. */
     Ptr<Scheduler> m_events;
+    /** Non-owning queue entries indexed by UID, including shifted timestamps. */
+    std::unordered_map<uint32_t, Scheduler::Event> m_pendingEvents;
+    /** Last transition for which the scheduler order was rebuilt. */
+    int m_schedulerTransitionStage;
 
     /** Next event unique id. */
     uint32_t m_uid;

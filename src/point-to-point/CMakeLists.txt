@@ -59,6 +59,7 @@ build_lib(
     helper/qbb-helper.h
     helper/sim-setting.h
     model/flow-acc.h
+    model/steady-flow-model.h
   LIBRARIES_TO_LINK ${libnetwork}
                     ${mpi_libraries}
                     ${internet}

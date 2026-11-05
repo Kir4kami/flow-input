@@ -1,6 +1,6 @@
 build_example(
   NAME sim
-  SOURCE_FILES sim
+  SOURCE_FILES
     sim.cc
     kira_functions.cc
   HEADER_FILES
@@ -37,4 +37,3 @@ build_example(
     ${libinternet}
     ${libapplications}
 )
-set_source_files_properties(PROPERTIES SKIP_PRECOMPILE_HEADERS ON)

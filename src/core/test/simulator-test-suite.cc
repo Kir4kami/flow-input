@@ -17,12 +17,17 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 #include "ns3/calendar-scheduler.h"
+#include "ns3/default-simulator-impl.h"
 #include "ns3/heap-scheduler.h"
 #include "ns3/list-scheduler.h"
 #include "ns3/map-scheduler.h"
+#include "ns3/mixed-granularity.h"
 #include "ns3/priority-queue-scheduler.h"
 #include "ns3/simulator.h"
 #include "ns3/test.h"
+
+#include <thread>
+#include <vector>
 
 using namespace ns3;
 
@@ -712,6 +717,179 @@ SimulatorTemplateTestCase::DoRun()
  *
  * \brief The simulator Test Suite.
  */
+class SimulatorTransitionTestCase : public TestCase
+{
+  public:
+    explicit SimulatorTransitionTestCase(ObjectFactory factory)
+        : TestCase("Shifted pending events with " + factory.GetTypeId().GetName()),
+          m_factory(factory)
+    {
+    }
+
+  private:
+    void Never()
+    {
+        NS_TEST_EXPECT_MSG_EQ(true, false, "Cancelled or removed event executed");
+    }
+
+    void Record(int value, int64_t timestamp)
+    {
+        NS_TEST_EXPECT_MSG_EQ(Simulator::Now().GetNanoSeconds(), timestamp, "Wrong effective timestamp");
+        m_order.push_back(value);
+    }
+
+    void AfterFirstTransition()
+    {
+        Record(1, 5);
+        NS_TEST_EXPECT_MSG_EQ(m_old.IsExpired(), false, "Shifted pending EventId became expired");
+        NS_TEST_EXPECT_MSG_EQ(m_executed.IsExpired(), true, "Executed event was revived by a jump");
+        NS_TEST_EXPECT_MSG_EQ(m_old.GetTs(), 20, "EventId historical timestamp changed");
+        NS_TEST_EXPECT_MSG_EQ(Simulator::GetDelayLeft(m_old).GetNanoSeconds(), 115,
+                              "Delay query ignored an unapplied queue transition");
+        Simulator::Cancel(m_cancel);
+        Simulator::Remove(m_remove);
+        NS_TEST_EXPECT_MSG_EQ(m_cancel.IsExpired(), true, "Cancel failed after a jump");
+        NS_TEST_EXPECT_MSG_EQ(m_remove.IsExpired(), true, "Remove failed after a jump");
+
+        ObjectFactory replacement;
+        replacement.SetTypeId(MapScheduler::GetTypeId());
+        Simulator::SetScheduler(replacement);
+        NS_TEST_EXPECT_MSG_EQ(Simulator::GetDelayLeft(m_old).GetNanoSeconds(), 115,
+                              "Replacing the scheduler lost pending keys");
+
+        std::thread producer([this]() {
+            Simulator::ScheduleWithContext(77, NanoSeconds(30),
+                &SimulatorTransitionTestCase::ContextEvent, this);
+        });
+        producer.join();
+        Simulator::Schedule(NanoSeconds(10), &SimulatorTransitionTestCase::SecondTransition, this);
+    }
+
+    void ContextEvent()
+    {
+        Record(3, 85);
+        NS_TEST_EXPECT_MSG_EQ(Simulator::GetContext(), 77, "Cross-thread event lost its context");
+    }
+
+    void FirstTransition()
+    {
+        transition_delay.push_back(100);
+        ++transition_cnt;
+        // A new-generation event is earlier than all shifted old-generation
+        // events. The scheduler must be reordered before selecting either.
+        Simulator::ScheduleNow(&SimulatorTransitionTestCase::AfterFirstTransition, this);
+    }
+
+    void SecondTransition()
+    {
+        transition_delay.push_back(50);
+        ++transition_cnt;
+        NS_TEST_EXPECT_MSG_EQ(Simulator::GetDelayLeft(m_old).GetNanoSeconds(), 155,
+                              "Second pending transition was not included in the delay");
+        Simulator::ScheduleNow(&SimulatorTransitionTestCase::Record, this, 2, 15);
+    }
+
+    void DestroyEvent()
+    {
+        m_destroyed = true;
+    }
+
+    void SharedCallback()
+    {
+        ++m_sharedCount;
+        NS_TEST_EXPECT_MSG_EQ(m_sharedFirst.IsExpired(), true, "Popped UID remained pending");
+        NS_TEST_EXPECT_MSG_EQ(m_sharedSecond.IsExpired(), m_sharedCount == 2,
+                              "Executing one UID changed another UID sharing its EventImpl");
+    }
+
+    void DoRun() override
+    {
+        transition_cnt = 0;
+        transition_delay.clear();
+        Simulator::SetScheduler(m_factory);
+        m_executed = Simulator::Schedule(NanoSeconds(1), []() {});
+        Simulator::Schedule(NanoSeconds(5), &SimulatorTransitionTestCase::FirstTransition, this);
+        m_old = Simulator::Schedule(NanoSeconds(20), &SimulatorTransitionTestCase::Record, this, 4, 170);
+        Simulator::Schedule(NanoSeconds(20), &SimulatorTransitionTestCase::Record, this, 5, 170);
+        m_cancel = Simulator::Schedule(NanoSeconds(25), &SimulatorTransitionTestCase::Never, this);
+        m_remove = Simulator::Schedule(NanoSeconds(30), &SimulatorTransitionTestCase::Never, this);
+        const auto destroy = Simulator::ScheduleDestroy(&SimulatorTransitionTestCase::DestroyEvent, this);
+        Simulator::Run();
+        NS_TEST_EXPECT_MSG_EQ(m_order.size(), 5, "Missing or duplicate callbacks");
+        for (std::size_t i = 0; i < m_order.size(); ++i)
+        {
+            NS_TEST_EXPECT_MSG_EQ(m_order[i], static_cast<int>(i + 1), "Timestamp/UID order was not preserved");
+        }
+        NS_TEST_EXPECT_MSG_EQ(m_old.IsExpired(), true, "Completed event remains pending");
+        NS_TEST_EXPECT_MSG_EQ(destroy.IsExpired(), false, "Destroy events entered the normal pending registry");
+
+        // Empty-queue transitions and a second Run must not reuse stale keys.
+        Simulator::ScheduleNow(&SimulatorTransitionTestCase::Record, this, 6, 200);
+        transition_delay.push_back(25);
+        ++transition_cnt;
+        Simulator::Run();
+        NS_TEST_EXPECT_MSG_EQ(m_order.back(), 6, "Event after empty queue was lost");
+        Ptr<EventImpl> shared(MakeEvent(&SimulatorTransitionTestCase::SharedCallback, this), false);
+        m_sharedFirst = Simulator::Schedule(NanoSeconds(10), shared);
+        m_sharedSecond = Simulator::Schedule(NanoSeconds(20), shared);
+        Simulator::Run();
+        NS_TEST_EXPECT_MSG_EQ(m_sharedCount, 2, "Shared EventImpl lost an independently queued UID");
+        Simulator::Destroy();
+        NS_TEST_EXPECT_MSG_EQ(m_destroyed, true, "Destroy event was not executed");
+        NS_TEST_EXPECT_MSG_EQ(destroy.IsExpired(), true, "Destroy event remained alive");
+        transition_cnt = 0;
+        transition_delay.clear();
+    }
+
+    ObjectFactory m_factory;
+    EventId m_old, m_cancel, m_remove, m_executed;
+    EventId m_sharedFirst, m_sharedSecond;
+    int m_sharedCount{0};
+    std::vector<int> m_order;
+    bool m_destroyed{false};
+};
+
+class SimulatorCancelHookImpl : public DefaultSimulatorImpl
+{
+  public:
+    EventId target;
+    bool wasRunning{false};
+    Time delay;
+
+    void PreEventHook(const EventId& id) override
+    {
+        if (id.GetUid() == target.GetUid())
+        {
+            wasRunning = !id.IsExpired();
+            delay = Simulator::GetDelayLeft(id);
+            Simulator::Cancel(id);
+        }
+    }
+};
+
+class SimulatorCancelHookTestCase : public TestCase
+{
+  public:
+    SimulatorCancelHookTestCase()
+        : TestCase("PreEventHook can inspect and cancel the event about to run")
+    {
+    }
+
+  private:
+    void DoRun() override
+    {
+        auto implementation = CreateObject<SimulatorCancelHookImpl>();
+        Simulator::SetImplementation(implementation);
+        bool executed = false;
+        implementation->target = Simulator::Schedule(NanoSeconds(7), [&executed]() { executed = true; });
+        Simulator::Run();
+        NS_TEST_EXPECT_MSG_EQ(implementation->wasRunning, true, "Hook saw its future event as expired");
+        NS_TEST_EXPECT_MSG_EQ(implementation->delay, NanoSeconds(7), "Hook lost the current event delay");
+        NS_TEST_EXPECT_MSG_EQ(executed, false, "Hook could not cancel its current event");
+        Simulator::Destroy();
+    }
+};
+
 class SimulatorTestSuite : public TestSuite
 {
   public:
@@ -722,14 +900,20 @@ class SimulatorTestSuite : public TestSuite
         factory.SetTypeId(ListScheduler::GetTypeId());
 
         AddTestCase(new SimulatorEventsTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorTransitionTestCase(factory), TestCase::QUICK);
         factory.SetTypeId(MapScheduler::GetTypeId());
         AddTestCase(new SimulatorEventsTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorTransitionTestCase(factory), TestCase::QUICK);
         factory.SetTypeId(HeapScheduler::GetTypeId());
         AddTestCase(new SimulatorEventsTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorTransitionTestCase(factory), TestCase::QUICK);
         factory.SetTypeId(CalendarScheduler::GetTypeId());
         AddTestCase(new SimulatorEventsTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorTransitionTestCase(factory), TestCase::QUICK);
         factory.SetTypeId(PriorityQueueScheduler::GetTypeId());
         AddTestCase(new SimulatorEventsTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorTransitionTestCase(factory), TestCase::QUICK);
+        AddTestCase(new SimulatorCancelHookTestCase(), TestCase::QUICK);
     }
 };
 

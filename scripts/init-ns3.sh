@@ -1,24 +1,8 @@
-#!/bin/bash
-
-# NS-3 初始化脚本
-
-echo "🔧 初始化 NS-3 环境..."
-
-# 检查是否已经构建过
-if [ -f "/workspace/build/ns3" ]; then
-    echo "✅ NS-3 已经构建完成"
-    exit 0
-fi
-
-echo "📦 开始构建 NS-3..."
+#!/usr/bin/env bash
+set -euo pipefail
 cd /workspace
-
-# 配置 NS-3
-echo "⚙️ 配置 NS-3..."
-./ns3 configure --enable-examples --enable-tests
-
-# 构建 NS-3
-echo "🔨 构建 NS-3..."
-./ns3 build
-
-echo "✅ NS-3 构建完成！"
+./ns3 configure --enable-examples --disable-tests --disable-python-bindings \
+  --enable-modules='applications;internet;point-to-point;traffic-control' \
+  --build-profile=optimized --disable-werror --disable-warnings \
+  --disable-precompiled-headers
+./ns3 build sim -j "${NS3_BUILD_JOBS:-2}"

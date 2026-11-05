@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <time.h>
 #include "ns3/core-module.h"
+#include "ns3/mixed-granularity.h"
 #include "ns3/qbb-helper.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/applications-module.h"
@@ -31,6 +32,16 @@
 #include <vector>
 #include <filesystem>
 #include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <queue>
+#include <regex>
+#include <sstream>
+#include <stdexcept>
+#include <chrono>
+#include <tuple>
 
 #include "kira_functions.h"
 
@@ -346,16 +357,56 @@ T rand_range (T min, T max)
 
 //written by Kira START
 std::string workFolder = "examples/Reverie/task";
-uint16_t taskIndex=1;
-vector<vector<vector<FlowInfo>>> flowInfos;//流量信息，flowInfos[第几个DP][第几个phase][第几个flow]
-uint16_t systemId=0;
-uint16_t systemNum=0;
-uint16_t operateNum=0;
-vector<uint16_t> phaseCur;
-vector<uint16_t> flowCom;
-std::unordered_map<FlowKey,uint16_t> flowToPar;//多个DP并行
-std::vector<vector<int>> opDependence;//存储rdma_operate的依赖关系
-std::vector<bool> opStart;//记录这个operate有没有开始过,避免重复启动
+std::string taskInputDir;
+uint32_t taskIndex = 1;
+vector<vector<vector<FlowInfo>>> flowInfos;
+uint16_t systemId = 0;
+uint16_t systemNum = 0;
+size_t operateNum = 0;
+vector<size_t> phaseCur;
+vector<size_t> flowCom;
+struct ActiveFlow {
+    size_t operation;
+    size_t phase;
+    size_t flowIndex;
+};
+std::unordered_map<FlowKey, ActiveFlow> activeFlows;
+std::vector<std::vector<size_t>> opDependence;
+std::vector<bool> opStart;
+std::vector<bool> opDone;
+std::vector<uint64_t> opReleaseNs;
+std::vector<uint64_t> opStartNs;
+size_t completedOperations = 0;
+std::ofstream flowEvents;
+std::ofstream operationEvents;
+
+void checkDpd();
+void sendPhase(size_t operation);
+
+void WriteOperationEvent(const char* kind, size_t operation,
+                         size_t phase = std::numeric_limits<size_t>::max()) {
+    const uint64_t now = Simulator::Now().GetNanoSeconds();
+    operationEvents << "{\"event\":\"" << kind << "\",\"task_id\":" << taskIndex
+                    << ",\"operation_index\":" << operation << ",\"time_ns\":" << now;
+    if (phase != std::numeric_limits<size_t>::max())
+        operationEvents << ",\"phase_index\":" << phase;
+    if (std::string(kind) == "operation_start")
+        operationEvents << ",\"start_ns\":" << now;
+    if (std::string(kind) == "operation_complete")
+        operationEvents << ",\"start_ns\":" << opStartNs[operation]
+                        << ",\"finish_ns\":" << now;
+    operationEvents << "}" << std::endl;
+    if (!operationEvents) throw std::runtime_error("Failed writing operation_events.jsonl");
+}
+
+void CompleteOperation(size_t operation) {
+    if (opDone[operation]) return;
+    opDone[operation] = true;
+    ++completedOperations;
+    WriteOperationEvent("operation_complete", operation);
+    kira::cout << "operate " << operation << " complete a operate" << std::endl;
+    Simulator::ScheduleNow(checkDpd);
+}
 //MPI_Datatype MPI_FlowInfo;
 
 void TraceActualPath(uint32_t src_node, uint32_t dst_node, uint16_t sport, uint16_t dport) {
@@ -433,60 +484,90 @@ void flowSend(FlowInfo &flow){
     return MPI_FlowInfo;
 }*/
 
-void sendPhase(uint16_t par){//指定operate发送下一个phase
-    for(FlowInfo flow:flowInfos[par][phaseCur[par]])
-        flowSend(flow);
-};
-void checkDpd(){//检查依赖关系,该启动的启动
-    for(int i=0;i<operateNum;i++){
-        if(opStart[i])//如果这个operate已经启动了
-            continue;
-        bool flag=true;
-        for(int j:opDependence[i]){
-            if(phaseCur[j]<flowInfos[j].size()){//依赖的operate没有完成
-                flag=false;
-                break;
+void sendPhase(size_t operation) {
+    if (opDone[operation]) return;
+    // Empty phases are real barriers of zero duration, rather than a reason to
+    // leave an operation permanently waiting for a callback that cannot occur.
+    while (phaseCur[operation] < flowInfos[operation].size()) {
+        const size_t phase = phaseCur[operation];
+        const auto& flows = flowInfos[operation][phase];
+        WriteOperationEvent("phase_start", operation, phase);
+        if (!flows.empty()) {
+            flowCom[operation] = 0;
+            for (size_t index = 0; index < flows.size(); ++index) {
+                const auto& flow = flows[index];
+                const FlowKey key = {flow.src_node, flow.dst_node, flow.src_port, flow.dst_port};
+                if (!activeFlows.emplace(key, ActiveFlow{operation, phase, index}).second)
+                    throw std::runtime_error("Concurrent flows reuse the same RDMA endpoint/port tuple");
+                RegisterUnobservedFlow(std::to_string(flow.src_node) + "-" + std::to_string(flow.dst_node)
+                    + "-" + std::to_string(flow.src_port) + "-" + std::to_string(flow.dst_port));
             }
+            for (FlowInfo flow : flows) flowSend(flow);
+            return;
         }
-        if(flag){//这个operate的依赖都完成了,那我该开始这个operate了
-            kira::cout<<"operate "<< i <<" start"<<std::endl;
-            opStart[i]=true;
-            for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
-                for(FlowInfo flow:flowInfos[i][phase])
-                    flowToPar[{flow.src_node,flow.dst_node,flow.src_port,flow.dst_port}]=i;
-            for(FlowInfo flow:flowInfos[i][phaseCur[i]])
-                flowSend(flow);
-        }
+        WriteOperationEvent("phase_complete", operation, phase);
+        ++phaseCur[operation];
     }
+    CompleteOperation(operation);
 }
-void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q){
-    FlowKey key = {(int)ip_to_node_id(q->sip),(int)ip_to_node_id(q->dip),(int)q->sport,(int)q->dport};
-    auto it=flowToPar.find(key);
-    if(it==flowToPar.end()){
-        kira::cout << (int)ip_to_node_id(q->sip)<< " " << (int)ip_to_node_id(q->dip)<<std::endl;
-        kira::cout << "错误：键不存在于 unordered_map 中！" << std::endl;
-        std::exit(EXIT_FAILURE); 
-    }
-    uint16_t par=it->second;
-    flowCom[par]++;
-    kira::cout<<" operate "<< par <<" phase "<<phaseCur[par]<<" flow "<<
-        flowCom[par]<<" "<<Simulator::Now().GetSeconds()<<std::endl;
-    if(flowCom[par]>=flowInfos[par][phaseCur[par]].size()){//完成一个phase
-        phaseCur[par]++;
-        flowCom[par]=0;
-        kira::cout<<"operate "<<par<<" complete a phase"<<std::endl;
-        if(phaseCur[par]>=flowInfos[par].size()){//完成一个operate
-            kira::cout<<"operate "<<par<<" complete a operate"<<std::endl;
-            static uint8_t complete_operate=0;
-            complete_operate++;
-            if(complete_operate>=operateNum){
-                Simulator::Stop();
+
+void ReleaseOperations(uint64_t releaseNs) {
+    MarkExternalReleaseProcessed(releaseNs);
+    checkDpd();
+}
+
+void checkDpd() {
+    bool progressed;
+    do {
+        progressed = false;
+        const uint64_t now = Simulator::Now().GetNanoSeconds();
+        for (size_t operation = 0; operation < operateNum; ++operation) {
+            if (opStart[operation] || now < opReleaseNs[operation]) continue;
+            bool ready = true;
+            for (size_t predecessor : opDependence[operation]) {
+                if (!opDone[predecessor]) { ready = false; break; }
             }
-            Simulator::Schedule(Seconds(0),checkDpd);
-        
+            if (!ready) continue;
+            opStart[operation] = true;
+            opStartNs[operation] = now;
+            WriteOperationEvent("operation_start", operation);
+            kira::cout << "operate " << operation << " start" << std::endl;
+            sendPhase(operation);
+            progressed = true;
         }
-        else//这个operate没完成,继续发送下一个phase
-            Simulator::Schedule(Seconds(0),sendPhase,par);
+    } while (progressed);
+    if (completedOperations == operateNum) Simulator::Stop();
+}
+
+void flowinput_cb(Ptr<OutputStreamWrapper> fout, Ptr<RdmaQueuePair> q) {
+    const FlowKey key = {(int)ip_to_node_id(q->sip), (int)ip_to_node_id(q->dip),
+                         (int)q->sport, (int)q->dport};
+    auto found = activeFlows.find(key);
+    if (found == activeFlows.end())
+        throw std::runtime_error("Completed RDMA flow is absent from the active operation map");
+    const ActiveFlow binding = found->second;
+    activeFlows.erase(found);
+    const size_t operation = binding.operation;
+    const auto& flow = flowInfos[operation][binding.phase][binding.flowIndex];
+    const uint64_t start = q->startTime.GetNanoSeconds();
+    const uint64_t finish = Simulator::Now().GetNanoSeconds();
+    flowEvents << "{\"event\":\"flow_complete\",\"task_id\":" << taskIndex
+               << ",\"operation_index\":" << operation
+               << ",\"phase_index\":" << binding.phase
+               << ",\"flow_index\":" << binding.flowIndex
+               << ",\"src\":" << flow.src_node << ",\"dst\":" << flow.dst_node
+               << ",\"sport\":" << flow.src_port << ",\"dport\":" << flow.dst_port
+               << ",\"priority\":" << flow.priority << ",\"size_bytes\":" << q->m_size
+               << ",\"start_ns\":" << start << ",\"finish_ns\":" << finish
+               << ",\"fct_ns\":" << finish - start << "}" << std::endl;
+    if (!flowEvents) throw std::runtime_error("Failed writing flow_events.jsonl");
+    ++flowCom[operation];
+    kira::cout << " operate " << operation << " phase " << binding.phase << " flow "
+               << flowCom[operation] << " " << Simulator::Now().GetSeconds() << std::endl;
+    if (flowCom[operation] == flowInfos[operation][binding.phase].size()) {
+        WriteOperationEvent("phase_complete", operation, binding.phase);
+        ++phaseCur[operation];
+        Simulator::ScheduleNow(sendPhase, operation);
     }
 }
 uint16_t DST;
@@ -532,100 +613,271 @@ uint16_t DST;
 //     }
 // }
 
-//解析范围字符串
-void parseRange(const std::string& s, int& start, int& end) {
-    size_t dash = s.find('-');
-    if (dash == string::npos)
-        start = end = stoi(s);
-    else {
-        start = stoi(s.substr(0, dash));
-        end = stoi(s.substr(dash+1));
-    }
+uint64_t ParseUnsigned(const std::string& value, const std::string& context) {
+    if (value.empty() || value.find_first_not_of("0123456789") != std::string::npos)
+        throw std::runtime_error("Invalid unsigned integer for " + context + ": " + value);
+    size_t used = 0;
+    const auto result = std::stoull(value, &used);
+    if (used != value.size()) throw std::runtime_error("Invalid integer for " + context);
+    return result;
 }
 
-//解析依赖配置文件
+std::pair<size_t, size_t> ParseOperationRange(const std::string& text) {
+    const size_t separator = text.find('-');
+    const size_t first = ParseUnsigned(text.substr(0, separator), "dependency range");
+    const size_t last = separator == std::string::npos ? first
+        : ParseUnsigned(text.substr(separator + 1), "dependency range");
+    if (first > last || last >= operateNum)
+        throw std::runtime_error("Dependency range outside operation inputs: " + text);
+    return {first, last};
+}
+
+std::string StripInputLine(std::string line) {
+    const auto comment = line.find('#');
+    if (comment != std::string::npos) line.resize(comment);
+    const auto first = line.find_first_not_of(" \t\r\n");
+    return first == std::string::npos ? "" : line.substr(first, line.find_last_not_of(" \t\r\n") - first + 1);
+}
+
 void parseDependenceFile() {
-    kira::cout<<"Reading dependence"<< std::endl;
-    string filename = workFolder+"/dependence.txt";
-    kira::cout<<operateNum<<" operate"<<std::endl;
-    opDependence.resize(operateNum);
-    kira::cout<<"dependence file :"<< filename << std::endl;
-
-    ifstream fin(filename);
-    if (!fin.is_open()) {
-        kira::cout << "dependenceFile not detected." << std::endl;
-        return;
+    opDependence.assign(operateNum, {});
+    const std::string filename = workFolder + "/dependence.txt";
+    std::ifstream input(filename);
+    if (!input) {
+        if (!taskInputDir.empty()) throw std::runtime_error("Missing dependency input: " + filename);
+        return; // compatibility for legacy independent task folders
     }
-    string line;
-    while (getline(fin, line)) {
-        if (line.empty() || line[0] == '#') continue;
-
-        size_t colon = line.find(':');
-        if (colon == string::npos) {
-            kira::cout << "Invalid line format: " << line << std::endl;
-            continue;
-        }
-        string dependent = line.substr(0, colon);
-        string prerequisite = line.substr(colon+1);
-        int depStart, depEnd, preStart, preEnd;
-        parseRange(dependent, depStart, depEnd);
-        parseRange(prerequisite, preStart, preEnd);
-        // 为每个依赖operate设置范围
-        for (int i = depStart; i <= depEnd; i++)
-            for(int j = preStart; j <= preEnd; j++)
-                opDependence[i].emplace_back(j);
-    }
-    fin.close();
-}
-void workload_rdma (long &flowCount, int SERVER_COUNT, int LEAF_COUNT, double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME){
-    parseDependenceFile();
-    kira::cout<<"Reading flow info"<< std::endl;
-    flowInfos.resize(operateNum);
-    flowCom.resize(operateNum,0);
-    phaseCur.resize(operateNum,0);
-    opStart.resize(operateNum,false);
     std::string line;
-    for(int i=0;i<operateNum;i++){
-        std::string flowInputFileName= workFolder+"/rdma_operate"+to_string(i)+".txt";
-        flowInput.open(flowInputFileName.c_str());
-        if (!flowInput.is_open())
-            kira::cout << "system :"<< systemId <<" unable to open flowInputFile!" << std::endl;
-        int phase = -1;
-        while (std::getline(flowInput, line)) {
-            if (line.empty() || line[0] == '#' || line.find("stat")!=string::npos) continue;
-            std::stringstream ss(line);
-            std::string type_str;
-            if (line.find("phase")!=string::npos){//phase
-                ss >> type_str >> type_str;
-                flowInfos[i].emplace_back(vector<FlowInfo> {});
-                phase++;
+    const std::regex grammar(R"(^([0-9]+(?:-[0-9]+)?)\s*:\s*([0-9]+(?:-[0-9]+)?)$)");
+    while (std::getline(input, line)) {
+        line = StripInputLine(line);
+        if (line.empty()) continue;
+        std::smatch match;
+        if (!std::regex_match(line, match, grammar))
+            throw std::runtime_error("Invalid dependency record in " + filename + ": " + line);
+        const auto target = ParseOperationRange(match[1]);
+        const auto source = ParseOperationRange(match[2]);
+        for (size_t operation = target.first; operation <= target.second; ++operation) {
+            for (size_t predecessor = source.first; predecessor <= source.second; ++predecessor) {
+                if (operation == predecessor) throw std::runtime_error("Operation depends on itself");
+                auto& dependencies = opDependence[operation];
+                if (std::find(dependencies.begin(), dependencies.end(), predecessor) == dependencies.end())
+                    dependencies.push_back(predecessor);
+            }
+        }
+    }
+    std::vector<size_t> indegree(operateNum);
+    std::vector<std::vector<size_t>> successors(operateNum);
+    std::queue<size_t> ready;
+    for (size_t operation = 0; operation < operateNum; ++operation) {
+        indegree[operation] = opDependence[operation].size();
+        if (indegree[operation] == 0) ready.push(operation);
+        for (size_t predecessor : opDependence[operation]) successors[predecessor].push_back(operation);
+    }
+    size_t visited = 0;
+    while (!ready.empty()) {
+        const size_t operation = ready.front(); ready.pop(); ++visited;
+        for (size_t successor : successors[operation]) if (--indegree[successor] == 0) ready.push(successor);
+    }
+    if (visited != operateNum) throw std::runtime_error("Operation dependencies contain a cycle");
+}
+
+void ParseReleaseTimes() {
+    opReleaseNs.assign(operateNum, 0);
+    std::ifstream input(workFolder + "/release_times.txt");
+    std::string line;
+    std::set<size_t> seen;
+    while (std::getline(input, line)) {
+        line = StripInputLine(line);
+        if (line.empty()) continue;
+        std::istringstream row(line);
+        std::string indexText, releaseText, extra;
+        if (!(row >> indexText >> releaseText) || row >> extra)
+            throw std::runtime_error("Invalid release_times.txt record: " + line);
+        const size_t operation = ParseUnsigned(indexText, "release operation");
+        const uint64_t release = ParseUnsigned(releaseText, "release time");
+        if (operation >= operateNum || !seen.insert(operation).second)
+            throw std::runtime_error("Invalid or duplicate operation index in release_times.txt");
+        if (release > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+            throw std::runtime_error("Release time exceeds the simulator time range");
+        opReleaseNs[operation] = release;
+    }
+}
+
+void workload_rdma(long& flowCount, int SERVER_COUNT, int LEAF_COUNT,
+                   double START_TIME, double END_TIME, double FLOW_LAUNCH_END_TIME) {
+    flowInfos.assign(operateNum, {});
+    flowCom.assign(operateNum, 0);
+    phaseCur.assign(operateNum, 0);
+    opStart.assign(operateNum, false);
+    opDone.assign(operateNum, false);
+    opStartNs.assign(operateNum, 0);
+    activeFlows.clear();
+    completedOperations = 0;
+    parseDependenceFile();
+    ParseReleaseTimes();
+    for (size_t operation = 0; operation < operateNum; ++operation) {
+        const std::string filename = workFolder + "/rdma_operate" + std::to_string(operation) + ".txt";
+        std::ifstream input(filename);
+        if (!input) throw std::runtime_error("Missing traffic input: " + filename);
+        std::string line;
+        while (std::getline(input, line)) {
+            line = StripInputLine(line);
+            if (line.empty() || line.rfind("stat", 0) == 0) continue;
+            if (line.rfind("phase:", 0) == 0 || line.rfind("phase ", 0) == 0) {
+                flowInfos[operation].emplace_back();
                 continue;
             }
-            FlowInfo flow;
-            ss >> type_str >> flow.type;
-            ss >> type_str >> flow.src_node;
-            ss >> type_str >> flow.src_port;
-            ss >> type_str >> flow.dst_node;
-            ss >> type_str >> flow.dst_port;
-            ss >> type_str >> flow.priority;
-            ss >> type_str >> flow.msg_len;
-            flowInfos[i][phase].emplace_back(flow);
-            //flowToPar[{flow.src_node,flow.dst_node}]=i;
+            if (flowInfos[operation].empty())
+                throw std::runtime_error("Traffic record precedes the first phase in " + filename);
+            std::istringstream row(line);
+            std::vector<std::string> fields;
+            for (std::string token; row >> token;) fields.push_back(token);
+            if (fields.size() != 14 || fields[0] != "Type" || fields[1] != "rdma_send"
+                || fields[2] != "src_node" || fields[4] != "src_port" || fields[6] != "dst_node"
+                || fields[8] != "dst_port" || fields[10] != "priority" || fields[12] != "msg_len")
+                throw std::runtime_error("Malformed RDMA input record in " + filename + ": " + line);
+            const uint64_t src = ParseUnsigned(fields[3], "source node");
+            const uint64_t sport = ParseUnsigned(fields[5], "source port");
+            const uint64_t dst = ParseUnsigned(fields[7], "destination node");
+            const uint64_t dport = ParseUnsigned(fields[9], "destination port");
+            const uint64_t priority = ParseUnsigned(fields[11], "priority");
+            const uint64_t size = ParseUnsigned(fields[13], "message size");
+            if (src >= serverAddress.size() || dst >= serverAddress.size()
+                || sport > 65535 || dport > 65535 || priority >= 8 || size == 0)
+                throw std::runtime_error("RDMA input fields outside valid range in " + filename);
+            FlowInfo flow{};
+            std::strcpy(flow.type, "rdma_send");
+            flow.src_node = static_cast<int>(src); flow.dst_node = static_cast<int>(dst);
+            flow.src_port = static_cast<int>(sport); flow.dst_port = static_cast<int>(dport);
+            flow.priority = static_cast<int>(priority); flow.msg_len = size;
+            flowInfos[operation].back().push_back(flow);
         }
-        flowInput.close();
-        if(opDependence[i].size()!=0)//如果这个operate有依赖,跳过
-            continue;
-        opStart[i]=true;
-        for(size_t phase=0;phase<flowInfos[i].size();phase++)//启动operate时记录映射
-            for(FlowInfo flow:flowInfos[i][phase])
-                flowToPar[{flow.src_node,flow.dst_node,flow.src_port,flow.dst_port}]=i;
-        for(FlowInfo flow:flowInfos[i][phaseCur[i]])//start first phase
-            flowSend(flow);
     }
-    
+    flowEvents.open(GetSimulationOutputPath("flow_events.jsonl"), std::ios::trunc);
+    operationEvents.open(GetSimulationOutputPath("operation_events.jsonl"), std::ios::trunc);
+    if (!flowEvents || !operationEvents) throw std::runtime_error("Cannot create operation telemetry files");
+    std::set<uint64_t> releases(opReleaseNs.begin(), opReleaseNs.end());
+    SetPendingExternalReleases(std::vector<uint64_t>(releases.begin(), releases.end()));
+    for (uint64_t release : releases)
+        Simulator::Schedule(NanoSeconds(static_cast<int64_t>(release)), ReleaseOperations, release);
 }
 
 //written by Kira END
+
+struct NativeRoute {
+    std::vector<uint32_t> nodes;
+    std::vector<std::string> hops;
+};
+
+// Read the initialized native tables and invoke the same NIC/switch selectors
+// used by data and ACK/NACK packets. No event queue is run by this oracle.
+NativeRoute ResolveNativeRoute(const FlowInfo& flow, bool reverse) {
+    const uint32_t source = reverse ? flow.dst_node : flow.src_node;
+    const uint32_t destination = reverse ? flow.src_node : flow.dst_node;
+    const uint16_t sport = reverse ? flow.dst_port : flow.src_port;
+    const uint16_t dport = reverse ? flow.src_port : flow.dst_port;
+    if (source == destination) throw std::runtime_error("Local RDMA routes are not supported");
+    const Ipv4Address sip = serverAddress.at(source), dip = serverAddress.at(destination);
+    NativeRoute result;
+    std::set<uint32_t> visited;
+    Ptr<Node> current = n.Get(source);
+    result.nodes.push_back(source);
+    while (current->GetId() != destination) {
+        if (!visited.insert(current->GetId()).second)
+            throw std::runtime_error("Native route contains a cycle");
+        int selected = -1;
+        uint32_t seed = 0;
+        std::vector<int> candidates;
+        std::string algorithm;
+        if (current->GetNodeType() == 0) {
+            if (current->GetId() != source)
+                throw std::runtime_error("Native route forwards through a host");
+            auto driver = current->GetObject<RdmaDriver>();
+            if (!driver) throw std::runtime_error("Native route host has no RDMA driver");
+            auto hardware = driver->m_rdma;
+            const auto entry = hardware->m_rtTable.find(dip.Get());
+            if (entry == hardware->m_rtTable.end() || entry->second.empty())
+                throw std::runtime_error("Native route host has no next hop");
+            candidates = entry->second;
+            if (reverse) {
+                Ptr<RdmaRxQueuePair> qp = CreateObject<RdmaRxQueuePair>();
+                qp->sip = sip.Get(); qp->dip = dip.Get(); qp->sport = sport; qp->dport = dport;
+                selected = hardware->GetNicIdxOfRxQp(qp);
+            } else {
+                Ptr<RdmaQueuePair> qp = CreateObject<RdmaQueuePair>(3, sip, dip, sport, dport);
+                selected = hardware->GetNicIdxOfQp(qp);
+            }
+            algorithm = "ns3::Hash32";
+        } else {
+            Ptr<SwitchNode> sw = DynamicCast<SwitchNode>(current);
+            if (!sw) throw std::runtime_error("Native route switch type is unsupported");
+            candidates = sw->GetRouteCandidates(dip.Get());
+            selected = sw->GetFlowOutDev(sip.Get(), dip.Get(), sport, dport);
+            seed = sw->GetEcmpSeed();
+            algorithm = "SwitchNode::EcmpHash";
+        }
+        if (selected < 0 || static_cast<uint32_t>(selected) >= current->GetNDevices())
+            throw std::runtime_error("Native route selected an invalid interface");
+        Ptr<NetDevice> device = current->GetDevice(selected);
+        Ptr<Channel> channel = device->GetChannel();
+        if (!channel || channel->GetNDevices() != 2)
+            throw std::runtime_error("Native route requires a two-ended physical channel");
+        Ptr<NetDevice> peer = channel->GetDevice(channel->GetDevice(0) == device ? 1 : 0);
+        std::ostringstream hop;
+        hop << "{\"node\":" << current->GetId() << ",\"out_if\":" << selected
+            << ",\"next_node\":" << peer->GetNode()->GetId() << ",\"in_if\":" << peer->GetIfIndex()
+            << ",\"hash_algorithm\":\"" << algorithm << "\",\"next_hop_out_ifs\":[";
+        for (size_t index = 0; index < candidates.size(); ++index) {
+            if (index) hop << ',';
+            hop << candidates[index];
+        }
+        hop << ']';
+        if (current->GetNodeType() != 0) hop << ",\"ecmp_seed\":" << seed;
+        hop << '}';
+        result.hops.push_back(hop.str());
+        current = peer->GetNode();
+        result.nodes.push_back(current->GetId());
+    }
+    return result;
+}
+
+void WriteNativeRoute(std::ostream& output, const NativeRoute& route, bool hops) {
+    output << '[';
+    for (size_t index = 0; index < (hops ? route.hops.size() : route.nodes.size()); ++index) {
+        if (index) output << ',';
+        if (hops) output << route.hops[index]; else output << route.nodes[index];
+    }
+    output << ']';
+}
+
+void ExportNativeRoutes(const std::string& filename) {
+    std::ofstream output(filename, std::ios::trunc);
+    if (!output) throw std::runtime_error("Cannot open native route output: " + filename);
+    output << "{\"schema_version\":1,\"oracle\":\"native\",\"certified\":true,"
+              "\"protocol_coverage\":{\"data\":[17],\"reverse\":[252,253],"
+              "\"cnp\":\"ECN feedback is carried in the ACK/NACK CNP flag\","
+              "\"standalone_cnp_supported\":false},\"routes\":{";
+    std::set<std::tuple<int,int,int,int>> seen;
+    bool first = true;
+    for (const auto& operation : flowInfos) for (const auto& phase : operation) for (const auto& flow : phase) {
+        const auto key = std::make_tuple(flow.src_node, flow.dst_node, flow.src_port, flow.dst_port);
+        if (!seen.insert(key).second) continue;
+        const auto forward = ResolveNativeRoute(flow, false);
+        const auto reverse = ResolveNativeRoute(flow, true);
+        if (!first) output << ',';
+        first = false;
+        output << '"' << flow.src_node << ',' << flow.dst_node << ',' << flow.src_port << ',' << flow.dst_port
+               << "\":{\"forward\":";
+        WriteNativeRoute(output, forward, false);
+        output << ",\"reverse\":"; WriteNativeRoute(output, reverse, false);
+        output << ",\"forward_hops\":"; WriteNativeRoute(output, forward, true);
+        output << ",\"reverse_hops\":"; WriteNativeRoute(output, reverse, true);
+        output << '}';
+    }
+    output << "}}" << std::endl;
+    if (!output) throw std::runtime_error("Cannot write native route output: " + filename);
+}
 
 uint32_t flowEnd = 0;
 
@@ -665,9 +917,11 @@ int main(int argc, char *argv[]){
     //     MpiInterface::Disable(); // 禁用MPI
     //     return systemId;
     // }
-    auto main_start_time = std::chrono::high_resolution_clock::now();
+    auto main_start_time = std::chrono::steady_clock::now();
 
     std::string confFile = "examples/Reverie/config-workload.txt";
+    std::string topologyOverride;
+    std::string exportRoutesOnly;
     std::ifstream conf;
     uint32_t LEAF_COUNT = 2;
     uint32_t SERVER_COUNT = 48;
@@ -691,6 +945,9 @@ int main(int argc, char *argv[]){
     CommandLine cmd;
     cmd.AddValue("DST", "number of system", DST);
     cmd.AddValue("TASKINDEX", "taskindex", taskIndex);
+    cmd.AddValue("taskInputDir", "Explicit directory containing this task input", taskInputDir);
+    cmd.AddValue("topologyFile", "Override the topology file after configuration", topologyOverride);
+    cmd.AddValue("exportRoutesOnly", "Export native data/ACK routes and exit before simulation", exportRoutesOnly);
     cmd.AddValue("conf", "config file path", confFile);
     cmd.AddValue("powertcp", "enable powertcp", powertcp);
     cmd.AddValue("thetapowertcp", "enable theta-powertcp, delay version", thetapowertcp);
@@ -733,41 +990,32 @@ int main(int argc, char *argv[]){
     
     namespace fs = std::filesystem;
     
-    if (!kira::init_log("examples/Reverie/dump/system"+to_string(taskIndex)+".log")) {
+    if (!kira::init_log(GetSimulationOutputPath("examples/Reverie/dump/system"+to_string(taskIndex)+".log"))) {
         std::cout << "system: " << taskIndex << " 日志文件创建失败" << std::endl;
         return -1;
     }
-    workFolder += to_string(taskIndex);
-    kira::cout << "workFolder:" << workFolder << std::endl;
-    int maxOperateNum = -1;
-    // 遍历工作目录
+    workFolder = taskInputDir.empty() ? workFolder + std::to_string(taskIndex) : taskInputDir;
+    if (!fs::is_directory(workFolder)) throw std::runtime_error("Task input directory not found: " + workFolder);
+    std::set<size_t> indices;
+    const std::regex operateName(R"(^rdma_operate([0-9]+)\.txt$)");
     for (const auto& entry : fs::directory_iterator(workFolder)) {
-        if (entry.is_regular_file()) {
-            std::string filename = entry.path().filename().string();
-            // 检查文件名前缀
-            if (filename.rfind("rdma_operate", 0) == 0) { // 以rdma_operate开头
-                // 提取数字部分
-                std::string numStr = filename.substr(12); // 12是"rdma_operate"的长度
-                size_t dotPos = numStr.find('.');
-                if (dotPos != std::string::npos) {
-                    numStr = numStr.substr(0, dotPos);
-                }
-                // 转换为数字
-                try {
-                    int num = std::stoi(numStr);
-                    maxOperateNum = std::max(maxOperateNum, num);
-                } catch (const std::exception& e) {
-                    // 忽略非数字后缀的文件
-                }
-            }
-        }
+        if (!entry.is_regular_file()) continue;
+        std::smatch match;
+        const std::string filename = entry.path().filename().string();
+        if (std::regex_match(filename, match, operateName))
+            indices.insert(ParseUnsigned(match[1], "operation filename"));
     }
-    operateNum = maxOperateNum + 1; // 编号从0开始
-    kira::cout << "Found " << operateNum << " rdma_operate files" << std::endl;
+    if (indices.empty()) throw std::runtime_error("No rdma_operateN.txt inputs in " + workFolder);
+    size_t expected = 0;
+    for (size_t index : indices) {
+        if (index != expected++) throw std::runtime_error("Operation input files must be numbered contiguously from zero");
+    }
+    operateNum = indices.size();
+    kira::cout << "workFolder:" << workFolder << " operations:" << operateNum << std::endl;
 
     flowEnd = FLOW_LAUNCH_END_TIME;
 
-    fctOutput = asciiTraceHelper.CreateFileStream (fctOutFile+to_string(taskIndex));
+    fctOutput = asciiTraceHelper.CreateFileStream (GetSimulationOutputPath(fctOutFile+to_string(taskIndex)));
 
     *fctOutput->GetStream () 
             << "timestamp"
@@ -780,7 +1028,7 @@ int main(int argc, char *argv[]){
             << " " << "incastflow"
             << std::endl;
 
-    torStats = torTraceHelper.CreateFileStream (torOutFile);
+    torStats = torTraceHelper.CreateFileStream (GetSimulationOutputPath(torOutFile));
     *torStats->GetStream() 
                 << "switch"
                 << " " << "totalused"
@@ -792,7 +1040,7 @@ int main(int argc, char *argv[]){
                 << " " << "time"
                 << std::endl;
 
-    pfc_file = asciiTraceHelperpfc.CreateFileStream(pfcOutFile);
+    pfc_file = asciiTraceHelperpfc.CreateFileStream(GetSimulationOutputPath(pfcOutFile));
 
     *pfc_file->GetStream()
         << "Time"
@@ -1022,7 +1270,9 @@ int main(int argc, char *argv[]){
         printf("PINT bits: %d bytes: %d\n", Pint::get_n_bits(), Pint::get_n_bytes());
     }
 
+    if (!topologyOverride.empty()) topology_file = topologyOverride;
     topof.open(topology_file.c_str());
+    if (!topof) throw std::runtime_error("Cannot open topology file: " + topology_file);
     flowf.open(flow_file.c_str());
     uint32_t node_num, switch_num, tors, link_num ;
     topof >> node_num >> switch_num >> tors >> link_num >> LEAF_SERVER_CAPACITY >> SPINE_LEAF_CAPACITY ;
@@ -1368,6 +1618,12 @@ int main(int argc, char *argv[]){
 
     // 主进程处理
     workload_rdma(flowCount, SERVER_COUNT, LEAF_COUNT, START_TIME, END_TIME, FLOW_LAUNCH_END_TIME);
+    if (!exportRoutesOnly.empty()) {
+        ExportNativeRoutes(exportRoutesOnly);
+        Simulator::Destroy();
+        return 0;
+    }
+    ExportNativeRoutes(GetSimulationOutputPath("native_routes.json"));
 
     kira::cout << "apps finished" << std::endl;
     topof.close();
@@ -1377,10 +1633,30 @@ int main(int argc, char *argv[]){
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     NS_LOG_INFO("Run Simulation.");
     kira::cout << "Run Simulation." << std::endl;
-    auto simulation_start_time = std::chrono::high_resolution_clock::now();
+    auto simulation_start_time = std::chrono::steady_clock::now();
     Simulator::Run();
+    const auto run_finish_time = std::chrono::steady_clock::now();
+    {
+        std::ofstream metadata(GetSimulationOutputPath("execution_metadata.json"));
+        const uint64_t lastRelease = *std::max_element(opReleaseNs.begin(), opReleaseNs.end());
+        metadata << "{\"mixed_requested\":" << (IsMixedGranularityEnabled() ? "true" : "false")
+                 << ",\"mixed_policy\":\""
+                 << (!IsMixedGranularityEnabled() ? "packet" :
+                     (lastRelease > 0 ? "guarded_until_external_releases" : "mixed"))
+                 << "\",\"mixed_guard_until_ns\":" << lastRelease
+                 << ",\"transition_count\":" << transition_cnt
+                 << ",\"simulation_event_count\":" << Simulator::GetEventCount()
+                 << ",\"simulation_wall_time_ns\":" << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        run_finish_time - simulation_start_time).count()
+                 << ",\"total_wall_time_ns\":" << std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        run_finish_time - main_start_time).count()
+                 << ",\"finish_ns\":" << Simulator::Now().GetNanoSeconds()
+                 << ",\"completed_operations\":" << completedOperations
+                 << ",\"operation_count\":" << operateNum << "}" << std::endl;
+        if (!metadata) throw std::runtime_error("Cannot write execution_metadata.json");
+    }
     Simulator::Destroy();
-    auto simulation_end_time = std::chrono::high_resolution_clock::now();
+    auto simulation_end_time = std::chrono::steady_clock::now();
     auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
         simulation_end_time - main_start_time);
     auto sim_duration = std::chrono::duration_cast<std::chrono::milliseconds>(

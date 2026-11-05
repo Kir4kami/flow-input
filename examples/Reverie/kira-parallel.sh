@@ -1,81 +1,64 @@
-cd ../..
-./ns3 build
-cd examples/Reverie/
-source config.sh
-DIR=$(pwd)
-DUMP_DIR=$DIR/dump
+#!/usr/bin/env bash
+set -euo pipefail
 
-TASKNUM="$1"
-if [ -z "$TASKNUM" ]; then
-  echo "Error: tasknum parameter is required!"
-  exit 1
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+NS3="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DUMP_DIR="$SCRIPT_DIR/dump"
+TASKNUM="${1:-}"
+if ! [[ "$TASKNUM" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Error: a positive task count is required" >&2
+    exit 1
 fi
 
-if [ -d "$DUMP_DIR" ]; then
-    rm -rf "$DUMP_DIR"/*
-fi
+# Every run and task owns its output, including while ns-3 is compiling.
+RUN_DIR="${FLOW_INPUT_RUN_DIR:-$DUMP_DIR/runs/$(date +%s)-$$}"
+mkdir -p "$RUN_DIR"
+RUN_DIR="$(cd "$RUN_DIR" && pwd)"
+END_TIME="${SIM_END_TIME_SEC_OVERRIDE:-${SIM_END_TIME_NS_OVERRIDE:-10000}}"
+FLOW_LAUNCH_END_TIME="${SIM_FLOW_LAUNCH_END_SEC_OVERRIDE:-${SIM_FLOW_LAUNCH_END_NS_OVERRIDE:-3}}"
+cd "$NS3"
+./ns3 build sim -j "${NS3_BUILD_JOBS:-2}"
 
-if [ ! -d "$DUMP_DIR" ];then
-	mkdir $DUMP_DIR
-fi
-
-cd $NS3
-
-REVERIE=111
-
-INTCC=3
-
-NUM=0
-DST=1
-
-alg=$REVERIE
-egresslossyFrac=0.8
-gamma=0.999
-
-START_TIME=0
-DEFAULT_END_TIME=10000
-DEFAULT_FLOW_LAUNCH_END_TIME=3
-
-# 支持 API 传入的秒数（优先）或纳秒覆盖
-if [ -n "$SIM_END_TIME_SEC_OVERRIDE" ]; then
-  END_TIME="$SIM_END_TIME_SEC_OVERRIDE"
-elif [ -n "$SIM_END_TIME_NS_OVERRIDE" ]; then
-  END_TIME="$SIM_END_TIME_NS_OVERRIDE"
-else
-  END_TIME=$DEFAULT_END_TIME
-fi
-
-if [ -n "$SIM_FLOW_LAUNCH_END_SEC_OVERRIDE" ]; then
-  FLOW_LAUNCH_END_TIME="$SIM_FLOW_LAUNCH_END_SEC_OVERRIDE"
-elif [ -n "$SIM_FLOW_LAUNCH_END_NS_OVERRIDE" ]; then
-  FLOW_LAUNCH_END_TIME="$SIM_FLOW_LAUNCH_END_NS_OVERRIDE"
-else
-  FLOW_LAUNCH_END_TIME=$DEFAULT_FLOW_LAUNCH_END_TIME
-fi
-#BUFFER_PER_PORT_PER_GBPS=5.12 # in KiloBytes per port per Gbps
-#BUFFERSIZE=$(python3 -c "print(20*25*1000*$BUFFER_PER_PORT_PER_GBPS)") # in Bytes
-ALPHAFILE=$DIR/alphas
-
-RDMAREQRATE=2
-TCPREQRATE=2
-
-RDMACC=$INTCC
-
-BUFFERMODEL="reverie"
-
-for((i=1;i<=$TASKNUM;i++));do
-	while [[ $(ps aux | grep sim-optimized | wc -l) -gt $N_CORES ]];do
-		sleep 30;
-		echo "waiting for cores, $N_CORES running..."
-	done
-	FCTFILE=$DUMP_DIR/evaluation.fct
-	TORFILE=$DUMP_DIR/evaluation.tor
-	DUMPFILE=$DUMP_DIR/evaluation.out
-	PFCFILE=$DUMP_DIR/evaluation.pfc
-	echo $FCTFILE
-	(time ./ns3 run "sim --TASKINDEX=$i --DST=$DST --START_TIME=$START_TIME --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --fctOutFile=$FCTFILE --torOutFile=$TORFILE --pfcOutFile=$PFCFILE" > $DUMPFILE 2>&1)&
-	#sleep 5
-	NUM=$(( $NUM+1  ))
+pids=()
+trap 'for pid in "${pids[@]}"; do kill "$pid" 2>/dev/null || true; done' TERM INT
+for ((i=1; i<=TASKNUM; i++)); do
+    task_dir="$RUN_DIR/task$i"
+    mkdir -p "$task_dir"
+    (
+        export FLOW_INPUT_OUTPUT_DIR="$task_dir"
+        export FLOW_INPUT_TASK_ID="$i"
+        trap 'echo $? > "$FLOW_INPUT_OUTPUT_DIR/exit_code"' EXIT
+        # Calibration input is copied before this task starts writing statistics.
+        if [[ -f "$NS3/flow_SwitchStats.txt" ]]; then
+            cp "$NS3/flow_SwitchStats.txt" "$task_dir/flow_SwitchStats.txt"
+        fi
+        ./ns3 run --no-build "sim --TASKINDEX=$i --DST=1 --START_TIME=0 --END_TIME=$END_TIME --FLOW_LAUNCH_END_TIME=$FLOW_LAUNCH_END_TIME --fctOutFile=evaluation.fct --torOutFile=evaluation.tor --pfcOutFile=evaluation.pfc"
+    ) > "$task_dir/evaluation.out" 2>&1 &
+    pids+=("$!")
 done
 
-echo "Total $NUM experiments"
+# Publish compatibility files only after all children have finished.
+status=0
+for pid in "${pids[@]}"; do
+    wait "$pid" || status=1
+done
+mkdir -p "$DUMP_DIR"
+for name in evaluation.out flow_stats.txt evaluation.tor evaluation.pfc; do
+    : > "$DUMP_DIR/$name"
+    for ((i=1; i<=TASKNUM; i++)); do
+        if [[ -f "$RUN_DIR/task$i/$name" ]]; then
+            cat "$RUN_DIR/task$i/$name" >> "$DUMP_DIR/$name"
+        fi
+    done
+done
+: > "$DUMP_DIR/evaluation.fct1"
+for ((i=1; i<=TASKNUM; i++)); do
+    if [[ -f "$RUN_DIR/task$i/evaluation.fct$i" ]]; then
+        cat "$RUN_DIR/task$i/evaluation.fct$i" >> "$DUMP_DIR/evaluation.fct1"
+    fi
+    if [[ -f "$RUN_DIR/task$i/system$i.log" ]]; then
+        cp "$RUN_DIR/task$i/system$i.log" "$DUMP_DIR/system$i.log"
+    fi
+done
+echo "Completed $TASKNUM tasks (status=$status)"
+exit "$status"
